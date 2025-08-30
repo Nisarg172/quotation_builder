@@ -4,19 +4,17 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import type { QuoteData, QuoteItem } from "./Types/type";
 import QuotePDF from "./Component/QuotePDF";
 import Select from "react-select";
+import { urlToBase64 } from "./utils/function";
 
 export default function App() {
-  const [quote, setQuote] = useState<QuoteData>({ items: [], grandTotal: 0 });
+  const [quote, setQuote] = useState<QuoteData>({
+    items: [],
+    customerName: "",
+    mobileNo: "",
+    grandTotal: 0,
+  });
 
-  // Filter out products already added in quote
-  const productOptions = products
-    .filter((p) => !quote.items.some((it) => it.name === p.name))
-    .map((p) => ({
-      value: p.id,
-      label: p.name,
-    }));
-
-  function addProduct(productId: string) {
+  async function addProduct(productId: string) {
     const product = products.find((p) => p.id === productId);
     if (!product) return;
 
@@ -29,10 +27,10 @@ export default function App() {
       qty: 1,
       unitRate: product.unitRate,
       amount: product.unitRate,
-      image: product.image,
+      image: product?.image ? await urlToBase64(product.image) : "",
       installation_amount_1: product.installation_amount_1 || 0,
       installation_amount_2: product.installation_amount_2 || 0,
-      catagoryName: product.catagoryName, // ✅ add category
+      catagoryName: product.catagoryName,
     };
 
     const items = [...quote.items, newItem];
@@ -77,7 +75,7 @@ export default function App() {
         s + it.amount + it.installation_amount_1 + it.installation_amount_2,
       0
     );
-    setQuote({ items, grandTotal });
+    setQuote({ ...quote, items, grandTotal });
   }
 
   // ✅ Group items by category
@@ -90,16 +88,51 @@ export default function App() {
     {}
   );
 
+  // Group products by category for Select
+  const groupedOptions = Object.values(
+    products.reduce((acc, p) => {
+      if (!acc[p.catagoryName]) {
+        acc[p.catagoryName] = { label: p.catagoryName, options: [] };
+      }
+      if (!quote.items.some((it) => it.name === p.name)) {
+        acc[p.catagoryName].options.push({
+          value: p.id,
+          label: p.name,
+        });
+      }
+      return acc;
+    }, {} as Record<string, { label: string; options: { value: string; label: string }[] }>)
+  );
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <h1 className="text-2xl font-bold mb-4">Quotation Builder</h1>
 
+      {/* ✅ Client Info */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <input
+          type="text"
+          placeholder="Customer Name"
+          className="border p-2 rounded"
+          value={quote.customerName}
+          onChange={(e) => setQuote({ ...quote, customerName: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Mobile No."
+          className="border p-2 rounded"
+          value={quote.mobileNo}
+          onChange={(e) => setQuote({ ...quote, mobileNo: e.target.value })}
+        />
+      </div>
+
       {/* Product Selector */}
       <div className="mb-4 w-80">
         <Select
-          options={productOptions}
+          options={groupedOptions}
           placeholder="Select a product..."
           onChange={(selected) => {
+            // @ts-ignore
             if (selected) addProduct(selected.value);
           }}
           isSearchable
@@ -139,20 +172,18 @@ export default function App() {
                 <td colSpan={12} className="border p-2 text-left">{category}</td>
               </tr>
 
-              {items.map((it, idx) => {
+              {items.map((it) => {
                 const total =
-                  it.amount + it.installation_amount_1 + it.installation_amount_2;
+                  it.amount +
+                  it.installation_amount_1 +
+                  it.installation_amount_2;
                 return (
                   <tr key={it.sn} className="border-t">
                     <td className="border p-2">{it.sn}</td>
                     <td className="border p-2 text-left">{it.description}</td>
                     <td className="border p-2">
                       {it.image && (
-                        <img
-                          src={it.image}
-                          alt=""
-                          className="w-12 h-12 object-contain mx-auto"
-                        />
+                        <img src={it.image} alt="" className="w-12 h-12 object-contain mx-auto" />
                       )}
                     </td>
                     <td className="border p-2">{it.make}</td>
@@ -161,9 +192,11 @@ export default function App() {
                       <input
                         type="number"
                         className="w-16 border p-1"
-                        value={it.qty}
+                        value={it.qty === 0 ? "" : it.qty.toString()}
                         onChange={(e) =>
-                          updateItem(it.sn - 1, { qty: Number(e.target.value) })
+                          updateItem(it.sn - 1, {
+                            qty: e.target.value === "" ? 0 : Number(e.target.value),
+                          })
                         }
                       />
                     </td>
@@ -171,9 +204,11 @@ export default function App() {
                       <input
                         type="number"
                         className="w-24 border p-1"
-                        value={it.unitRate}
+                        value={it.unitRate === 0 ? "" : it.unitRate.toString()}
                         onChange={(e) =>
-                          updateItem(it.sn - 1, { unitRate: Number(e.target.value) })
+                          updateItem(it.sn - 1, {
+                            unitRate: e.target.value === "" ? 0 : Number(e.target.value),
+                          })
                         }
                       />
                     </td>
@@ -182,9 +217,13 @@ export default function App() {
                       <input
                         type="number"
                         className="w-24 border p-1"
-                        value={it.installation_amount_1}
+                        value={it.installation_amount_1 === 0 ? "" : it.installation_amount_1.toString()}
                         onChange={(e) =>
-                          updateInstallation(it.sn - 1, "installation_amount_1", Number(e.target.value))
+                          updateInstallation(
+                            it.sn - 1,
+                            "installation_amount_1",
+                            e.target.value === "" ? 0 : Number(e.target.value)
+                          )
                         }
                       />
                     </td>
@@ -192,20 +231,19 @@ export default function App() {
                       <input
                         type="number"
                         className="w-24 border p-1"
-                        value={it.installation_amount_2}
+                        value={it.installation_amount_2 === 0 ? "" : it.installation_amount_2.toString()}
                         onChange={(e) =>
-                          updateInstallation(it.sn - 1, "installation_amount_2", Number(e.target.value))
+                          updateInstallation(
+                            it.sn - 1,
+                            "installation_amount_2",
+                            e.target.value === "" ? 0 : Number(e.target.value)
+                          )
                         }
                       />
                     </td>
                     <td className="border p-2 text-right">{total.toFixed(2)}</td>
                     <td className="border p-2">
-                      <button
-                        className="text-red-600"
-                        onClick={() => removeItem(it.sn - 1)}
-                      >
-                        ✕
-                      </button>
+                      <button className="text-red-600" onClick={() => removeItem(it.sn - 1)}>✕</button>
                     </td>
                   </tr>
                 );
@@ -225,7 +263,7 @@ export default function App() {
         <div className="mt-6">
           <PDFDownloadLink
             document={<QuotePDF data={{ ...quote }} />}
-            fileName="quotation.pdf"
+            fileName={`${quote.customerName}_quotation.pdf`}
           >
             {({ loading }) => (
               <button className="px-4 py-2 bg-green-600 text-white rounded">

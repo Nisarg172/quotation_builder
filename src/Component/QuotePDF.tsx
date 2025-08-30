@@ -119,7 +119,9 @@ const infoData = {
   ],
 };
 
+
 export default function QuotePDF({ data }: { data: QuoteData }) {
+  console.log('========>',data)
   // ✅ group items by category
   const groupedItems = data.items.reduce<Record<string, QuoteItem[]>>(
     (acc, item) => {
@@ -145,8 +147,15 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
             <Text style={styles.contactSmall}>Email: {infoData.email}</Text>
             <Text style={styles.contactSmall}>Address: {infoData.address}</Text>
           </View>
+
           <View style={styles.rightBlock}>
             <Text style={styles.bold}>Reference / Quote No: {"1"}</Text>
+            <Text style={{ marginTop: 4, fontSize: 10 }}>
+              Customer: {data.customerName || "-"}
+            </Text>
+            <Text style={{ fontSize: 10 }}>
+              Mobile: {data.mobileNo || "-"}
+            </Text>
           </View>
         </View>
 

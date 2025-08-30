@@ -9,11 +9,12 @@ export const products = [
       installation_amount_1:0,
       installation_amount_2:0,
       make:"ROGER - PURE MADE IN ITALY",
-      catagoryName:"Barrier"
+      catagoryName:"Barrier",
+      image:"https://hrvgczmrlfedbdeqnvgn.supabase.co/storage/v1/object/public/image/barrier.png"
     },
 
     {
-      id: "barrier2",
+      id: "barrier",
       name: "Semi Automatic Barrier",
       description: "BRUSHLESS 36V DC super intensive use with operator and built-in digital control panel.",
       makeModel: "RT-20BW",
@@ -21,7 +22,8 @@ export const products = [
       installation_amount_1:0,
       installation_amount_2:0,
       make:"ROGER - PURE MADE IN ITALY",
-      catagoryName:"Barrier"
+      catagoryName:"Barrier",
+      image:"https://hrvgczmrlfedbdeqnvgn.supabase.co/storage/v1/object/public/image/barrier.png"
     },
     {
       id: "gate1",
@@ -29,7 +31,6 @@ export const products = [
       description: "Electromechanical 230V AC operator for swing gates.",
       makeModel: "SG-200",
       unitRate: 65999,
-      image:"/logo.png",
       installation_amount_1:0,
       installation_amount_2:0,
        make:"ROGER - PURE MADE IN ITALY",
@@ -41,11 +42,11 @@ export const products = [
       description: "Electromechanical 230V AC operator for swing gates.",
       makeModel: "SG-201",
       unitRate: 6999,
-      image:"/logo.png",
       installation_amount_1:0,
       installation_amount_2:0,
        make:"ROGER - PURE MADE IN ITALY",
-       catagoryName:"Gate"
+       catagoryName:"Gate",
+       image:"https://hrvgczmrlfedbdeqnvgn.supabase.co/storage/v1/object/public/image/gate.jpeg"
     },
     {
       id: "motor1",
@@ -56,7 +57,8 @@ export const products = [
       installation_amount_1:0,
       installation_amount_2:0,
       make:"ROGER - PURE MADE IN ITALY",
-       catagoryName:"Moter"
+       catagoryName:"Moter",
+       
     },
     {
       id: "motor2",
@@ -67,7 +69,8 @@ export const products = [
       installation_amount_1:0,
       installation_amount_2:0,
       make:"ROGER - PURE MADE IN ITALY",
-      catagoryName:"Moter"
+      catagoryName:"Moter",
+     
     },
   ];
   
