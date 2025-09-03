@@ -21,7 +21,11 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "baseUrl": ".",             // 👈 add this
+    "paths": {                  // 👈 add this
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src"]
 }

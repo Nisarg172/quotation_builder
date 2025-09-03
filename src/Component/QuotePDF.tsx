@@ -9,97 +9,283 @@ import {
 } from "@react-pdf/renderer";
 import type { QuoteData, QuoteItem } from "../Types/type";
 
-const BORDER = "#000";
+// Professional color scheme
+const COLORS = {
+  primary: "#1e40af",      // Blue
+  secondary: "#64748b",    // Slate
+  accent: "#f8fafc",       // Light gray
+  border: "#e2e8f0",      // Light border
+  text: {
+    primary: "#0f172a",     // Dark slate
+    secondary: "#475569",   // Medium slate
+    muted: "#64748b",       // Light slate
+  },
+  background: {
+    header: "#f1f5f9",      // Very light blue
+    category: "#e0f2fe",    // Light blue
+    total: "#fef3c7",       // Light yellow
+  }
+};
 
 const styles = StyleSheet.create({
   page: {
-    fontSize: 9,
-    padding: 16,
+    fontSize: 10,
+    padding: 24,
     fontFamily: "Helvetica",
-    lineHeight: 1.35,
-    color: "#111827",
+    lineHeight: 1.4,
+    color: COLORS.text.primary,
+    backgroundColor: "#ffffff",
   },
 
-  // ===== Header info =====
-  headerRow: {
+  // ===== Header Section =====
+  headerContainer: {
+    backgroundColor: COLORS.background.header,
+    padding: 20,
+    marginBottom: 20,
+    borderRadius: 8,
+  },
+  headerRowMain: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 10,
+    alignItems: "flex-start",
   },
-  companyBlock: { width: "55%" },
-  companyName: { fontSize: 14, fontWeight: "bold", marginTop: 2, marginBottom: 4 },
-  contactSmall: { fontSize: 10, lineHeight: 1.2 },
-  rightBlock: { width: "45%", textAlign: "right" },
+  companyBlock: { 
+    width: "60%",
+    paddingRight: 20,
+  },
+  companyName: { 
+    fontSize: 22, 
+    fontWeight: "bold", 
+    color: COLORS.primary,
+    marginBottom: 8,
+  },
+  companySubtitle: {
+    fontSize: 11,
+    color: COLORS.text.secondary,
+    marginBottom: 12,
+    fontStyle: "italic",
+  },
+  contactInfo: {
+    backgroundColor: "#ffffff",
+    padding: 12,
+    borderRadius: 6,
+  },
+  contactRow: {
+    flexDirection: "row",
+    marginBottom: 4,
+  },
+  contactLabel: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: COLORS.text.secondary,
+    width: 50,
+  },
+  contactValue: {
+    fontSize: 9,
+    color: COLORS.text.primary,
+    flex: 1,
+  },
+  rightBlock: { 
+    width: "38%",
+    backgroundColor: "#ffffff",
+    padding: 16,
+    borderRadius: 6,
+  },
+  quoteTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: COLORS.primary,
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  quoteInfo: {
+    marginBottom: 8,
+  },
+  quoteLabel: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: COLORS.text.secondary,
+  },
+  quoteValue: {
+    fontSize: 11,
+    color: COLORS.text.primary,
+    marginTop: 2,
+  },
 
-  // ===== Table base =====
+  // ===== Table Styling =====
+  tableContainer: {
+    marginBottom: 20,
+    borderRadius: 8,
+    overflow: "hidden",
+  },
   table: {
     width: "100%",
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderStyle: "solid",
     flexDirection: "column",
+    border: `2px solid ${COLORS.border}`,
+  },
+  headerRow: {
+    flexDirection: "row",
+    backgroundColor: COLORS.primary,
   },
   row: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderColor: BORDER,
+    borderColor: COLORS.border,
+    minHeight: 35,
+  },
+  rowEven: {
+    backgroundColor: COLORS.accent,
   },
   cell: {
     borderRightWidth: 1,
-    borderColor: BORDER,
-    padding: 4,
+    borderColor: COLORS.border,
+    padding: 8,
     justifyContent: "center",
+    alignItems: "center",
+  },
+  headerCell: {
+    backgroundColor: COLORS.primary,
+    color: "#ffffff",
+    fontWeight: "bold",
+    fontSize: 9,
+    textAlign: "center",
   },
 
-  // widths
-  colSr: { width: "5%" },
-  colDesc: { width: "18%" },
-  colImg: { width: "10%", alignItems: "center" },
+  // Column widths
+  colSr: { width: "6%" },
+  colDesc: { width: "20%" },
+  colImg: { width: "8%" },
   colMakeModel: { width: "18%" },
   colQty: { width: "6%" },
-  colSupply: { width: "18%" },
-  colInstall: { width: "15%" },
+  colSupply: { width: "16%" },
+  colInstall: { width: "16%" },
   colTotal: { width: "10%" },
 
-  // grouped headers
-  groupCell: { padding: 0 },
+  // Grouped headers
+  groupCell: { 
+    padding: 0,
+    backgroundColor: COLORS.primary,
+  },
   groupTop: {
-    padding: 3,
+    padding: 6,
     textAlign: "center",
     fontWeight: "bold",
     borderBottomWidth: 1,
-    borderColor: BORDER,
+    borderColor: "rgba(255,255,255,0.3)",
+    color: "#ffffff",
+    fontSize: 8,
   },
-  groupBottom: { flexDirection: "row" },
+  groupBottom: { 
+    flexDirection: "row",
+  },
   half: {
     width: "50%",
-    padding: 3,
+    padding: 4,
     textAlign: "center",
     fontWeight: "bold",
+    color: "#ffffff",
+    fontSize: 7,
   },
   halfWithDivider: {
     borderRightWidth: 1,
-    borderColor: BORDER,
+    borderColor: "rgba(255,255,255,0.3)",
   },
 
-  // category row
+  // Category styling
   categoryRow: {
-    backgroundColor: "#f3f4f6",
-    borderBottomWidth: 1,
-    borderColor: BORDER,
-    padding: 4,
+    backgroundColor: COLORS.background.category,
+    borderBottomWidth: 2,
+    borderColor: COLORS.primary,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
   },
-  categoryText: { fontWeight: "bold", fontSize: 10 },
+  categoryIcon: {
+    width: 16,
+    height: 16,
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  categoryText: { 
+    fontWeight: "bold", 
+    fontSize: 12,
+    color: COLORS.primary,
+  },
 
-  // text helpers
+  // Text utilities
   bold: { fontWeight: "bold" },
   center: { textAlign: "center" },
   right: { textAlign: "right" },
+  left: { textAlign: "left" },
 
-  // terms
-  termsWrap: { marginTop: 10 },
-  termsTitle: { fontWeight: "bold", marginBottom: 2, color: "red" },
-  term: { fontSize: 8, marginTop: 2 },
+  // Product image
+  productImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 4,
+  },
+  noImage: {
+    width: 32,
+    height: 32,
+    backgroundColor: COLORS.accent,
+    borderRadius: 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  noImageText: {
+    fontSize: 6,
+    color: COLORS.text.muted,
+  },
+
+  // Total section
+  totalSection: {
+    marginTop: 16,
+    backgroundColor: COLORS.background.total,
+    padding: 16,
+    borderRadius: 8,
+  },
+  grandTotalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  grandTotalLabel: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: COLORS.text.primary,
+  },
+  grandTotalAmount: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: COLORS.primary,
+  },
+
+  // Terms section
+  termsContainer: {
+    marginTop: 20,
+    backgroundColor: "#ffffff",
+    padding: 16,
+    borderRadius: 8,
+  },
+  termsTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: COLORS.primary,
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  termItem: {
+    fontSize: 9,
+    marginBottom: 6,
+    color: COLORS.text.primary,
+    lineHeight: 1.4,
+  },
+  termNumber: {
+    fontWeight: "bold",
+    color: COLORS.primary,
+  },
 });
 
 // Static company info
@@ -136,26 +322,63 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         {/* ===== Company / Quote Info ===== */}
-        <View style={styles.headerRow}>
-          <View style={styles.companyBlock}>
-            {infoData.logo ? (
-              <Image src={infoData.logo} style={{ width: 46, height: 46 }} />
-            ) : null}
-            <Text style={styles.companyName}>{infoData.companyName}</Text>
-            <Text style={styles.contactSmall}>Contact: {infoData.contactName}</Text>
-            <Text style={styles.contactSmall}>Phone: {infoData.contactNo}</Text>
-            <Text style={styles.contactSmall}>Email: {infoData.email}</Text>
-            <Text style={styles.contactSmall}>Address: {infoData.address}</Text>
-          </View>
+        <View style={styles.headerContainer}>
+          <View style={styles.headerRowMain}>
+            <View style={styles.companyBlock}>
+              {infoData.logo ? (
+                <Image src={infoData.logo} style={{ width: 60, height: 60 }} />
+              ) : (
+                <View style={{ width: 60, height: 60, backgroundColor: COLORS.primary, borderRadius: 8, justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ color: '#ffffff', fontSize: 20, fontWeight: 'bold' }}>HM</Text>
+                </View>
+              )}
+              
+              <Text style={styles.companyName}>{infoData.companyName}</Text>
+              <Text style={styles.companySubtitle}>Professional Technology Solutions</Text>
+              
+              <View style={styles.contactInfo}>
+                <View style={styles.contactRow}>
+                  <Text style={styles.contactLabel}>Contact:</Text>
+                  <Text style={styles.contactValue}>{infoData.contactName}</Text>
+                </View>
+                <View style={styles.contactRow}>
+                  <Text style={styles.contactLabel}>Phone:</Text>
+                  <Text style={styles.contactValue}>{infoData.contactNo}</Text>
+                </View>
+                <View style={styles.contactRow}>
+                  <Text style={styles.contactLabel}>Email:</Text>
+                  <Text style={styles.contactValue}>{infoData.email}</Text>
+                </View>
+                <View style={styles.contactRow}>
+                  <Text style={styles.contactLabel}>Address:</Text>
+                  <Text style={styles.contactValue}>{infoData.address}</Text>
+                </View>
+              </View>
+            </View>
 
-          <View style={styles.rightBlock}>
-            <Text style={styles.bold}>Reference / Quote No: {"1"}</Text>
-            <Text style={{ marginTop: 4, fontSize: 10 }}>
-              Customer: {data.customerName || "-"}
-            </Text>
-            <Text style={{ fontSize: 10 }}>
-              Mobile: {data.mobileNo || "-"}
-            </Text>
+            <View style={styles.rightBlock}>
+              <Text style={styles.quoteTitle}>QUOTATION</Text>
+              
+              <View style={styles.quoteInfo}>
+                <Text style={styles.quoteLabel}>Quote Number:</Text>
+                <Text style={styles.quoteValue}>QT-2024-{String(Date.now()).slice(-6)}</Text>
+              </View>
+              
+              <View style={styles.quoteInfo}>
+                <Text style={styles.quoteLabel}>Date:</Text>
+                <Text style={styles.quoteValue}>{new Date().toLocaleDateString('en-IN')}</Text>
+              </View>
+              
+              <View style={styles.quoteInfo}>
+                <Text style={styles.quoteLabel}>Customer:</Text>
+                <Text style={styles.quoteValue}>{data.customerName || "N/A"}</Text>
+              </View>
+              
+              <View style={styles.quoteInfo}>
+                <Text style={styles.quoteLabel}>Mobile:</Text>
+                <Text style={styles.quoteValue}>{data.mobileNo || "N/A"}</Text>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -283,11 +506,11 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
         </View>
 
         {/* Terms */}
-        <View style={styles.termsWrap}>
-          <Text style={styles.termsTitle}>Terms & Conditions:</Text>
+        <View style={styles.termsContainer}>
+          <Text style={styles.termsTitle}>Terms & Conditions</Text>
           {infoData.terms.map((t, i) => (
-            <Text key={i} style={styles.term}>
-              {i + 1}. {t}
+            <Text key={i} style={styles.termItem}>
+              <Text style={styles.termNumber}>{i + 1}.</Text> {t}
             </Text>
           ))}
         </View>
