@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useForm, Controller, set } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { supabase } from "../supabase";
 import { Pencil, Trash2, Plus, Search, ChevronUp, ChevronDown, Filter } from "lucide-react";
 import { Button } from "../components/CustomButton";
