@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import Home from "./pages/Home";
 import CategoryManager from "./pages/CategoryManager";
 import ProductManager from "./pages/ProductManager";
+import AccessoryManager from "./pages/AccessoryManager";
 
 
 export default function App() {
@@ -30,6 +31,13 @@ export default function App() {
               >
                 Products
               </Link>
+
+              <Link 
+                to="/accessories" 
+                className="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 hover:bg-slate-100"
+              >
+                Accessories
+              </Link>
               <Link 
                 to="/category" 
                 className="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 hover:bg-slate-100"
@@ -46,6 +54,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/product" element={<ProductManager/>} />
+          <Route path="/accessories" element={<AccessoryManager/>} />
           <Route path="/category" element={<CategoryManager/>} />
         </Routes>
       </main>

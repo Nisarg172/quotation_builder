@@ -25,12 +25,26 @@ export default function Home() {
       description: string | null;
       image_url: string | null;
       installation_amount_1: number;
-      installation_amount_2: number;
       make: string | null;
       model: string | null;
       name: string;
       price: number;
       catagoryName: string;
+      accessories?: {
+            accessory: {
+                category_id: string | null;
+                created_at: string;
+                description: string | null;
+                id: string;
+                image_url: string | null;
+                installation_amount_1: number;
+                is_accessory: boolean;
+                make: string | null;
+                model: string | null;
+                name: string;
+                price: number;
+            };
+        }[];      
     } | null = null;
 
     for (const cat of products) {
@@ -42,8 +56,10 @@ export default function Home() {
     }
 
     if (!foundProduct) return;
+    
 
     const newItem: QuoteItem = {
+      id: foundProduct.id,
       sn: quote.items.length + 1,
       name: foundProduct.name,
       description: foundProduct.description || "",
@@ -56,12 +72,54 @@ export default function Home() {
         ? await urlToBase64(foundProduct.image_url)
         : "",
       installation_amount_1: foundProduct.installation_amount_1 || 0,
-      installation_amount_2: foundProduct.installation_amount_2 || 0,
       catagoryName: foundProduct.catagoryName,
+      totalInstallation: foundProduct.installation_amount_1 || 0,
+      
     };
 
-    const items = [...quote.items, newItem];
-    updateQuote(items);
+  console.log("Found product to add: ", foundProduct);
+   const accessoryAsProduct: QuoteItem[] = await Promise.all(
+  foundProduct?.accessories?.map(async ({ accessory }, index) => {
+    const newItem: QuoteItem = {
+      id: accessory.id,
+      sn: quote.items.length+1 + index + 1,
+      name: accessory.name,
+      description: accessory.description || "",
+      make: accessory.make || "",
+      makeModel: accessory.model || "",
+      qty: 1,
+      unitRate: accessory.price,
+      amount: accessory.price,
+      image: accessory.image_url
+        ? await urlToBase64(accessory.image_url)
+        : "",
+      installation_amount_1: accessory.installation_amount_1 || 0,
+      catagoryName: foundProduct.catagoryName,
+      totalInstallation: accessory.installation_amount_1 || 0,
+    };
+
+    return newItem;
+  }) || []
+);
+  
+   
+
+    const items = [...quote.items, newItem, ...accessoryAsProduct];
+    const mergedItems = items.reduce<QuoteItem[]>((acc, item) => {
+  const existing = acc.find(i => i.id === item.id);
+
+  if (existing) {
+    existing.qty += item.qty;
+    existing.amount = existing.qty * existing.unitRate;
+    existing.totalInstallation =
+      existing.qty * (existing.installation_amount_1 || 0);
+  } else {
+    acc.push({ ...item });
+  }
+
+  return acc;
+}, []);
+    updateQuote(mergedItems);
   }
 
   function updateItem(idx: number, changes: Partial<QuoteItem>) {
@@ -69,21 +127,25 @@ export default function Home() {
       if (i !== idx) return it;
       const updated = { ...it, ...changes };
       updated.amount = updated.qty * updated.unitRate;
+      updated.totalInstallation = updated.qty * updated.installation_amount_1;
       return updated;
     });
     updateQuote(items);
   }
 
+ 
+
+
   function updateInstallation(
     idx: number,
-    field: "installation_amount_1" | "installation_amount_2",
     value: number
   ) {
     const items = quote.items.map((it, i) => {
       if (i !== idx) return it;
       return {
         ...it,
-        [field]: value,
+        installation_amount_1: value,
+        totalInstallation: it.qty * value,
       };
     });
     updateQuote(items);
@@ -99,7 +161,7 @@ export default function Home() {
   function updateQuote(items: QuoteItem[]) {
     const grandTotal = items.reduce(
       (s, it) =>
-        s + it.amount + it.installation_amount_1 + it.installation_amount_2,
+        s + it.amount + it.installation_amount_1 ,
       0
     );
     setQuote({ ...quote, items, grandTotal });
@@ -126,8 +188,11 @@ export default function Home() {
       })),
   }));
 
+  
+
   const fetchProducts = async () => {
     const { data, error } = await getProductWithCatagory();
+    
     if (error) toast.error(error.message);
     else setProducts(data || []);
   };
@@ -250,8 +315,8 @@ export default function Home() {
             <th className="border p-2">Model No.</th>
             <th className="border p-2">Unit Rate</th>
             <th className="border p-2">Amount-I</th>
+            <th className="border p-2">Unit Rate</th>
             <th className="border p-2">Amount-II</th>
-            <th className="border p-2">Amount-III</th>
           </tr>
         </thead>
 
@@ -268,8 +333,7 @@ export default function Home() {
               {items.map((it) => {
                 const total =
                   it.amount +
-                  it.installation_amount_1 +
-                  it.installation_amount_2;
+                  it.totalInstallation
                 return (
                   <tr key={it.sn} className="border-t">
                     <td className="border p-2">{it.sn}</td>
@@ -285,6 +349,7 @@ export default function Home() {
                     </td>
                     <td className="border p-2">{it.make}</td>
                     <td className="border p-2">{it.makeModel}</td>
+                    {/* quantity   */}
                     <td className="border p-2">
                       <input
                         type="number"
@@ -298,6 +363,7 @@ export default function Home() {
                         }
                       />
                     </td>
+                    {/* unit rate of product  */}
                     <td className="border p-2">
                       <input
                         type="number"
@@ -318,6 +384,7 @@ export default function Home() {
                     <td className="border p-2 text-right">
                       {it.amount.toFixed(2)}
                     </td>
+                    {/* unite rate of installation */}
                     <td className="border p-2">
                       <input
                         type="number"
@@ -330,29 +397,13 @@ export default function Home() {
                         onChange={(e) =>
                           updateInstallation(
                             it.sn - 1,
-                            "installation_amount_1",
                             e.target.value === "" ? 0 : Number(e.target.value)
                           )
                         }
                       />
                     </td>
                     <td className="border p-2">
-                      <input
-                        type="number"
-                        className="w-24 border p-1"
-                        value={
-                          it.installation_amount_2 === 0
-                            ? ""
-                            : it.installation_amount_2.toString()
-                        }
-                        onChange={(e) =>
-                          updateInstallation(
-                            it.sn - 1,
-                            "installation_amount_2",
-                            e.target.value === "" ? 0 : Number(e.target.value)
-                          )
-                        }
-                      />
+                      {it.totalInstallation.toFixed(2)}
                     </td>
                     <td className="border p-2 text-right">
                       {total.toFixed(2)}

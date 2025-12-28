@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useForm, Controller, set } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { supabase } from "../supabase";
 import { Pencil, Trash2, Plus, Search, ChevronUp, ChevronDown, Filter } from "lucide-react";
 import { Button } from "../components/CustomButton";
@@ -9,25 +9,31 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Drawer } from "../components/Drawer";
 import { toast } from "sonner";
 
-import type { AccessoryOption, Category, ProductInput } from "@/Types/type";
-import type { Product } from "@/Types/type"; // Assuming you already have this type
+import type { Category, ProductWithoutAccessory } from "@/Types/type";
 import { FileUploader } from "@/components/FileUploader";
 import { addProduct, deleteProduct, editProduct, getProduct } from "@/Api/Category/ProductApi";
 import { getCatagory } from "@/Api/Category/CategoryApi";
-import Select from "react-select";
-import { addProductAccessory, removeAccessoryByProductId } from "@/Api/Category/ProductAccessory";
 
+type ProductInput = {
+  name: string;
+  description?: string;
+  model?: string;
+  price: number;
+  make?: string;
+  installation_amount_1: number;
+  category_id?: string;
+  imageFile: File | null;
+  is_accessory:boolean;
+};
 
-
-
-export default function ProductManager() {
-  const [products, setProducts] = useState<Product[]>([]);
+export default function AccessoryManager() {
+  const [products, setProducts] = useState<ProductWithoutAccessory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-
+  
   // Enhanced state for table features
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState<keyof Product | null>(null);
+  const [sortField, setSortField] = useState<keyof ProductWithoutAccessory | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [groupByCategory, setGroupByCategory] = useState(false);
@@ -35,15 +41,12 @@ export default function ProductManager() {
   const [itemsPerPage] = useState(10);
 
   const [openDrawer, setOpenDrawer] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [accessoryOptions, SetAccessoryOptions] = useState<AccessoryOption[]>([]);
+  const [editingProduct, setEditingProduct] = useState<ProductWithoutAccessory | null>(null);
 
   const [confirmDelete, setConfirmDelete] = useState<{
     open: boolean;
     id: string | null;
   }>({ open: false, id: null });
-
-
 
   const {
     register,
@@ -61,9 +64,7 @@ export default function ProductManager() {
       installation_amount_1: undefined,
       category_id: undefined,
       imageFile: null,
-      is_accessory: false,
-      accessory: [],
-
+      is_accessory:true
     },
   });
 
@@ -71,20 +72,12 @@ export default function ProductManager() {
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-    fetchAccessories();
   }, []);
 
   const fetchProducts = async () => {
-    const { data, error } = await getProduct(false);
+    const { data, error } = await getProduct(true);
     if (error) toast.error(error.message);
-    else {
-      const filteredData = data.map(product => ({
-        ...product, accessory: product.accessories.map((acc) => {
-          return { label: acc.accessory.name, value: acc.accessory.id };
-        })
-      }));
-      setProducts(filteredData || [])
-    }
+    else setProducts(data || []);
     setLoading(false);
   };
 
@@ -92,15 +85,6 @@ export default function ProductManager() {
     const { data, error } = await getCatagory()
     if (error) toast.error(error.message);
     else setCategories(data || []);
-  };
-
-  const fetchAccessories = async () => {
-    const { data, error } = await getProduct(true)
-    if (error) toast.error(error.message);
-    else {
-
-      SetAccessoryOptions(data.map(acc => ({ label: acc.name, value: acc.id })));
-    }
   };
 
   // Save product
@@ -111,7 +95,7 @@ export default function ProductManager() {
       // Upload image only on submit
       if (form.imageFile) {
         const fileName = `${Date.now()}_${form.imageFile.name}`;
-        const { error: uploadError, data } = await supabase.storage
+        const { error: uploadError,data } = await supabase.storage
           .from("image")
           .upload(fileName, form.imageFile);
 
@@ -126,39 +110,20 @@ export default function ProductManager() {
         model: form.model,
         price: form.price,
         make: form.make,
-        installation_amount_1: form.installation_amount_1 || 0,
+        installation_amount_1: form.installation_amount_1||0,
         category_id: form.category_id,
-        is_accessory: false,
+        is_accessory:true,
         image_url: imageUrl,
       };
 
-
-
       if (editingProduct) {
-        if (JSON.stringify(form.accessory) !== JSON.stringify(editProduct)) {
-          // remove old accessories
-          const { error: removeAccessoryByProductIdError } = await removeAccessoryByProductId(editingProduct.id)
-          if (removeAccessoryByProductIdError) throw removeAccessoryByProductIdError;
-
-          const productAccessoryIds = form.accessory.map(acc => ({ accessory_id: acc.value, product_id: editingProduct.id }));
-          const { error: addProductAccessoryError } = await addProductAccessory(productAccessoryIds);
-          if (addProductAccessoryError) throw addProductAccessoryError;
-
-        }
-        const { error } = await editProduct({ id: editingProduct.id, data: payload });
+        const { error } = await editProduct({id:editingProduct.id, data:payload});
         if (error) throw error;
-        toast.success("Product updated");
+        toast.success("Accessory updated");
       } else {
-        const { error, data } = await addProduct(payload);
-        if (error) throw error
-        else {
-          const productAccessoryIds = form.accessory.map(acc => ({ accessory_id: acc.value, product_id: data.id }));
-          const { error: addProductAccessoryError } = await addProductAccessory(productAccessoryIds);
-          if (addProductAccessoryError) throw addProductAccessoryError;
-          toast.success("Product created");
-        }
-
-
+        const { error } = await addProduct(payload);
+        if (error) throw error;
+        toast.success("Accessory created");
       }
 
       setOpenDrawer(false);
@@ -166,7 +131,7 @@ export default function ProductManager() {
       reset();
       fetchProducts();
     } catch (err: any) {
-      console.log(err)
+        console.log(err)
       toast.error(err.message);
     }
   };
@@ -186,7 +151,7 @@ export default function ProductManager() {
   };
 
   // When editing, preload form values
-  const startEdit = (p: Product) => {
+  const startEdit = (p: ProductWithoutAccessory) => {
     setEditingProduct(p);
     reset({
       name: p.name,
@@ -197,7 +162,6 @@ export default function ProductManager() {
       installation_amount_1: p.installation_amount_1,
       category_id: p.category_id ?? undefined,
       imageFile: null, // keep empty, preview shows existing
-      accessory: p.accessory
     });
     setOpenDrawer(true);
   };
@@ -205,14 +169,14 @@ export default function ProductManager() {
   // Enhanced filtering and sorting logic
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = products.filter(product => {
-      const matchesSearch =
+      const matchesSearch = 
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (product.model?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
         (product.make?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
         (product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-
+      
       const matchesCategory = selectedCategory === "" || product.category_id === selectedCategory;
-
+      
       return matchesSearch && matchesCategory;
     });
 
@@ -220,20 +184,20 @@ export default function ProductManager() {
       filtered.sort((a, b) => {
         const aValue = a[sortField];
         const bValue = b[sortField];
-
+        
         if (aValue === null || aValue === undefined) return 1;
         if (bValue === null || bValue === undefined) return -1;
-
+        
         if (typeof aValue === 'string' && typeof bValue === 'string') {
-          return sortDirection === 'asc'
+          return sortDirection === 'asc' 
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
         }
-
+        
         if (typeof aValue === 'number' && typeof bValue === 'number') {
           return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
         }
-
+        
         return 0;
       });
     }
@@ -251,7 +215,7 @@ export default function ProductManager() {
   // Group by category logic
   const groupedProducts = useMemo(() => {
     if (!groupByCategory) return null;
-
+    
     return filteredAndSortedProducts.reduce((acc, product) => {
       const categoryName = product.category?.name || 'Uncategorized';
       if (!acc[categoryName]) {
@@ -259,10 +223,10 @@ export default function ProductManager() {
       }
       acc[categoryName].push(product);
       return acc;
-    }, {} as Record<string, Product[]>);
+    }, {} as Record<string, ProductWithoutAccessory[]>);
   }, [filteredAndSortedProducts, groupByCategory]);
 
-  const handleSort = (field: keyof Product) => {
+  const handleSort = (field: keyof ProductWithoutAccessory) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -272,17 +236,17 @@ export default function ProductManager() {
     setCurrentPage(1);
   };
 
-  const SortIcon = ({ field }: { field: keyof Product }) => {
+  const SortIcon = ({ field }: { field: keyof ProductWithoutAccessory }) => {
     if (sortField !== field) return null;
-    return sortDirection === 'asc' ?
-      <ChevronUp className="h-4 w-4 inline ml-1" /> :
+    return sortDirection === 'asc' ? 
+      <ChevronUp className="h-4 w-4 inline ml-1" /> : 
       <ChevronDown className="h-4 w-4 inline ml-1" />;
   };
 
   // Product Row Component
   const ProductRow = ({ product, onEdit, onDelete }: {
-    product: Product;
-    onEdit: (product: Product) => void;
+    product: ProductWithoutAccessory;
+    onEdit: (product: ProductWithoutAccessory) => void;
     onDelete: (id: string) => void;
   }) => (
     <tr className="hover:bg-gray-50 transition-colors">
@@ -348,7 +312,7 @@ export default function ProductManager() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-
+       
         {/* Enhanced Controls */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
@@ -367,7 +331,7 @@ export default function ProductManager() {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
                 />
               </div>
-
+              
               {/* Category Filter */}
               <select
                 value={selectedCategory}
@@ -385,7 +349,7 @@ export default function ProductManager() {
                 ))}
               </select>
             </div>
-
+            
             {/* View Options */}
             <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 text-sm">
@@ -398,18 +362,18 @@ export default function ProductManager() {
                 <Filter className="h-4 w-4" />
                 Group by Category
               </label>
-
+              
               <div className="text-sm text-gray-600">
-                <Button
-                  onClick={() => {
-                    reset();
-                    setEditingProduct(null);
-                    setOpenDrawer(true);
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <Plus className="h-4 w-4" /> Add Product
-                </Button>
+              <Button
+              onClick={() => {
+                reset();
+                setEditingProduct(null);
+                setOpenDrawer(true);
+              }}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" /> Add Product
+            </Button>
               </div>
             </div>
           </div>
@@ -497,7 +461,7 @@ export default function ProductManager() {
               </table>
             </div>
           )}
-
+          
           {/* Pagination */}
           {!groupByCategory && totalPages > 1 && (
             <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
@@ -513,11 +477,11 @@ export default function ProductManager() {
                 >
                   Previous
                 </Button>
-
+                
                 {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(page =>
-                    page === 1 ||
-                    page === totalPages ||
+                  .filter(page => 
+                    page === 1 || 
+                    page === totalPages || 
                     (page >= currentPage - 1 && page <= currentPage + 1)
                   )
                   .map((page, index, array) => (
@@ -536,7 +500,7 @@ export default function ProductManager() {
                     </div>
                   ))
                 }
-
+                
                 <Button
                   variant="outline"
                   size="sm"
@@ -553,103 +517,103 @@ export default function ProductManager() {
 
 
       {/* Drawer Form */}
-      <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)} title={editingProduct ? "Edit Product" : "Add New Product"}>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="p-4 space-y-4"
-        >
+      <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)} title= {editingProduct ? "Edit Product" : "Add New Product"}>
+       <form
+  onSubmit={handleSubmit(onSubmit)}
+  className="p-4 space-y-4"
+>
 
-          {/* Product Name */}
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-gray-700">Product Name *</label>
-            <input
-              type="text"
-              placeholder="Enter product name"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              {...register("name", { required: "Product name is required" })}
-            />
-            {errors.name && (
-              <p className="text-sm text-red-600 flex items-center gap-1">
-                {errors.name.message}
-              </p>
-            )}
-          </div>
+  {/* Product Name */}
+  <div className="space-y-2">
+    <label className="block text-sm font-semibold text-gray-700">Product Name *</label>
+    <input
+      type="text"
+      placeholder="Enter product name"
+      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+      {...register("name", { required: "Product name is required" })}
+    />
+    {errors.name && (
+      <p className="text-sm text-red-600 flex items-center gap-1">
+        {errors.name.message}
+      </p>
+    )}
+  </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-gray-700">Description</label>
-            <textarea
-              placeholder="Enter product description"
-              rows={3}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
-              {...register("description")}
-            />
-          </div>
+  {/* Description */}
+  <div className="space-y-2">
+    <label className="block text-sm font-semibold text-gray-700">Description</label>
+    <textarea
+      placeholder="Enter product description"
+      rows={3}
+      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+      {...register("description")}
+    />
+  </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Model */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">Model *</label>
-              <input
-                type="text"
-                placeholder="Enter model number"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                {...register("model", { required: "Model is required" })}
-              />
-              {errors.model && (
-                <p className="text-sm text-red-600 flex items-center gap-1">
-                  {errors.model.message}
-                </p>
-              )}
-            </div>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {/* Model */}
+    <div className="space-y-2">
+      <label className="block text-sm font-semibold text-gray-700">Model *</label>
+      <input
+        type="text"
+        placeholder="Enter model number"
+        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        {...register("model", { required: "Model is required" })}
+      />
+      {errors.model && (
+        <p className="text-sm text-red-600 flex items-center gap-1">
+          {errors.model.message}
+        </p>
+      )}
+    </div>
 
-            {/* Price */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">Price (₹) *</label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Enter price"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                {...register("price", {
-                  required: "Price is required",
-                  // min: { value: 0.01, message: "Price must be greater than 0" },
-                })}
-              />
-              {errors.price && (
-                <p className="text-sm text-red-600 flex items-center gap-1">
-                  {errors.price.message}
-                </p>
-              )}
-            </div>
-          </div>
+    {/* Price */}
+    <div className="space-y-2">
+      <label className="block text-sm font-semibold text-gray-700">Price (₹) *</label>
+      <input
+        type="number"
+        step="0.01"
+        placeholder="Enter price"
+        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        {...register("price", {
+          required: "Price is required",
+          // min: { value: 0.01, message: "Price must be greater than 0" },
+        })}
+      />
+      {errors.price && (
+        <p className="text-sm text-red-600 flex items-center gap-1">
+           {errors.price.message}
+        </p>
+      )}
+    </div>
+  </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Make */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">Make</label>
-              <input
-                type="text"
-                placeholder="Enter make"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                {...register("make")}
-              />
-            </div>
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {/* Make */}
+    <div className="space-y-2">
+      <label className="block text-sm font-semibold text-gray-700">Make</label>
+      <input
+        type="text"
+        placeholder="Enter make"
+        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        {...register("make")}
+      />
+    </div>
 
-            {/* Installation Amount 1 */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">Installation Amount 1</label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Enter installation amount 1"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                {...register("installation_amount_1")}
-              />
-            </div>
+    {/* Installation Amount 1 */}
+    <div className="space-y-2">
+      <label className="block text-sm font-semibold text-gray-700">Installation Amount 1</label>
+      <input
+        type="number"
+        step="0.01"
+        placeholder="Enter installation amount 1"
+        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        {...register("installation_amount_1")}
+      />
+    </div>
 
-            {/* Is Accessory Toggle */}
-            {/* <div className="space-y-2 flex gap-2 items-center">
+     {/* Is Accessory Toggle */}
+{/* <div className="space-y-2 flex gap-2 items-center">
   <label className="block text-sm font-semibold text-gray-700">
     Is Accessory
   </label>
@@ -673,118 +637,86 @@ export default function ProductManager() {
   />
 </div>
  */}
+   
+  </div>
 
-          </div>
+  {/* Category */}
+  <div className="space-y-2">
+    <label className="block text-sm font-semibold text-gray-700">Category *</label>
+    <select
+      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+      {...register("category_id", { required: "Category is required" })}
+    >
+      <option value="">Select Category</option>
+      {categories.map((c) => (
+        <option key={c.id} value={c.id}>
+          {c.name}
+        </option>
+      ))}
+    </select>
+    {errors.category_id && (
+      <p className="text-sm text-red-600 flex items-center gap-1">
+         {errors.category_id.message}
+      </p>
+    )}
+  </div>
 
-          {/* Category */}
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-gray-700">Category *</label>
-            <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              {...register("category_id", { required: "Category is required" })}
-            >
-              <option value="">Select Category</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            {errors.category_id && (
-              <p className="text-sm text-red-600 flex items-center gap-1">
-                {errors.category_id.message}
-              </p>
-            )}
-          </div>
+  {/* Image Upload */}
+  <div className="space-y-2">
+    <label className="block text-sm font-semibold text-gray-700">
+      Product Image {!editingProduct && '*'}
+    </label>
+    <Controller
+      control={control}
+      name="imageFile"
+      // rules={{ required: !editingProduct && "Image is required" }}
+      render={({ field }) => (
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
+          <FileUploader
+            onChange={(file) => field.onChange(file)}
+            file={field.value}
+            previewUrl={
+              field.value
+                ? URL.createObjectURL(field.value)
+                : editingProduct?.image_url || null
+            }
+          />
+        </div>
+      )}
+    />
+    {errors.imageFile && (
+      <p className="text-sm text-red-600 flex items-center gap-1">
+         {errors.imageFile.message}
+      </p>
+    )}
+  </div>
 
-          {/* Accessories Multi Select */}
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-gray-700">
-              Accessories
-            </label>
-
-            <Controller
-              name="accessory"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  isMulti
-                  options={accessoryOptions}
-                  placeholder="Select accessories"
-                  closeMenuOnSelect={false}
-                  className="react-select-container"
-                  classNamePrefix="react-select"
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      borderRadius: "0.5rem",
-                      borderColor: "#d1d5db",
-                      minHeight: "48px",
-                    }),
-                  }}
-                />
-              )}
-            />
-          </div>
-
-
-          {/* Image Upload */}
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-gray-700">
-              Product Image {!editingProduct && '*'}
-            </label>
-            <Controller
-              control={control}
-              name="imageFile"
-              // rules={{ required: !editingProduct && "Image is required" }}
-              render={({ field }) => (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
-                  <FileUploader
-                    onChange={(file) => field.onChange(file)}
-                    file={field.value}
-                    previewUrl={
-                      field.value
-                        ? URL.createObjectURL(field.value)
-                        : editingProduct?.image_url || null
-                    }
-                  />
-                </div>
-              )}
-            />
-            {errors.imageFile && (
-              <p className="text-sm text-red-600 flex items-center gap-1">
-                {errors.imageFile.message}
-              </p>
-            )}
-          </div>
-
-          {/* Buttons */}
-          <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpenDrawer(false)}
-              className="px-6"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 flex items-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  {editingProduct ? "Updating..." : "Creating..."}
-                </>
-              ) : (
-                editingProduct ? "Update Product" : "Save Product"
-              )}
-            </Button>
-          </div>
-        </form>
+  {/* Buttons */}
+  <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+    <Button
+      type="button"
+      variant="outline"
+      onClick={() => setOpenDrawer(false)}
+      className="px-6"
+    >
+      Cancel
+    </Button>
+    <Button 
+      type="submit" 
+      disabled={isSubmitting}
+      className="px-6 flex items-center gap-2"
+    >
+      {isSubmitting ? (
+        <>
+          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+          {editingProduct ? "Updating..." : "Creating..."}
+        </>
+      ) : (
+        editingProduct ? "Update Product" : "Save Product"
+      )}
+    </Button>
+  </div>
+</form>
 
       </Drawer>
 

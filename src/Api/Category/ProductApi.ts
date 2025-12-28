@@ -19,13 +19,21 @@ export const deleteProduct = async (id:string)=>{
 export const addProduct = async (data:Product["Insert"])=>{
      return await supabase
             .from(tableName)
-            .insert(data);
+            .insert(data).select().single();
 }
 
-export const getProduct = async ()=>{
-     return await supabase
-            .from(tableName)
-            .select("*,category(name)")
-            .order("name");
-}
+export const getProduct = async (is_accessory: boolean)=>{
+  return await supabase
+    .from("product")
+    .select(`
+      *,
+      category(name),
+      accessories:product_accessory!product_accessory_product_id_fkey (
+        accessory:product!product_accessory_accessory_id_fkey (*)
+      )
+    `)
+    .eq("is_accessory", is_accessory)
+    .order("name");
+};
+
 

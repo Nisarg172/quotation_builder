@@ -1,5 +1,6 @@
     // types.ts
     export type QuoteItem = {
+        id: string;
         sn: number;
         name: string;
         description: string;
@@ -9,9 +10,10 @@
         amount: number;
         image?:string;
         make:string;
-        installation_amount_2:number,
         installation_amount_1:number,
+        totalInstallation:number,
         catagoryName:string
+
     
     };
     
@@ -27,6 +29,11 @@
   name: string;
 };
 
+export type AccessoryOption = {
+  label: string;
+  value: string;
+};
+
 export type Product = {
     category_id: string | null;
     created_at: string;
@@ -34,7 +41,6 @@ export type Product = {
     id: string;
     image_url: string | null;
     installation_amount_1: number;
-    installation_amount_2: number;
     make: string | null;
     model: string | null;
     name: string;
@@ -42,8 +48,10 @@ export type Product = {
     category: {
         name: string;
     } | null;
+    is_accessory: boolean;
+    accessory: AccessoryOption[];
 }
-
+export type ProductWithoutAccessory = Omit<Product, "accessory">;
 export  type ProductWithCatagory={
     id: string;
     name: string;
@@ -54,10 +62,23 @@ export  type ProductWithCatagory={
         id: string;
         image_url: string | null;
         installation_amount_1: number;
-        installation_amount_2: number;
         make: string | null;
         model: string | null;
         name: string;
         price: number;
     }[];
 }
+
+
+export type ProductInput = {
+  name: string;
+  description?: string;
+  model?: string;
+  price: number;
+  make?: string;
+  installation_amount_1: number;
+  category_id?: string;
+  imageFile: File | null;
+  is_accessory: boolean;
+  accessory: AccessoryOption[];
+};

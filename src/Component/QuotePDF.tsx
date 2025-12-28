@@ -152,9 +152,9 @@ const styles = StyleSheet.create({
   },
 
   // Column widths
-  colSr: { width: "6%" },
-  colDesc: { width: "20%" },
-  colImg: { width: "8%" },
+  colSr: { width: "5%" },
+  colDesc: { width: "22%" },
+  colImg: { width: "7%" },
   colMakeModel: { width: "18%" },
   colQty: { width: "6%" },
   colSupply: { width: "16%" },
@@ -434,7 +434,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
 
               {items.map((it) => {
                 const supply = it.unitRate * it.qty;
-                const total = supply + it.installation_amount_1 + it.installation_amount_2;
+                const total = supply  + it.totalInstallation;
                 return (
                   <View key={it.sn} style={styles.row}>
                     <Text style={[styles.cell, styles.colSr, styles.center]}>{it.sn}</Text>
@@ -471,7 +471,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                         {it.installation_amount_1.toFixed(2)}
                       </Text>
                       <Text style={[{ width: "50%", padding: 4 }, styles.right]}>
-                        {it.installation_amount_2.toFixed(2)}
+                        {it.totalInstallation.toFixed(2)}
                       </Text>
                     </View>
 

@@ -32,7 +32,12 @@ export const getCatagory = async ()=>{
 export const getProductWithCatagory = async ()=>{
      return await supabase
             .from(tableName)
-            .select("*,product(*)")
+            .select(`*,product!inner(*,
+               accessories:product_accessory!product_accessory_product_id_fkey (
+               accessory:product!product_accessory_accessory_id_fkey (*)
+               )
+               )`)     
+            .eq("product.is_accessory", false)
             .order("name");
 }
 
