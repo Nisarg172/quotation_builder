@@ -60,7 +60,7 @@ export default function Home() {
       description: accessory.description || "",
       make: accessory.make || "",
       makeModel: accessory.model || "",
-      qty: 1,
+      qty: accessory.base_quantity || 1,
       unitRate: accessory.price,
       amount: accessory.price,
       image: accessory.image_url

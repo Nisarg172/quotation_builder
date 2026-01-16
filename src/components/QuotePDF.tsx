@@ -35,7 +35,6 @@ const styles = StyleSheet.create({
     width: "100%",
     borderWidth: 1,
     borderColor: BORDER,
-    flexDirection: "column",
   },
   row: {
     flexDirection: "row",
@@ -89,39 +88,6 @@ const styles = StyleSheet.create({
   bold: { fontWeight: "bold" },
   center: { textAlign: "center" },
   right: { textAlign: "right" },
-
-  termsWrap: { marginTop: 10 },
-  termsTitle: { fontWeight: "bold", color: "red" },
-  term: { fontSize: 8, marginTop: 2 },
-
-  // Terms Page Styles
-  tcTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  tcSubTitle: {
-    fontSize: 10,
-    fontWeight: "bold",
-    marginTop: 10,
-    marginBottom: 4,
-  },
-  tcText: {
-    fontSize: 9,
-    marginBottom: 4,
-  },
-  tcBullet: {
-    fontSize: 9,
-    marginLeft: 10,
-    marginBottom: 3,
-  },
-  tcBankBox: {
-    borderWidth: 1,
-    borderColor: "#000",
-    padding: 8,
-    marginTop: 6,
-  },
 });
 
 // static info
@@ -129,18 +95,13 @@ const infoData = {
   companyName: "Hm Technology",
   logo: "/logo.png",
   contactName: "Hardik Thummar",
-  contactNo: " +91 7990532661",
+  contactNo: "+91 7990532661",
   email: "sales@hmtechnology.in",
   address:
     "408, Anupam Square, Nr. Althan Chowkdi, Vip Road, Althan, Surat - 395017",
-  terms: [
-    "Cabling as per planning with materials.",
-    "Civil / Electrical work if required is extra.",
-    "Transportation will be charged extra.",
-  ],
 };
 
-const random5Digit: number = Math.floor(10000 + Math.random() * 90000);
+const random5Digit = Math.floor(10000 + Math.random() * 90000);
 
 export default function QuotePDF({ data }: { data: QuoteData }) {
   const groupedItems = data.items.reduce<Record<string, QuoteItem[]>>(
@@ -166,9 +127,8 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
 
   return (
     <Document>
-      {/* ================= PAGE 1 : QUOTATION ================= */}
       <Page size="A4" style={styles.page}>
-        {/* Header */}
+        {/* HEADER */}
         <View style={styles.headerRow}>
           <View style={styles.companyBlock}>
             {infoData.logo && (
@@ -184,31 +144,23 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
           </View>
 
           <View style={styles.rightBlock}>
-            <Text style={styles.bold}>
-              Reference / Quote No: {random5Digit}
-            </Text>
+            <Text style={styles.bold}>Quote No: {random5Digit}</Text>
             <Text>Customer: {data.customerName || "-"}</Text>
             <Text>Mobile: {data.mobileNo || "-"}</Text>
           </View>
         </View>
 
-        {/* Table */}
+        {/* TABLE */}
         <View style={styles.table}>
-          {/* Table Header */}
-          <View style={{ ...styles.row, backgroundColor: "#e5e7eb" }}>
-            <Text
-              style={[styles.cell, styles.colSr, styles.bold, styles.center]}
-            >
+          {/* TABLE HEADER */}
+          <View style={[styles.row, { backgroundColor: "#e5e7eb" }]} wrap={false}>
+            <Text style={[styles.cell, styles.colSr, styles.bold, styles.center]}>
               Sr.
             </Text>
-            <Text
-              style={[styles.cell, styles.colDesc, styles.bold, styles.center]}
-            >
+            <Text style={[styles.cell, styles.colDesc, styles.bold, styles.center]}>
               Item Description
             </Text>
-            <Text
-              style={[styles.cell, styles.colImg, styles.bold, styles.center]}
-            >
+            <Text style={[styles.cell, styles.colImg, styles.bold, styles.center]}>
               Image
             </Text>
 
@@ -216,47 +168,40 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
               <Text style={styles.groupTop}>MAKE / MODEL</Text>
               <View style={styles.groupBottom}>
                 <Text style={[styles.half, styles.halfWithDivider]}>MAKE</Text>
-                <Text style={styles.half}>MODEL NO.</Text>
+                <Text style={styles.half}>MODEL</Text>
               </View>
             </View>
 
-            <Text
-              style={[styles.cell, styles.colQty, styles.bold, styles.center]}
-            >
+            <Text style={[styles.cell, styles.colQty, styles.bold, styles.center]}>
               Qty
             </Text>
 
             <View style={[styles.cell, styles.colSupply, styles.groupCell]}>
               <Text style={styles.groupTop}>SUPPLY</Text>
               <View style={styles.groupBottom}>
-                <Text style={[styles.half, styles.halfWithDivider]}>
-                  UNIT RATE
-                </Text>
-                <Text style={styles.half}>AMOUNT - I</Text>
+                <Text style={[styles.half, styles.halfWithDivider]}>RATE</Text>
+                <Text style={styles.half}>AMOUNT</Text>
               </View>
             </View>
 
             <View style={[styles.cell, styles.colInstall, styles.groupCell]}>
-              <Text style={styles.groupTop}>INSTALLATION</Text>
+              <Text style={styles.groupTop}>INSTALL</Text>
               <View style={styles.groupBottom}>
-                <Text style={[styles.half, styles.halfWithDivider]}>
-                  UNIT RATE
-                </Text>
-                <Text style={styles.half}>AMOUNT - II</Text>
+                <Text style={[styles.half, styles.halfWithDivider]}>RATE</Text>
+                <Text style={styles.half}>AMOUNT</Text>
               </View>
             </View>
 
-            <Text
-              style={[styles.cell, styles.colTotal, styles.bold, styles.center]}
-            >
+            <Text style={[styles.cell, styles.colTotal, styles.bold, styles.center]}>
               TOTAL
             </Text>
           </View>
 
-          {/* Body */}
+          {/* BODY */}
           {Object.entries(groupedItems).map(([category, items]) => (
             <View key={category}>
-              <View style={styles.categoryRow}>
+              {/* CATEGORY ROW */}
+              <View style={styles.categoryRow} wrap={false}>
                 <Text style={styles.categoryText}>{category}</Text>
               </View>
 
@@ -265,7 +210,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                 const total = supply + it.totalInstallation;
 
                 return (
-                  <View key={it.sn} style={styles.row}>
+                  <View key={it.sn} style={styles.row} wrap={false}>
                     <Text style={[styles.cell, styles.colSr, styles.center]}>
                       {it.sn}
                     </Text>
@@ -277,12 +222,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                       {it.image && (
                         <Image
                           src={it.image}
-                          style={{
-                            width: "100%",
-                            height: "auto",
-                            paddingLeft: "1px",
-                            paddingRight: "1px",
-                          }}
+                          style={{ width: "100%", height: "auto" }}
                         />
                       )}
                     </View>
@@ -303,9 +243,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                       >
                         {it.make || "-"}
                       </Text>
-                      <Text
-                        style={[{ width: "50%", padding: 4 }, styles.center]}
-                      >
+                      <Text style={[{ width: "50%", padding: 4 }, styles.center]}>
                         {it.makeModel || "-"}
                       </Text>
                     </View>
@@ -330,9 +268,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                       >
                         {it.unitRate.toFixed(2)}
                       </Text>
-                      <Text
-                        style={[{ width: "50%", padding: 4 }, styles.right]}
-                      >
+                      <Text style={[{ width: "50%", padding: 4 }, styles.right]}>
                         {supply.toFixed(2)}
                       </Text>
                     </View>
@@ -353,9 +289,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                       >
                         {it.installation_amount_1.toFixed(2)}
                       </Text>
-                      <Text
-                        style={[{ width: "50%", padding: 4 }, styles.right]}
-                      >
+                      <Text style={[{ width: "50%", padding: 4 }, styles.right]}>
                         {it.totalInstallation.toFixed(2)}
                       </Text>
                     </View>
@@ -369,67 +303,35 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
             </View>
           ))}
 
-          {/* Totals */}
-          <View style={styles.row}>
-            <Text
-              style={[
-                styles.cell,
-                { width: "90%", textAlign: "right", fontWeight: "bold" },
-              ]}
-            >
-              SUPPLY TOTAL:
-            </Text>
-            <Text
-              style={[
-                styles.cell,
-                { width: "10%", textAlign: "right", fontWeight: "bold" },
-              ]}
-            >
-              {supplyTotal.toFixed(2)}
-            </Text>
-          </View>
-
-          <View style={styles.row}>
-            <Text
-              style={[
-                styles.cell,
-                { width: "90%", textAlign: "right", fontWeight: "bold" },
-              ]}
-            >
-              INSTALLATION TOTAL:
-            </Text>
-            <Text
-              style={[
-                styles.cell,
-                { width: "10%", textAlign: "right", fontWeight: "bold" },
-              ]}
-            >
-              {installationTotal.toFixed(2)}
-            </Text>
-          </View>
-
-          <View style={styles.row}>
-            <Text
-              style={[
-                styles.cell,
-                { width: "90%", textAlign: "right", fontWeight: "bold" },
-              ]}
-            >
-              GRAND TOTAL:
-            </Text>
-            <Text
-              style={[
-                styles.cell,
-                { width: "10%", textAlign: "right", fontWeight: "bold" },
-              ]}
-            >
-              {grandTotal.toFixed(2)}
-            </Text>
-          </View>
+          {/* TOTALS (never split) */}
+          {[
+            ["SUPPLY TOTAL", supplyTotal],
+            ["INSTALLATION TOTAL", installationTotal],
+            ["GRAND TOTAL", grandTotal],
+          ].map(([label, value]) => (
+            <View key={label} style={styles.row} wrap={false}>
+              <Text
+                style={[
+                  styles.cell,
+                  { width: "90%", textAlign: "right", fontWeight: "bold" },
+                ]}
+              >
+                {label}:
+              </Text>
+              <Text
+                style={[
+                  styles.cell,
+                  { width: "10%", textAlign: "right", fontWeight: "bold" },
+                ]}
+              >
+                {Number(value).toFixed(2)}
+              </Text>
+            </View>
+          ))}
         </View>
       </Page>
 
-      {/* ================= PAGE 2 : TERMS & CONDITIONS ================= */}
+      {/* TERMS PAGE */}
       <TermsAndConditions />
     </Document>
   );

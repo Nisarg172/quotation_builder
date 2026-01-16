@@ -45,6 +45,7 @@ export type Product = {
     model: string | null;
     name: string;
     price: number;
+    base_quantity: number;
     category: {
         name: string;
     } | null;
@@ -101,6 +102,7 @@ export type ProductWithAccessories = {
                 created_at: string;
                 description: string | null;
                 id: string;
+                base_quantity:number;
                 image_url: string | null;
                 installation_amount_1: number;
                 is_accessory: boolean;

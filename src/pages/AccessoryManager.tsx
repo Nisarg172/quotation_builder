@@ -24,6 +24,7 @@ type ProductInput = {
   category_id?: string;
   imageFile: File | null|string;
   is_accessory:boolean;
+  base_quantity:number;
 };
 
 export default function AccessoryManager() {
@@ -64,7 +65,8 @@ export default function AccessoryManager() {
       installation_amount_1: undefined,
       category_id: undefined,
       imageFile: null,
-      is_accessory:true
+      is_accessory:true,
+      base_quantity:1,
     },
   });
 
@@ -114,6 +116,7 @@ export default function AccessoryManager() {
         category_id: form.category_id,
         is_accessory:true,
         image_url: imageUrl,
+        base_quantity:form.base_quantity,
       };
 
       if (editingProduct) {
@@ -161,6 +164,7 @@ export default function AccessoryManager() {
       make: p.make ?? "",
       installation_amount_1: p.installation_amount_1,
       category_id: p.category_id ?? undefined,
+      base_quantity:p.base_quantity,
       imageFile: p.image_url, // keep empty, preview shows existing
     });
     setOpenDrawer(true);
@@ -612,31 +616,21 @@ export default function AccessoryManager() {
       />
     </div>
 
-     {/* Is Accessory Toggle */}
-{/* <div className="space-y-2 flex gap-2 items-center">
-  <label className="block text-sm font-semibold text-gray-700">
-    Is Accessory
-  </label>
 
-  <Controller
-    name="is_accessory"
-    control={control}
-    render={({ field }) => (
-      <button
-        type="button"
-        onClick={() => field.onChange(!field.value)}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200
-          ${field.value ? "bg-blue-600" : "bg-gray-300"}`}
-      >
-        <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200
-            ${field.value ? "translate-x-6" : "translate-x-1"}`}
-        />
-      </button>
-    )}
-  />
-</div>
- */}
+      {/* Base Quantity */}
+    <div className="space-y-2">
+      <label className="block text-sm font-semibold text-gray-700">base Quantity</label>
+      <input
+        type="number"
+        step="0.01"
+        placeholder="Enter base quantity"
+        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        {...register("base_quantity")}
+      />
+    </div>
+
+
+
    
   </div>
 
