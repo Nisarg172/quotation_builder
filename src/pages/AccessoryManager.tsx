@@ -22,7 +22,7 @@ type ProductInput = {
   make?: string;
   installation_amount_1: number;
   category_id?: string;
-  imageFile: File | null;
+  imageFile: File | null|string;
   is_accessory:boolean;
 };
 
@@ -93,7 +93,7 @@ export default function AccessoryManager() {
       let imageUrl: string | null = editingProduct?.image_url || null;
 
       // Upload image only on submit
-      if (form.imageFile) {
+      if (form.imageFile && form.imageFile instanceof File) {
         const fileName = `${Date.now()}_${form.imageFile.name}`;
         const { error: uploadError,data } = await supabase.storage
           .from("image")
@@ -161,7 +161,7 @@ export default function AccessoryManager() {
       make: p.make ?? "",
       installation_amount_1: p.installation_amount_1,
       category_id: p.category_id ?? undefined,
-      imageFile: null, // keep empty, preview shows existing
+      imageFile: p.image_url, // keep empty, preview shows existing
     });
     setOpenDrawer(true);
   };
@@ -670,19 +670,25 @@ export default function AccessoryManager() {
       control={control}
       name="imageFile"
       // rules={{ required: !editingProduct && "Image is required" }}
-      render={({ field }) => (
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
+      render={({ field }) => { 
+        let PreviewUrl:null|string =null
+        if(field.value instanceof File)
+        {
+          PreviewUrl=URL.createObjectURL(field.value)
+        }
+        else{
+          PreviewUrl=field.value
+        }
+        return <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
           <FileUploader
             onChange={(file) => field.onChange(file)}
             file={field.value}
             previewUrl={
-              field.value
-                ? URL.createObjectURL(field.value)
-                : editingProduct?.image_url || null
+              PreviewUrl
             }
           />
         </div>
-      )}
+      }}
     />
     {errors.imageFile && (
       <p className="text-sm text-red-600 flex items-center gap-1">

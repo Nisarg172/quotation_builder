@@ -78,7 +78,7 @@ export type ProductInput = {
   make?: string;
   installation_amount_1: number;
   category_id?: string;
-  imageFile: File | null;
+  imageFile: File | null|string;
   is_accessory: boolean;
   accessory: AccessoryOption[];
 };

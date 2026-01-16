@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { X } from "lucide-react";
 
 type FileUploaderProps = {
-  file: File | null;
+  file: File | null|string;
   previewUrl: string | null;
   onChange: (file: File | null) => void;
 };
@@ -53,10 +53,6 @@ export function FileUploader({ file, previewUrl, onChange }: FileUploaderProps) 
         >
           Click to Upload
         </div>
-      )}
-
-      {file && (
-        <p className="text-sm text-gray-500">{file.name}</p>
       )}
     </div>
   );
