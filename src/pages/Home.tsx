@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import Select from "react-select";
-import type { ProductWithAccessories, ProductWithCatagory, QuoteData, QuoteItem } from "../Types/type";
+import type {
+  ProductWithAccessories,
+  ProductWithCatagory,
+  QuoteData,
+  QuoteItem,
+} from "../Types/type";
 import { urlToBase64 } from "../utils/function";
 import QuotePDF from "../components/QuotePDF";
 import StaffQuotePDF from "../components/StaffQuotePDF";
@@ -30,7 +35,6 @@ export default function Home() {
     }
 
     if (!foundProduct) return;
-    
 
     const newItem: QuoteItem = {
       id: foundProduct.id,
@@ -48,50 +52,48 @@ export default function Home() {
       installation_amount_1: foundProduct.installation_amount_1 || 0,
       catagoryName: foundProduct.catagoryName,
       totalInstallation: foundProduct.installation_amount_1 || 0,
-      
     };
 
-   const accessoryAsProduct: QuoteItem[] = await Promise.all(
-  foundProduct?.accessories?.map(async ({ accessory }, index) => {
-    const newItem: QuoteItem = {
-      id: accessory.id,
-      sn: quote.items.length+1 + index + 1,
-      name: accessory.name,
-      description: accessory.description || "",
-      make: accessory.make || "",
-      makeModel: accessory.model || "",
-      qty: accessory.base_quantity || 1,
-      unitRate: accessory.price,
-      amount: accessory.price,
-      image: accessory.image_url
-        ? await urlToBase64(accessory.image_url)
-        : "",
-      installation_amount_1: accessory.installation_amount_1 || 0,
-      catagoryName: foundProduct.catagoryName,
-      totalInstallation: accessory.installation_amount_1 || 0,
-    };
+    const accessoryAsProduct: QuoteItem[] = await Promise.all(
+      foundProduct?.accessories?.map(async ({ accessory }, index) => {
+        const newItem: QuoteItem = {
+          id: accessory.id,
+          sn: quote.items.length + 1 + index + 1,
+          name: accessory.name,
+          description: accessory.description || "",
+          make: accessory.make || "",
+          makeModel: accessory.model || "",
+          qty: accessory.base_quantity || 1,
+          unitRate: accessory.price,
+          amount: accessory.price * (accessory.base_quantity || 1),
+          image: accessory.image_url
+            ? await urlToBase64(accessory.image_url)
+            : "",
+          installation_amount_1: accessory.installation_amount_1 || 0,
+          catagoryName: foundProduct.catagoryName,
+          totalInstallation: accessory.installation_amount_1 || 0,
+        };
 
-    return newItem;
-  }) || []
-);
-  
-   
+        return newItem;
+      }) || []
+    );
 
     const items = [...quote.items, newItem, ...accessoryAsProduct];
     const mergedItems = items.reduce<QuoteItem[]>((acc, item) => {
-  const existing = acc.find(i => i.id === item.id);
+      const existing = acc.find((i) => i.id === item.id);
 
-  if (existing) {
-    existing.qty += item.qty;
-    existing.amount = existing.qty * existing.unitRate;
-    existing.totalInstallation =
-      existing.qty * (existing.installation_amount_1 || 0);
-  } else {
-    acc.push({ ...item });
-  }
 
-  return acc;
-}, []);
+      if (existing) {
+        existing.qty += item.qty;
+        existing.amount = existing.qty * existing.unitRate;
+        existing.totalInstallation =
+          existing.qty * (existing.installation_amount_1 || 0);
+      } else {
+        acc.push({ ...item });
+      }
+
+      return acc;
+    }, []);
     updateQuote(mergedItems);
   }
 
@@ -106,13 +108,7 @@ export default function Home() {
     updateQuote(items);
   }
 
- 
-
-
-  function updateInstallation(
-    idx: number,
-    value: number
-  ) {
+  function updateInstallation(idx: number, value: number) {
     const items = quote.items.map((it, i) => {
       if (i !== idx) return it;
       return {
@@ -133,8 +129,7 @@ export default function Home() {
 
   function updateQuote(items: QuoteItem[]) {
     const grandTotal = items.reduce(
-      (s, it) =>
-        s + it.amount + it.installation_amount_1 ,
+      (s, it) => s + it.amount + it.installation_amount_1,
       0
     );
     setQuote({ ...quote, items, grandTotal });
@@ -161,11 +156,9 @@ export default function Home() {
       })),
   }));
 
-  
-
   const fetchProducts = async () => {
     const { data, error } = await getProductWithCatagory();
-    
+
     if (error) toast.error(error.message);
     else setProducts(data || []);
   };
@@ -187,19 +180,23 @@ export default function Home() {
               type="text"
               placeholder="Enter customer name"
               className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                !quote.customerName.trim() ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                !quote.customerName.trim()
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-300"
               }`}
               value={quote.customerName}
-              onChange={(e) => setQuote({ ...quote, customerName: e.target.value })}
+              onChange={(e) =>
+                setQuote({ ...quote, customerName: e.target.value })
+              }
               required
             />
             {!quote.customerName.trim() && (
               <p className="text-sm text-red-600 flex items-center gap-1">
-                 Customer name is required
+                Customer name is required
               </p>
             )}
           </div>
-          
+
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">
               Mobile Number <span className="text-red-500">*</span>
@@ -208,11 +205,15 @@ export default function Home() {
               type="tel"
               placeholder="Enter 10-digit mobile number"
               className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                !quote.mobileNo.trim() || (quote.mobileNo.trim() && !/^[6-9]\d{9}$/.test(quote.mobileNo.trim())) ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                !quote.mobileNo.trim() ||
+                (quote.mobileNo.trim() &&
+                  !/^[6-9]\d{9}$/.test(quote.mobileNo.trim()))
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-300"
               }`}
               value={quote.mobileNo}
               onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                const value = e.target.value.replace(/\D/g, "").slice(0, 10);
                 setQuote({ ...quote, mobileNo: value });
               }}
               maxLength={10}
@@ -222,7 +223,8 @@ export default function Home() {
               <p className="text-sm text-red-600 flex items-center gap-1">
                 Mobile number is required
               </p>
-            ) : quote.mobileNo.trim() && !/^[6-9]\d{9}$/.test(quote.mobileNo.trim()) ? (
+            ) : quote.mobileNo.trim() &&
+              !/^[6-9]\d{9}$/.test(quote.mobileNo.trim()) ? (
               <p className="text-sm text-red-600 flex items-center gap-1">
                 Please enter a valid 10-digit Indian mobile number
               </p>
@@ -230,29 +232,26 @@ export default function Home() {
           </div>
 
           <div className="space-y-2">
-          <label className="block text-sm font-semibold text-gray-700">
-            Select Product to Add
-          </label>
-          <div className="w-full max-w-md">
-            <Select
-              options={groupedOptions}
-              placeholder="Search and select a product..."
-              onChange={(selected) => {
-                if (selected) addProduct((selected as any).value);
-              }}
-              isSearchable
-              isClearable
-              className="react-select-container"
-              classNamePrefix="react-select"
-            />
+            <label className="block text-sm font-semibold text-gray-700">
+              Select Product to Add
+            </label>
+            <div className="w-full max-w-md">
+              <Select
+                options={groupedOptions}
+                placeholder="Search and select a product..."
+                onChange={(selected) => {
+                  if (selected) addProduct((selected as any).value);
+                }}
+                isSearchable
+                isClearable
+                className="react-select-container"
+                classNamePrefix="react-select"
+              />
+            </div>
           </div>
-
-        </div>
-
         </div>
       </div>
 
-    
       {/* Preview Table */}
       <table className="w-full table-auto border-collapse bg-white shadow rounded text-sm text-center">
         <thead className="bg-gray-100">
@@ -304,9 +303,7 @@ export default function Home() {
               </tr>
 
               {items.map((it) => {
-                const total =
-                  it.amount +
-                  it.totalInstallation
+                const total = it.amount + it.totalInstallation;
                 return (
                   <tr key={it.sn} className="border-t">
                     <td className="border p-2">{it.sn}</td>
@@ -331,7 +328,9 @@ export default function Home() {
                         onChange={(e) =>
                           updateItem(it.sn - 1, {
                             qty:
-                              e.target.value === "" ? 0 : Number(e.target.value),
+                              e.target.value === ""
+                                ? 0
+                                : Number(e.target.value),
                           })
                         }
                       />
@@ -341,9 +340,7 @@ export default function Home() {
                       <input
                         type="number"
                         className="w-24 border p-1"
-                        value={
-                          it.unitRate === 0 ? "" : it.unitRate.toString()
-                        }
+                        value={it.unitRate === 0 ? "" : it.unitRate.toString()}
                         onChange={(e) =>
                           updateItem(it.sn - 1, {
                             unitRate:
@@ -405,13 +402,20 @@ export default function Home() {
       {/* PDF Download */}
       {quote.items.length > 0 && (
         <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Generate Quotation</h2>
-          {quote.customerName.trim() && quote.mobileNo.trim() && /^[6-9]\d{9}$/.test(quote.mobileNo.trim()) ? (
+          <h2 className="text-xl font-bold text-gray-900 mb-4">
+            Generate Quotation
+          </h2>
+          {quote.customerName.trim() &&
+          quote.mobileNo.trim() &&
+          /^[6-9]\d{9}$/.test(quote.mobileNo.trim()) ? (
             <div className="flex flex-col sm:flex-row gap-4">
               {/* Customer PDF with prices */}
               <PDFDownloadLink
                 document={<QuotePDF data={{ ...quote }} />}
-                fileName={`${quote.customerName.replace(/\s+/g, '_')}_quotation.pdf`}
+                fileName={`${quote.customerName.replace(
+                  /\s+/g,
+                  "_"
+                )}_quotation.pdf`}
               >
                 {({ loading }) => (
                   <button className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2">
@@ -421,9 +425,7 @@ export default function Home() {
                         Generating PDF...
                       </>
                     ) : (
-                      <>
-                        📄 Customer Quotation (With Prices)
-                      </>
+                      <>📄 Customer Quotation (With Prices)</>
                     )}
                   </button>
                 )}
@@ -432,7 +434,10 @@ export default function Home() {
               {/* Staff PDF without prices */}
               <PDFDownloadLink
                 document={<StaffQuotePDF data={{ ...quote }} />}
-                fileName={`${quote.customerName.replace(/\s+/g, '_')}_staff_copy.pdf`}
+                fileName={`${quote.customerName.replace(
+                  /\s+/g,
+                  "_"
+                )}_staff_copy.pdf`}
               >
                 {({ loading }) => (
                   <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2">
@@ -442,9 +447,7 @@ export default function Home() {
                         Generating PDF...
                       </>
                     ) : (
-                      <>
-                        🔒 Staff Copy (No Prices)
-                      </>
+                      <>🔒 Staff Copy (No Prices)</>
                     )}
                   </button>
                 )}
@@ -454,12 +457,18 @@ export default function Home() {
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-red-700 font-medium flex items-center gap-2">
                 <span>⚠️</span>
-                Please fill in all required customer information before generating the PDF.
+                Please fill in all required customer information before
+                generating the PDF.
               </p>
               <ul className="mt-2 text-sm text-red-600 list-disc list-inside">
-                {!quote.customerName.trim() && <li>Customer name is required</li>}
+                {!quote.customerName.trim() && (
+                  <li>Customer name is required</li>
+                )}
                 {!quote.mobileNo.trim() && <li>Mobile number is required</li>}
-                {quote.mobileNo.trim() && !/^[6-9]\d{9}$/.test(quote.mobileNo.trim()) && <li>Valid 10-digit mobile number is required</li>}
+                {quote.mobileNo.trim() &&
+                  !/^[6-9]\d{9}$/.test(quote.mobileNo.trim()) && (
+                    <li>Valid 10-digit mobile number is required</li>
+                  )}
               </ul>
             </div>
           )}
