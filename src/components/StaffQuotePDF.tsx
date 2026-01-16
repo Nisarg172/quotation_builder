@@ -118,13 +118,13 @@ const styles = StyleSheet.create({
 // Static company info
 const infoData = {
   companyName: "Hm Technology",
-  logo: "/logo.png",
+  logo: "/HM_Technology.png",
   contactName: "Hardik Thummar",
-  contactNo: "9876543210",
+  contactNo: "+91 7990532661",
+  email: "sales@hmtechnology.in",
   address:
-    "408, ANUPAM SQUARE, NR. ALTHAN CHOWKDI, VIP ROAD, ALTHAN, SURAT - 395017",
-  email: "hm.technology@hotmail.com",
-  terms: [
+    "408, Anupam Square, Nr. Althan Chowkdi, Vip Road, Althan, Surat - 395017",
+     terms: [
     "Cabling as per planning with materials (for all devices, interfacing etc.)",
     "Required Site Modification, Civil works, Electrical if any may realize at the time of execution, Furniture work if any.",
     "Color work of gate as per your choice.",

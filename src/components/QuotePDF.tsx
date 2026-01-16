@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
 // static info
 const infoData = {
   companyName: "Hm Technology",
-  logo: "/logo.png",
+  logo: "/HM_Technology.png",
   contactName: "Hardik Thummar",
   contactNo: "+91 7990532661",
   email: "sales@hmtechnology.in",
