@@ -7,7 +7,7 @@ type FileUploaderProps = {
   onChange: (file: File | null) => void;
 };
 
-export function FileUploader({ file, previewUrl, onChange }: FileUploaderProps) {
+export function FileUploader({  previewUrl, onChange }: FileUploaderProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
