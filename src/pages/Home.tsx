@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import Select from "react-select";
-import type { ProductWithCatagory, QuoteData, QuoteItem } from "../Types/type";
+import type { ProductWithAccessories, ProductWithCatagory, QuoteData, QuoteItem } from "../Types/type";
 import { urlToBase64 } from "../utils/function";
 import QuotePDF from "../components/QuotePDF";
 import StaffQuotePDF from "../components/StaffQuotePDF";
@@ -19,33 +19,7 @@ export default function Home() {
   const [products, setProducts] = useState<ProductWithCatagory[]>([]);
 
   async function addProduct(productId: string) {
-    let foundProduct: {
-      id: string;
-      category_id: string | null;
-      description: string | null;
-      image_url: string | null;
-      installation_amount_1: number;
-      make: string | null;
-      model: string | null;
-      name: string;
-      price: number;
-      catagoryName: string;
-      accessories?: {
-            accessory: {
-                category_id: string | null;
-                created_at: string;
-                description: string | null;
-                id: string;
-                image_url: string | null;
-                installation_amount_1: number;
-                is_accessory: boolean;
-                make: string | null;
-                model: string | null;
-                name: string;
-                price: number;
-            };
-        }[];      
-    } | null = null;
+    let foundProduct: ProductWithAccessories | null = null;
 
     for (const cat of products) {
       const prod = cat.product.find((p) => p.id === productId);
@@ -77,7 +51,6 @@ export default function Home() {
       
     };
 
-  console.log("Found product to add: ", foundProduct);
    const accessoryAsProduct: QuoteItem[] = await Promise.all(
   foundProduct?.accessories?.map(async ({ accessory }, index) => {
     const newItem: QuoteItem = {

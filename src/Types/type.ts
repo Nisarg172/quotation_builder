@@ -82,3 +82,32 @@ export type ProductInput = {
   is_accessory: boolean;
   accessory: AccessoryOption[];
 };
+
+
+export type ProductWithAccessories = {
+      id: string;
+      category_id: string | null;
+      description: string | null;
+      image_url: string | null;
+      installation_amount_1: number;
+      make: string | null;
+      model: string | null;
+      name: string;
+      price: number;
+      catagoryName: string;
+      accessories?: {
+            accessory: {
+                category_id: string | null;
+                created_at: string;
+                description: string | null;
+                id: string;
+                image_url: string | null;
+                installation_amount_1: number;
+                is_accessory: boolean;
+                make: string | null;
+                model: string | null;
+                name: string;
+                price: number;
+            };
+        }[];      
+    }

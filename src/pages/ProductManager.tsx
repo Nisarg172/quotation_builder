@@ -648,32 +648,6 @@ export default function ProductManager() {
               />
             </div>
 
-            {/* Is Accessory Toggle */}
-            {/* <div className="space-y-2 flex gap-2 items-center">
-  <label className="block text-sm font-semibold text-gray-700">
-    Is Accessory
-  </label>
-
-  <Controller
-    name="is_accessory"
-    control={control}
-    render={({ field }) => (
-      <button
-        type="button"
-        onClick={() => field.onChange(!field.value)}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200
-          ${field.value ? "bg-blue-600" : "bg-gray-300"}`}
-      >
-        <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200
-            ${field.value ? "translate-x-6" : "translate-x-1"}`}
-        />
-      </button>
-    )}
-  />
-</div>
- */}
-
           </div>
 
           {/* Category */}
@@ -741,7 +715,11 @@ export default function ProductManager() {
               render={({ field }) => (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
                   <FileUploader
-                    onChange={(file) => field.onChange(file)}
+                    onChange={(file) => {
+                      
+                      field.onChange(file)
+                    
+                    }}
                     file={field.value}
                     previewUrl={
                       field.value
