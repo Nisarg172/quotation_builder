@@ -119,11 +119,12 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
     data.installationTotal *
     (GST_RATE / 100)
   ).toFixed(2);
+
   const grandTotal = (
     data.supplyTotal +
     data.installationTotal +
-    parseFloat(supplyTotalGST) +
-    parseFloat(installationTotalGST)
+   (data.gstOnSupply? parseFloat(supplyTotalGST):0) +
+    (data.gstOnInstallation? parseFloat(installationTotalGST):0)
   ).toFixed(2);
 
   return (
