@@ -241,7 +241,6 @@ export default function Home() {
   const fetchAccessories = async () => {
     const { data, error } = await getAccessoryWithCatagory();
 
-    console.log("accessory data", data);
     if (error) toast.error(error.message);
     else setAccessories(data || []);
   };
