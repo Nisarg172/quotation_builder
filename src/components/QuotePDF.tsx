@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   companyBlock: { width: "55%" },
   companyName: { fontSize: 14, fontWeight: "bold", marginBottom: 4 },
   contactSmall: { fontSize: 10 },
-  rightBlock: { width: "30%", textAlign: "left" },
+  rightBlock: { width: "25%", textAlign: "left" },
 
   table: {
     width: "100%",
@@ -104,7 +104,6 @@ const infoData = {
 
 const random5Digit = Math.floor(10000 + Math.random() * 90000);
 
-
 export default function QuotePDF({ data }: { data: QuoteData }) {
   const groupedItems = data.items.reduce<Record<string, QuoteItem[]>>(
     (acc, item) => {
@@ -112,25 +111,37 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
       acc[item.catagoryName].push(item);
       return acc;
     },
-    {}
+    {},
   );
-const supplyTotal = data.gstOnSupply
-  ? (data.supplyTotal * (GST_RATE / 100)) + data.supplyTotal
-  : data.supplyTotal;
 
-const installationTotal = data.gstOnInstallation
-  ? (data.installationTotal * (GST_RATE / 100)) + data.installationTotal
-  : data.installationTotal;
-
-const grandTotal = supplyTotal + installationTotal;
-
+  const supplyTotalGST = (data.supplyTotal * (GST_RATE / 100)).toFixed(2);
+  const installationTotalGST = (
+    data.installationTotal *
+    (GST_RATE / 100)
+  ).toFixed(2);
+  const grandTotal = (
+    data.supplyTotal +
+    data.installationTotal +
+    parseFloat(supplyTotalGST) +
+    parseFloat(installationTotalGST)
+  ).toFixed(2);
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* HEADER */}
+        <Text
+          style={{
+            ...styles.bold,
+            textAlign: "center",
+            fontSize: 12,
+            marginBottom: 8,
+          }}
+        >
+          {data.isPurchesOrder ? "PURCHASE ORDER" : "QUOTATION"}
+        </Text>
         <View style={styles.headerRow}>
-          <View style={styles.companyBlock}>
+          <View style={{ ...styles.companyBlock, marginTop: "-20px" }}>
             {infoData.logo && (
               <Image src={infoData.logo} style={{ width: 46, height: 46 }} />
             )}
@@ -144,8 +155,15 @@ const grandTotal = supplyTotal + installationTotal;
           </View>
 
           <View style={styles.rightBlock}>
-            <Text style={{ ...styles.bold, textAlign: "right" }}>
-              Quote No: {random5Digit}
+            <Text
+              style={{
+                ...styles.bold,
+                textAlign: "right",
+                marginTop: "-20px",
+                marginBottom: 10,
+              }}
+            >
+              {data.isPurchesOrder ? "Order No:" : "Quote No:"} {random5Digit}
             </Text>
             <Text>Customer: {data.customerName || "-"}</Text>
             <Text>Mobile: {data.mobileNo || "-"}</Text>
@@ -324,13 +342,33 @@ const grandTotal = supplyTotal + installationTotal;
               })}
             </View>
           ))}
+        </View>
 
-          {/* TOTALS (never split) */}
+        <View style={{ height: "20px" }} wrap={false}></View>
+        {/* TOTALS (never split) */}
+        <View
+          style={{
+            borderWidth: 1,
+            borderColor: "#000",
+          }}
+        >
           {[
-            [data.gstOnSupply ? `SUPPLY TOTAL + GST (${GST_RATE}%)` : "SUPPLY TOTAL", supplyTotal],
-            [data.gstOnInstallation ? `INSTALLATION TOTAL + GST (${GST_RATE}%)` : "INSTALLATION TOTAL", installationTotal],
+            [
+              data.gstOnSupply
+                ? `SUPPLY TOTAL + GST (${GST_RATE}%)`
+                : "SUPPLY TOTAL",
+              data.supplyTotal,
+              supplyTotalGST,
+            ],
+            [
+              data.gstOnInstallation
+                ? `INSTALLATION TOTAL + GST (${GST_RATE}%)`
+                : "INSTALLATION TOTAL",
+              data.installationTotal,
+              installationTotalGST,
+            ],
             ["GRAND TOTAL", grandTotal],
-          ].map(([label, value]) => (
+          ].map(([label, value, gstvalue]: any) => (
             <View key={label} style={styles.row} wrap={false}>
               <Text
                 style={[
@@ -340,13 +378,21 @@ const grandTotal = supplyTotal + installationTotal;
               >
                 {label}:
               </Text>
+
               <Text
                 style={[
-                  styles.cell,
-                  { width: "10%", textAlign: "right", fontWeight: "bold" },
+                  // styles.cell,
+                  {
+                    width: "20%",
+                    textAlign: "right",
+                    fontWeight: "bold",
+                    padding: 4,
+                    justifyContent: "center",
+                  },
                 ]}
               >
                 {Number(value).toFixed(2)}
+                {label.includes("GST") && `\n+ GST (${gstvalue})`}
               </Text>
             </View>
           ))}
