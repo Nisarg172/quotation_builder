@@ -64,20 +64,7 @@ export default function ProductManager() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<ProductInput>({
-    defaultValues: {
-      name: "",
-      description: "",
-      model: "",
-      price: undefined,
-      make: "",
-      installation_amount_1: undefined,
-      category_id: undefined,
-      imageFile: null,
-      is_accessory: false,
-      accessory: [],
-    },
-  });
+  } = useForm<ProductInput>();
 
   // Fetch products and categories
   useEffect(() => {
@@ -168,6 +155,8 @@ export default function ProductManager() {
           data: payload,
         });
         if (error) throw error;
+      
+        
         toast.success("Product updated");
       } else {
         const { error, data } = await addProduct(payload);
@@ -185,9 +174,9 @@ export default function ProductManager() {
         }
       }
 
+      reset({});
       setOpenDrawer(false);
       setEditingProduct(null);
-      reset();
       fetchProducts();
     } catch (err: any) {
       console.log(err);
@@ -396,8 +385,8 @@ export default function ProductManager() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Enhanced Controls */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 mb-3">
+          <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
               {/* Search */}
               <div className="relative flex-1 max-w-md">
@@ -410,7 +399,7 @@ export default function ProductManager() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
+                  className="pl-10 pr-4 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
                 />
               </div>
 
@@ -421,7 +410,7 @@ export default function ProductManager() {
                   setSelectedCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-4 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All Categories</option>
                 {categories.map((category) => (
@@ -452,7 +441,7 @@ export default function ProductManager() {
                     setEditingProduct(null);
                     setOpenDrawer(true);
                   }}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-.5"
                 >
                   <Plus className="h-4 w-4" /> Add Product
                 </Button>
@@ -497,7 +486,7 @@ export default function ProductManager() {
                     key={categoryName}
                     className="border border-gray-200 rounded-lg overflow-hidden"
                   >
-                    <div className="bg-blue-50 px-4 py-3 border-b border-gray-200">
+                    <div className="bg-blue-50 px-4 py-1.5 border-b border-gray-200">
                       <h3 className="text-lg font-semibold text-blue-900">
                         {categoryName}
                       </h3>
@@ -652,7 +641,11 @@ export default function ProductManager() {
       {/* Drawer Form */}
       <Drawer
         open={openDrawer}
-        onClose={() => setOpenDrawer(false)}
+        onClose={() => { 
+          if(editingProduct) reset({}); 
+          setOpenDrawer(false); 
+          
+        }}
         title={editingProduct ? "Edit Product" : "Add New Product"}
       >
         <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
@@ -664,7 +657,7 @@ export default function ProductManager() {
             <input
               type="text"
               placeholder="Enter product name"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               {...register("name", { required: "Product name is required" })}
             />
             {errors.name && (
@@ -682,7 +675,7 @@ export default function ProductManager() {
             <textarea
               placeholder="Enter product description"
               rows={3}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+              className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
               {...register("description")}
             />
           </div>
@@ -696,7 +689,7 @@ export default function ProductManager() {
               <input
                 type="text"
                 placeholder="Enter model number"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 {...register("model", { required: "Model is required" })}
               />
               {errors.model && (
@@ -715,7 +708,7 @@ export default function ProductManager() {
                 type="number"
                 step="0.01"
                 placeholder="Enter price"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 {...register("price", {
                   required: "Price is required",
                   // min: { value: 0.01, message: "Price must be greater than 0" },
@@ -738,7 +731,7 @@ export default function ProductManager() {
               <input
                 type="text"
                 placeholder="Enter make"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 {...register("make")}
               />
             </div>
@@ -752,7 +745,7 @@ export default function ProductManager() {
                 type="number"
                 step="0.01"
                 placeholder="Enter installation amount 1"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 {...register("installation_amount_1")}
               />
             </div>
@@ -764,7 +757,7 @@ export default function ProductManager() {
               Category *
             </label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
               {...register("category_id", { required: "Category is required" })}
             >
               <option value="">Select Category</option>
@@ -887,6 +880,7 @@ export default function ProductManager() {
         onConfirm={handleDelete}
         title="Delete Product"
         description="This action cannot be undone."
+        icon={<Trash2 className="h-8 w-8 text-red-600" />}
       />
     </div>
   );

@@ -11,6 +11,7 @@ import type { QuoteData, QuoteItem } from "../Types/type";
 import { TermsAndConditions } from "./TermsAndConditions";
 
 const BORDER = "#000";
+const GST_RATE = 18;
 
 const styles = StyleSheet.create({
   page: {
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
   companyBlock: { width: "55%" },
   companyName: { fontSize: 14, fontWeight: "bold", marginBottom: 4 },
   contactSmall: { fontSize: 10 },
-  rightBlock: { width: "45%", textAlign: "right" },
+  rightBlock: { width: "30%", textAlign: "left" },
 
   table: {
     width: "100%",
@@ -103,6 +104,7 @@ const infoData = {
 
 const random5Digit = Math.floor(10000 + Math.random() * 90000);
 
+
 export default function QuotePDF({ data }: { data: QuoteData }) {
   const groupedItems = data.items.reduce<Record<string, QuoteItem[]>>(
     (acc, item) => {
@@ -112,18 +114,16 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
     },
     {}
   );
+const supplyTotal = data.gstOnSupply
+  ? (data.supplyTotal * (GST_RATE / 100)) + data.supplyTotal
+  : data.supplyTotal;
 
-  const supplyTotal = data.items.reduce(
-    (sum, it) => sum + it.unitRate * it.qty,
-    0
-  );
+const installationTotal = data.gstOnInstallation
+  ? (data.installationTotal * (GST_RATE / 100)) + data.installationTotal
+  : data.installationTotal;
 
-  const installationTotal = data.items.reduce(
-    (sum, it) => sum + it.totalInstallation,
-    0
-  );
+const grandTotal = supplyTotal + installationTotal;
 
-  const grandTotal = supplyTotal + installationTotal;
 
   return (
     <Document>
@@ -144,23 +144,35 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
           </View>
 
           <View style={styles.rightBlock}>
-            <Text style={styles.bold}>Quote No: {random5Digit}</Text>
+            <Text style={{ ...styles.bold, textAlign: "right" }}>
+              Quote No: {random5Digit}
+            </Text>
             <Text>Customer: {data.customerName || "-"}</Text>
             <Text>Mobile: {data.mobileNo || "-"}</Text>
+            <Text>Address: {data.address || "-"}</Text>
           </View>
         </View>
 
         {/* TABLE */}
         <View style={styles.table}>
           {/* TABLE HEADER */}
-          <View style={[styles.row, { backgroundColor: "#e5e7eb" }]} wrap={false}>
-            <Text style={[styles.cell, styles.colSr, styles.bold, styles.center]}>
+          <View
+            style={[styles.row, { backgroundColor: "#e5e7eb" }]}
+            wrap={false}
+          >
+            <Text
+              style={[styles.cell, styles.colSr, styles.bold, styles.center]}
+            >
               Sr.
             </Text>
-            <Text style={[styles.cell, styles.colDesc, styles.bold, styles.center]}>
+            <Text
+              style={[styles.cell, styles.colDesc, styles.bold, styles.center]}
+            >
               Item Description
             </Text>
-            <Text style={[styles.cell, styles.colImg, styles.bold, styles.center]}>
+            <Text
+              style={[styles.cell, styles.colImg, styles.bold, styles.center]}
+            >
               Image
             </Text>
 
@@ -172,7 +184,9 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
               </View>
             </View>
 
-            <Text style={[styles.cell, styles.colQty, styles.bold, styles.center]}>
+            <Text
+              style={[styles.cell, styles.colQty, styles.bold, styles.center]}
+            >
               Qty
             </Text>
 
@@ -192,7 +206,9 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
               </View>
             </View>
 
-            <Text style={[styles.cell, styles.colTotal, styles.bold, styles.center]}>
+            <Text
+              style={[styles.cell, styles.colTotal, styles.bold, styles.center]}
+            >
               TOTAL
             </Text>
           </View>
@@ -243,7 +259,9 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                       >
                         {it.make || "-"}
                       </Text>
-                      <Text style={[{ width: "50%", padding: 4 }, styles.center]}>
+                      <Text
+                        style={[{ width: "50%", padding: 4 }, styles.center]}
+                      >
                         {it.makeModel || "-"}
                       </Text>
                     </View>
@@ -268,7 +286,9 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                       >
                         {it.unitRate.toFixed(2)}
                       </Text>
-                      <Text style={[{ width: "50%", padding: 4 }, styles.right]}>
+                      <Text
+                        style={[{ width: "50%", padding: 4 }, styles.right]}
+                      >
                         {supply.toFixed(2)}
                       </Text>
                     </View>
@@ -289,7 +309,9 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                       >
                         {it.installation_amount_1.toFixed(2)}
                       </Text>
-                      <Text style={[{ width: "50%", padding: 4 }, styles.right]}>
+                      <Text
+                        style={[{ width: "50%", padding: 4 }, styles.right]}
+                      >
                         {it.totalInstallation.toFixed(2)}
                       </Text>
                     </View>
@@ -305,8 +327,8 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
 
           {/* TOTALS (never split) */}
           {[
-            ["SUPPLY TOTAL", supplyTotal],
-            ["INSTALLATION TOTAL", installationTotal],
+            [data.gstOnSupply ? `SUPPLY TOTAL + GST (${GST_RATE}%)` : "SUPPLY TOTAL", supplyTotal],
+            [data.gstOnInstallation ? `INSTALLATION TOTAL + GST (${GST_RATE}%)` : "INSTALLATION TOTAL", installationTotal],
             ["GRAND TOTAL", grandTotal],
           ].map(([label, value]) => (
             <View key={label} style={styles.row} wrap={false}>
@@ -332,7 +354,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
       </Page>
 
       {/* TERMS PAGE */}
-      <TermsAndConditions />
+      {!data.isPurchesOrder && <TermsAndConditions />}
     </Document>
   );
 }

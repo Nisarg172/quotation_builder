@@ -10,6 +10,7 @@ import {
 import type { QuoteData, QuoteItem } from "../Types/type";
 
 const BORDER = "#000";
+const random5Digit = Math.floor(10000 + Math.random() * 90000);
 
 const styles = StyleSheet.create({
   page: {
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
   companyBlock: { width: "55%" },
   companyName: { fontSize: 14, fontWeight: "bold", marginTop: 2, marginBottom: 4 },
   contactSmall: { fontSize: 10, lineHeight: 1.2 },
-  rightBlock: { width: "45%", textAlign: "right" },
+  rightBlock: { width: "45%", textAlign: "left" },
 
   // ===== Table base =====
   table: {
@@ -159,15 +160,12 @@ export default function StaffQuotePDF({ data }: { data: QuoteData }) {
             <Text style={styles.contactSmall}>Address: {infoData.address}</Text>
           </View>
 
-          <View style={styles.rightBlock}>
-            <Text style={styles.bold}>Reference / Quote No: {"1"}</Text>
-            <Text style={{ marginTop: 4, fontSize: 10 }}>
-              Customer: {data.customerName || "-"}
-            </Text>
-            <Text style={{ fontSize: 10 }}>
-              Mobile: {data.mobileNo || "-"}
-            </Text>
-          </View>
+           <View style={styles.rightBlock}>
+                      <Text style={{ ...styles.bold, textAlign: "right" }}>Quote No: {random5Digit}</Text>
+                      <Text>Customer: {data.customerName || "-"}</Text>
+                      <Text>Mobile: {data.mobileNo || "-"}</Text>
+                      <Text>Address: {data.address || "-"}</Text>
+                    </View>
         </View>
 
         {/* ===== Table ===== */}

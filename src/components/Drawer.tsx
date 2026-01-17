@@ -15,14 +15,14 @@ export function Drawer({ open, title, onClose, children }: DrawerProps) {
       {open && (
         <div
           onClick={onClose}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity"
+          className="fixed inset-0 bg-black/10 backdrop-blur-none z-30 transition-opacity"
         />
       )}
 
       {/* Drawer Content */}
       <div
         className={cn(
-          "fixed top-0 right-0 h-full w-2xl bg-white shadow-xl p-6 z-50 transform transition-transform duration-300",
+          "fixed top-0 right-0 h-full w-2xl bg-white shadow-xl p-6 z-40 transform transition-transform duration-400",
           open ? "translate-x-0" : "translate-x-full"
         )}
       >

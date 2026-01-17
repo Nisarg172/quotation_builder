@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { AlertTriangle } from "lucide-react";
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -7,6 +6,7 @@ type ConfirmDialogProps = {
   description?: string;
   onConfirm: () => void;
   onCancel: () => void;
+  icon?: React.ReactNode;
 };
 
 export function ConfirmDialog({
@@ -15,6 +15,7 @@ export function ConfirmDialog({
   description = "This action cannot be undone.",
   onConfirm,
   onCancel,
+  icon
 }: ConfirmDialogProps) {
   // Prevent body scroll when dialog is open
   useEffect(() => {
@@ -29,7 +30,7 @@ export function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-amber-50/50"
+      className="fixed inset-0 z-30 flex items-center justify-center bg-amber-50/50"
       onClick={onCancel} // Close on backdrop click
     >
       <div
@@ -37,9 +38,11 @@ export function ConfirmDialog({
         onClick={(e) => e.stopPropagation()} // Prevent close on content click
       >
         {/* Icon */}
-        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-100 dark:bg-red-900 mx-auto mb-4">
-          <AlertTriangle className="h-7 w-7 text-red-600 dark:text-red-400" />
-        </div>
+        {icon && 
+          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-100  mx-auto mb-4">
+            {icon}
+          </div>
+        }
 
         {/* Title */}
         <h2 className="text-xl font-semibold text-center text-gray-900 dark:text-gray-100">
