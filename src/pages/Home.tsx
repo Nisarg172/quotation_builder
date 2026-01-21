@@ -251,7 +251,8 @@ export default function Home() {
         installation_total: data.installationTotal,
         is_purches_order: data.isPurchesOrder,
         supply_total: data.supplyTotal,
-        coumpany_id:data.coumpanyId
+        coumpany_id:data.coumpanyId,
+        gst_number:data?.gstNumber||null
       };
       const { data: billQuationData, error: billQuationError } =
         await createBillQuation(billQuatioPyloade);
@@ -268,6 +269,7 @@ export default function Home() {
             // amount: ele.amount,
             // total_Installation: ele.totalInstallation,
             category_name: ele.catagoryName,
+            
           };
         });
 
