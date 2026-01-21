@@ -7,6 +7,8 @@ import ProductManager from "./pages/ProductManager";
 import AccessoryManager from "./pages/AccessoryManager";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
+import BillQuatation from "./pages/BillQuatation";
+import Customer from "./pages/Customer";
 
 function AppContent() {
   const { user, signOut } = useAuth();
@@ -35,6 +37,13 @@ function AppContent() {
                   className="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 hover:bg-slate-100"
                 >
                   Home
+                </Link>
+
+                <Link
+                  to="/customer"
+                  className="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 hover:bg-slate-100"
+                >
+                  Customer
                 </Link>
                 <Link
                   to="/product"
@@ -74,6 +83,7 @@ function AppContent() {
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
+          <Route path="/pdf/:id" element={<BillQuatation />} />
 
           {/* Protected Routes */}
           <Route path="/" element={
@@ -96,6 +106,15 @@ function AppContent() {
               <CategoryManager />
             </ProtectedRoute>
           } />
+
+           <Route path="/customer" element={
+            <ProtectedRoute>
+              <Customer />
+            </ProtectedRoute>
+          } />
+
+          
+          
         </Routes>
       </main>
 

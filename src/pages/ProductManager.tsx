@@ -12,7 +12,7 @@ import {
   ChevronDown,
   Filter,
 } from "lucide-react";
-import { Button } from "../components/CustomButton";
+import { Button } from "../components/ui/Button";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Drawer } from "../components/Drawer";
 import { toast } from "sonner";
@@ -25,13 +25,14 @@ import {
   deleteProduct,
   editProduct,
   getProduct,
-} from "@/Api/Category/ProductApi";
-import { getCatagory } from "@/Api/Category/CategoryApi";
+} from "@/Api/ProductApi";
+import { getCatagory } from "@/Api/CategoryApi";
 import Select from "react-select";
 import {
   addProductAccessory,
   removeAccessoryByProductId,
-} from "@/Api/Category/ProductAccessory";
+} from "@/Api/ProductAccessory";
+import Input from "@/components/ui/Input";
 
 export default function ProductManager() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -50,7 +51,7 @@ export default function ProductManager() {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [accessoryOptions, SetAccessoryOptions] = useState<AccessoryOption[]>(
-    []
+    [],
   );
 
   const [confirmDelete, setConfirmDelete] = useState<{
@@ -99,7 +100,7 @@ export default function ProductManager() {
     if (error) toast.error(error.message);
     else {
       SetAccessoryOptions(
-        data.map((acc) => ({ label: acc.name, value: acc.id }))
+        data.map((acc) => ({ label: acc.name, value: acc.id })),
       );
     }
   };
@@ -127,7 +128,7 @@ export default function ProductManager() {
         model: form.model,
         price: form.price,
         make: form.make,
-        installation_amount_1: form.installation_amount_1 || 0,
+        installation_amount: form.installation_amount || 0,
         category_id: form.category_id,
         is_accessory: false,
         image_url: imageUrl,
@@ -145,9 +146,8 @@ export default function ProductManager() {
             accessory_id: acc.value,
             product_id: editingProduct.id,
           }));
-          const { error: addProductAccessoryError } = await addProductAccessory(
-            productAccessoryIds
-          );
+          const { error: addProductAccessoryError } =
+            await addProductAccessory(productAccessoryIds);
           if (addProductAccessoryError) throw addProductAccessoryError;
         }
         const { error } = await editProduct({
@@ -155,8 +155,7 @@ export default function ProductManager() {
           data: payload,
         });
         if (error) throw error;
-      
-        
+
         toast.success("Product updated");
       } else {
         const { error, data } = await addProduct(payload);
@@ -166,9 +165,8 @@ export default function ProductManager() {
             accessory_id: acc.value,
             product_id: data.id,
           }));
-          const { error: addProductAccessoryError } = await addProductAccessory(
-            productAccessoryIds
-          );
+          const { error: addProductAccessoryError } =
+            await addProductAccessory(productAccessoryIds);
           if (addProductAccessoryError) throw addProductAccessoryError;
           toast.success("Product created");
         }
@@ -207,7 +205,7 @@ export default function ProductManager() {
       model: p.model ?? "",
       price: p.price,
       make: p.make ?? "",
-      installation_amount_1: p.installation_amount_1,
+      installation_amount: p.installation_amount,
       category_id: p.category_id ?? undefined,
       imageFile: p.image_url, // keep empty, preview shows existing
       accessory: p.accessory,
@@ -266,7 +264,7 @@ export default function ProductManager() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredAndSortedProducts.slice(
       startIndex,
-      startIndex + itemsPerPage
+      startIndex + itemsPerPage,
     );
   }, [filteredAndSortedProducts, currentPage, itemsPerPage]);
 
@@ -274,14 +272,17 @@ export default function ProductManager() {
   const groupedProducts = useMemo(() => {
     if (!groupByCategory) return null;
 
-    return filteredAndSortedProducts.reduce((acc, product) => {
-      const categoryName = product.category?.name || "Uncategorized";
-      if (!acc[categoryName]) {
-        acc[categoryName] = [];
-      }
-      acc[categoryName].push(product);
-      return acc;
-    }, {} as Record<string, Product[]>);
+    return filteredAndSortedProducts.reduce(
+      (acc, product) => {
+        const categoryName = product.category?.name || "Uncategorized";
+        if (!acc[categoryName]) {
+          acc[categoryName] = [];
+        }
+        acc[categoryName].push(product);
+        return acc;
+      },
+      {} as Record<string, Product[]>,
+    );
   }, [filteredAndSortedProducts, groupByCategory]);
 
   const handleSort = (field: keyof Product) => {
@@ -350,7 +351,7 @@ export default function ProductManager() {
       </td>
       <td className="px-6 py-4 text-sm text-gray-900">
         <div className="space-y-1">
-          <div>Amount 1: ₹{product.installation_amount_1.toLocaleString()}</div>
+          <div>Amount 1: ₹{product.installation_amount.toLocaleString()}</div>
         </div>
       </td>
       <td className="px-6 py-4">
@@ -389,9 +390,7 @@ export default function ProductManager() {
           <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
               {/* Search */}
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <input
+              <Input
                   type="text"
                   placeholder="Search products..."
                   value={searchTerm}
@@ -399,9 +398,9 @@ export default function ProductManager() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="pl-10 pr-4 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
-                />
-              </div>
+                  leftIcon={<Search size={18}/>}
+              />
+
 
               {/* Category Filter */}
               <select
@@ -410,7 +409,7 @@ export default function ProductManager() {
                   setSelectedCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="px-4 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-4 py-1.5 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All Categories</option>
                 {categories.map((category) => (
@@ -511,7 +510,7 @@ export default function ProductManager() {
                       </table>
                     </div>
                   </div>
-                )
+                ),
               )}
             </div>
           ) : (
@@ -583,7 +582,7 @@ export default function ProductManager() {
                 Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
                 {Math.min(
                   currentPage * itemsPerPage,
-                  filteredAndSortedProducts.length
+                  filteredAndSortedProducts.length,
                 )}{" "}
                 of {filteredAndSortedProducts.length} results
               </div>
@@ -604,7 +603,7 @@ export default function ProductManager() {
                     (page) =>
                       page === 1 ||
                       page === totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1)
+                      (page >= currentPage - 1 && page <= currentPage + 1),
                   )
                   .map((page, index, array) => (
                     <div key={page} className="flex items-center">
@@ -641,31 +640,22 @@ export default function ProductManager() {
       {/* Drawer Form */}
       <Drawer
         open={openDrawer}
-        onClose={() => { 
-          if(editingProduct) reset({}); 
-          setOpenDrawer(false); 
-          
+        onClose={() => {
+          if (editingProduct) reset({});
+          setOpenDrawer(false);
         }}
         title={editingProduct ? "Edit Product" : "Add New Product"}
       >
         <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
           {/* Product Name */}
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-gray-700">
-              Product Name *
-            </label>
-            <input
-              type="text"
-              placeholder="Enter product name"
-              className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              {...register("name", { required: "Product name is required" })}
-            />
-            {errors.name && (
-              <p className="text-sm text-red-600 flex items-center gap-1">
-                {errors.name.message}
-              </p>
-            )}
-          </div>
+          <Input
+            label=" Product Name"
+            placeholder="Enter product name"
+            errorMessage={errors?.name?.message}
+            register={register("name", {
+              required: "Product name is required",
+            })}
+          />
 
           {/* Description */}
           <div className="space-y-2">
@@ -682,82 +672,51 @@ export default function ProductManager() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Model */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Model *
-              </label>
-              <input
-                type="text"
-                placeholder="Enter model number"
-                className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                {...register("model", { required: "Model is required" })}
-              />
-              {errors.model && (
-                <p className="text-sm text-red-600 flex items-center gap-1">
-                  {errors.model.message}
-                </p>
-              )}
-            </div>
+            <Input
+              label="Model"
+              placeholder="Enter model number"
+              errorMessage={errors?.model?.message}
+              register={register("model", { required: "Model is required" })}
+            />
 
             {/* Price */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Price (₹) *
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Enter price"
-                className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                {...register("price", {
-                  required: "Price is required",
-                  // min: { value: 0.01, message: "Price must be greater than 0" },
-                })}
-              />
-              {errors.price && (
-                <p className="text-sm text-red-600 flex items-center gap-1">
-                  {errors.price.message}
-                </p>
-              )}
-            </div>
+            <Input
+              label=" Price (₹)"
+              placeholder="Enter price"
+              errorMessage={errors?.price?.message}
+              type="number"
+              register={register("price", {
+                required: "Price is required",
+                // min: { value: 0.01, message: "Price must be greater than 0" },
+              })}
+            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Make */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Make
-              </label>
-              <input
-                type="text"
-                placeholder="Enter make"
-                className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                {...register("make")}
-              />
-            </div>
 
-            {/* Installation Amount 1 */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Installation Amount 1
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Enter installation amount 1"
-                className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                {...register("installation_amount_1")}
-              />
-            </div>
+            <Input
+              label="Maker"
+              placeholder="Enter Maker"
+              register={register("make")}
+            />
+
+            {/* Installation Amount */}
+            <Input
+              label="Installation Amount"
+              placeholder="Installation Amount"
+              register={register("installation_amount")}
+              type="number"
+            />
           </div>
 
           {/* Category */}
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">
-              Category *
+              Category
             </label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              className="w-full border border-gray-300 rounded-sm px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
               {...register("category_id", { required: "Category is required" })}
             >
               <option value="">Select Category</option>
@@ -795,7 +754,7 @@ export default function ProductManager() {
                   styles={{
                     control: (base) => ({
                       ...base,
-                      borderRadius: "0.5rem",
+                      borderRadius: "0.3rem",
                       borderColor: "#d1d5db",
                       minHeight: "48px",
                     }),
@@ -822,17 +781,13 @@ export default function ProductManager() {
                   PreviewUrl = field.value;
                 }
                 return (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
+                 
                     <FileUploader
                       onChange={(file) => {
                         field.onChange(file);
                       }}
-                      file={field.value}
-                      previewUrl={
-                       PreviewUrl
-                      }
+                      previewUrl={PreviewUrl}
                     />
-                  </div>
                 );
               }}
             />

@@ -12,7 +12,7 @@ import {
   ChevronDown,
   Filter,
 } from "lucide-react";
-import { Button } from "../components/CustomButton";
+import { Button } from "../components/ui/Button";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Drawer } from "../components/Drawer";
 import { toast } from "sonner";
@@ -24,8 +24,9 @@ import {
   deleteProduct,
   editProduct,
   getProduct,
-} from "@/Api/Category/ProductApi";
-import { getCatagory } from "@/Api/Category/CategoryApi";
+} from "@/Api/ProductApi";
+import { getCatagory } from "@/Api/CategoryApi";
+import Input from "@/components/ui/Input";
 
 type ProductInput = {
   name: string;
@@ -33,7 +34,7 @@ type ProductInput = {
   model?: string;
   price: number;
   make?: string;
-  installation_amount_1: number;
+  installation_amount: number;
   category_id?: string;
   imageFile: File | null | string;
   is_accessory: boolean;
@@ -78,7 +79,7 @@ export default function AccessoryManager() {
       model: "",
       price: undefined,
       make: "",
-      installation_amount_1: undefined,
+      installation_amount: undefined,
       category_id: undefined,
       imageFile: null,
       is_accessory: true,
@@ -128,7 +129,7 @@ export default function AccessoryManager() {
         model: form.model,
         price: form.price,
         make: form.make,
-        installation_amount_1: form.installation_amount_1 || 0,
+        installation_amount: form.installation_amount || 0,
         category_id: form.category_id,
         is_accessory: true,
         image_url: imageUrl,
@@ -181,7 +182,7 @@ export default function AccessoryManager() {
       model: p.model ?? "",
       price: p.price,
       make: p.make ?? "",
-      installation_amount_1: p.installation_amount_1,
+      installation_amount: p.installation_amount,
       category_id: p.category_id ?? undefined,
       base_quantity: p.base_quantity,
       imageFile: p.image_url, // keep empty, preview shows existing
@@ -240,7 +241,7 @@ export default function AccessoryManager() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredAndSortedProducts.slice(
       startIndex,
-      startIndex + itemsPerPage
+      startIndex + itemsPerPage,
     );
   }, [filteredAndSortedProducts, currentPage, itemsPerPage]);
 
@@ -248,14 +249,17 @@ export default function AccessoryManager() {
   const groupedProducts = useMemo(() => {
     if (!groupByCategory) return null;
 
-    return filteredAndSortedProducts.reduce((acc, product) => {
-      const categoryName = product.category?.name || "Uncategorized";
-      if (!acc[categoryName]) {
-        acc[categoryName] = [];
-      }
-      acc[categoryName].push(product);
-      return acc;
-    }, {} as Record<string, ProductWithoutAccessory[]>);
+    return filteredAndSortedProducts.reduce(
+      (acc, product) => {
+        const categoryName = product.category?.name || "Uncategorized";
+        if (!acc[categoryName]) {
+          acc[categoryName] = [];
+        }
+        acc[categoryName].push(product);
+        return acc;
+      },
+      {} as Record<string, ProductWithoutAccessory[]>,
+    );
   }, [filteredAndSortedProducts, groupByCategory]);
 
   const handleSort = (field: keyof ProductWithoutAccessory) => {
@@ -324,7 +328,7 @@ export default function AccessoryManager() {
       </td>
       <td className="px-6 py-4 text-sm text-gray-900">
         <div className="space-y-1">
-          <div>Amount 1: ₹{product.installation_amount_1.toLocaleString()}</div>
+          <div>Amount 1: ₹{product.installation_amount.toLocaleString()}</div>
         </div>
       </td>
       <td className="px-6 py-4">
@@ -363,19 +367,15 @@ export default function AccessoryManager() {
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
               {/* Search */}
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <input
-                  type="text"
-                  placeholder="Search Accessories..."
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="pl-10 pr-4 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
-                />
-              </div>
+              <Input
+                leftIcon={<Search size={18}/>}
+                placeholder="Search Accessories..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
 
               {/* Category Filter */}
               <select
@@ -384,7 +384,7 @@ export default function AccessoryManager() {
                   setSelectedCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="px-4 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-4 py-1.5 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All Categories</option>
                 {categories.map((category) => (
@@ -485,7 +485,7 @@ export default function AccessoryManager() {
                       </table>
                     </div>
                   </div>
-                )
+                ),
               )}
             </div>
           ) : (
@@ -557,7 +557,7 @@ export default function AccessoryManager() {
                 Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
                 {Math.min(
                   currentPage * itemsPerPage,
-                  filteredAndSortedProducts.length
+                  filteredAndSortedProducts.length,
                 )}{" "}
                 of {filteredAndSortedProducts.length} results
               </div>
@@ -578,7 +578,7 @@ export default function AccessoryManager() {
                     (page) =>
                       page === 1 ||
                       page === totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1)
+                      (page >= currentPage - 1 && page <= currentPage + 1),
                   )
                   .map((page, index, array) => (
                     <div key={page} className="flex items-center">
@@ -615,30 +615,22 @@ export default function AccessoryManager() {
       {/* Drawer Form */}
       <Drawer
         open={openDrawer}
-        onClose={() => { 
-          if(editingProduct) reset({}); 
+        onClose={() => {
+          if (editingProduct) reset({});
           setOpenDrawer(false);
         }}
         title={editingProduct ? "Edit Accessories" : "Add New Accessories"}
       >
         <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
           {/* Product Name */}
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-gray-700">
-              Product Name *
-            </label>
-            <input
-              type="text"
-              placeholder="Enter product name"
-              className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              {...register("name", { required: "Product name is required" })}
-            />
-            {errors.name && (
-              <p className="text-sm text-red-600 flex items-center gap-1">
-                {errors.name.message}
-              </p>
-            )}
-          </div>
+          <Input
+            label="Product Name"
+            placeholder="Enter Product Name"
+            register={register("name", {
+              required: "Product name is required",
+            })}
+            errorMessage={errors?.name?.message}
+          />
 
           {/* Description */}
           <div className="space-y-2">
@@ -648,94 +640,57 @@ export default function AccessoryManager() {
             <textarea
               placeholder="Enter product description"
               rows={3}
-              className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+              className="w-full border border-gray-300 rounded-sm px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
               {...register("description")}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Model */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Model *
-              </label>
-              <input
-                type="text"
-                placeholder="Enter model number"
-                className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                {...register("model", { required: "Model is required" })}
-              />
-              {errors.model && (
-                <p className="text-sm text-red-600 flex items-center gap-1">
-                  {errors.model.message}
-                </p>
-              )}
-            </div>
+
+            <Input
+              label="Model"
+              placeholder="Enter model number"
+              register={register("model", { required: "Model is required" })}
+              errorMessage={errors?.model?.message}
+            />
 
             {/* Price */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Price (₹) *
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Enter price"
-                className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                {...register("price", {
-                  required: "Price is required",
-                  // min: { value: 0.01, message: "Price must be greater than 0" },
-                })}
-              />
-              {errors.price && (
-                <p className="text-sm text-red-600 flex items-center gap-1">
-                  {errors.price.message}
-                </p>
-              )}
-            </div>
+            <Input
+              label="Price (₹)"
+              register={register("price", {
+                required: "Price is required",
+                // min: { value: 0.01, message: "Price must be greater than 0" },
+              })}
+              errorMessage={errors?.price?.message}
+              type="number"
+              placeholder="Enter price"
+            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Make */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Make
-              </label>
-              <input
-                type="text"
-                placeholder="Enter make"
-                className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                {...register("make")}
-              />
-            </div>
+            <Input
+              label="Make"
+              placeholder="Enter make"
+              register={register("make")}
+            />
 
-            {/* Installation Amount 1 */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Installation Amount 1
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Enter installation amount 1"
-                className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                {...register("installation_amount_1")}
-              />
-            </div>
+            {/* Installation Amount */}
+            <Input
+              label="Installation Amount"
+              type="number"
+              placeholder="Enter installation amount 1"
+              register={register("installation_amount")}
+            />
 
             {/* Base Quantity */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                base Quantity
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Enter base quantity"
-                className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                {...register("base_quantity")}
-              />
-            </div>
+            <Input
+              label="base Quantity"
+              type="number"
+              placeholder="Enter base quantity"
+              register={register("base_quantity")}
+            />
           </div>
 
           {/* Category */}
@@ -744,7 +699,7 @@ export default function AccessoryManager() {
               Category *
             </label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              className="w-full border border-gray-300 rounded-sm px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
               {...register("category_id", { required: "Category is required" })}
             >
               <option value="">Select Category</option>
@@ -778,13 +733,10 @@ export default function AccessoryManager() {
                   PreviewUrl = field.value;
                 }
                 return (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
-                    <FileUploader
-                      onChange={(file) => field.onChange(file)}
-                      file={field.value}
-                      previewUrl={PreviewUrl}
-                    />
-                  </div>
+                  <FileUploader
+                    onChange={(file) => field.onChange(file)}
+                    previewUrl={PreviewUrl}
+                  />
                 );
               }}
             />

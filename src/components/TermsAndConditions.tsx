@@ -5,8 +5,26 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 
+interface Props {
+  infoData: {
+    id: number;
+    companyName: string;
+    logo: string;
+    contactName: string;
+    contactNo: string;
+    email: string;
+    GST: string;
+    address: string;
+    serviceEmail:string
+    serviceMo:string
+    accountNo:string,
+    bankName:string,
+    branch:string,
+    IFSC:string
+}
+}
 
-export const TermsAndConditions = () => {
+export const TermsAndConditions = ({infoData}:Props) => {
 
 const BORDER = "#000";
 
@@ -124,12 +142,12 @@ const BORDER = "#000";
   return (
      <Page size="A4" style={styles.page}>
             <Text style={styles.tcTitle}>
-              HM Technology - Quotation Terms & Conditions
+              {infoData.companyName} - Quotation Terms & Conditions
             </Text>
     
             <Text style={styles.tcText}>
               These Terms and Conditions govern the supply of products and services
-              by HM Technology. By accepting our quotation, you agree to be bound by
+              by {infoData.companyName}. By accepting our quotation, you agree to be bound by
               these terms.
             </Text>
     
@@ -137,26 +155,21 @@ const BORDER = "#000";
     
             <Text style={styles.tcText}>1. Payment Schedule:</Text>
             <Text style={styles.tcBullet}>
-              • 60% Advance: Payable upon issuance of the Proforma Invoice (P.I.).
-            </Text>
-            <Text style={styles.tcBullet}>
-              • 20% at Material Delivery: Payable upon delivery of materials to the
-              site.
+              • 80% Advance: Payable upon issuance of the Proforma Invoice (P.I.).
             </Text>
             <Text style={styles.tcBullet}>
               • 20% after Installation: Payable within 2 days after completion.
             </Text>
     
             <Text style={styles.tcText}>
-              2. Payment Method: Demand Draft (DD) or Cheque in favour of HM
-              TECHNOLOGY.
+              2. Payment Method: Demand Draft (DD) or Cheque in favour of {infoData.companyName}.
             </Text>
     
             <View style={styles.tcBankBox}>
-              <Text style={styles.tcText}>Account No: 582001010050986</Text>
-              <Text style={styles.tcText}>Bank Name: Union Bank of India</Text>
-              <Text style={styles.tcText}>Branch: Nanpura</Text>
-              <Text style={styles.tcText}>RTGS / NEFT IFSC: UBIN0536415</Text>
+              <Text style={styles.tcText}>Account No: {infoData.accountNo}</Text>
+              <Text style={styles.tcText}>Bank Name: {infoData.bankName}</Text>
+              <Text style={styles.tcText}>Branch: {infoData.branch}</Text>
+              <Text style={styles.tcText}>RTGS / NEFT IFSC: {infoData.IFSC}</Text>
             </View>
     
             <Text style={styles.tcSubTitle}>2. GOODS DELIVERY</Text>
@@ -221,8 +234,8 @@ const BORDER = "#000";
             </Text>
     
             <Text style={styles.tcSubTitle}>Contact Us</Text>
-            <Text style={styles.tcText}>Email: servicehmtechnology@gmail.com</Text>
-            <Text style={styles.tcText}>Technical Support: +91 99041 22243</Text>
+            <Text style={styles.tcText}>Email: {infoData.serviceEmail}</Text>
+            <Text style={styles.tcText}>Technical Support: {infoData.serviceMo}</Text>
           </Page>
   )
 }

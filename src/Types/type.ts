@@ -7,11 +7,9 @@ export type QuoteItem = {
   makeModel: string;
   qty: number;
   unitRate: number;
-  amount: number;
   image?: string;
   make: string;
-  installation_amount_1: number;
-  totalInstallation: number;
+  installation_amount: number;
   catagoryName: string;
 };
 
@@ -26,6 +24,8 @@ export type QuoteData = {
   gstOnSupply:boolean ;
   address: string;
   isPurchesOrder: boolean;
+  coumpanyId:number,
+  gstNumber?: string,
 };
 
 export type Category = {
@@ -44,7 +44,7 @@ export type Product = {
   description: string | null;
   id: string;
   image_url: string | null;
-  installation_amount_1: number;
+  installation_amount: number;
   make: string | null;
   model: string | null;
   name: string;
@@ -66,7 +66,7 @@ export type ProductWithCatagory = {
     description: string | null;
     id: string;
     image_url: string | null;
-    installation_amount_1: number;
+    installation_amount: number;
     make: string | null;
     model: string | null;
     name: string;
@@ -80,7 +80,7 @@ export type ProductInput = {
   model?: string;
   price: number;
   make?: string;
-  installation_amount_1: number;
+  installation_amount: number;
   category_id?: string;
   imageFile: File | null | string;
   is_accessory: boolean;
@@ -92,7 +92,7 @@ export type ProductWithAccessories = {
   category_id: string | null;
   description: string | null;
   image_url: string | null;
-  installation_amount_1: number;
+  installation_amount: number;
   make: string | null;
   model: string | null;
   name: string;
@@ -106,7 +106,7 @@ export type ProductWithAccessories = {
       id: string;
       base_quantity: number;
       image_url: string | null;
-      installation_amount_1: number;
+      installation_amount: number;
       is_accessory: boolean;
       make: string | null;
       model: string | null;
@@ -115,3 +115,37 @@ export type ProductWithAccessories = {
     };
   }[];
 };
+
+export type BillQuatationProduct= {
+        quantity: number;
+        unit_rate: number;
+        // amount: number;
+        installation_amount: number;
+        // total_Installation: number;
+        name: string;
+        description: string | null;
+        model: string | null;
+        make: string | null;
+        image_url: string | null;
+        category_name:string
+    }
+
+export type billQuatationData={
+    created_at: string;
+    customer_id: string;
+    grand_total: number;
+    gst_on_installation: boolean;
+    gst_on_supply: boolean;
+    coumpany_id:number,
+    gst_number?:string,
+    id: string;
+    installation_total: number;
+    is_purches_order: boolean;
+    supply_total: number;
+    customer: {
+        name: string;
+        mobile_no: string;
+        address: string;
+    };
+    bill_quatation_product: BillQuatationProduct[];
+}

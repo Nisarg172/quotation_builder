@@ -22,7 +22,7 @@
     "file-saver": "^2.0.5",
     "html2canvas": "^1.4.1",
     "html2canvas-pro": "^1.5.11",
-    "jspdf": "^3.0.2",
+    "html2pdf.js": "^0.14.0",
     "lucide-react": "^0.542.0",
     "pdf-lib": "^1.17.1",
     "postcss": "^8.5.6",
