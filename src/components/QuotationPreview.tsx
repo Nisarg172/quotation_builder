@@ -294,7 +294,7 @@ export default function QuotePreview({ data }: { data: QuoteData }) {
         onClose={() => setPreviewImage(null)}
       />
 
-      <TermsModal open={showTerms} onClose={() => setShowTerms(false)} />
+      <TermsModal open={showTerms} onClose={() => setShowTerms(false)} inforData={infoData}/>
     </>
   );
 }

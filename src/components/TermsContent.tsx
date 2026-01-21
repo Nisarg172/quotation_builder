@@ -1,15 +1,35 @@
-export default function TermsContent() {
+interface Props {
+
+  inforData: {
+    id: number;
+    companyName: string;
+    logo: string;
+    contactName: string;
+    contactNo: string;
+    email: string;
+    GST: string;
+    serviceEmail: string;
+    serviceMo: string;
+    address: string;
+    accountNo: string;
+    bankName: string;
+    branch: string;
+    IFSC: string;
+}
+
+}
+export default function TermsContent({inforData}:Props) {
   return (
     <div className="text-sm text-gray-800 leading-relaxed space-y-4">
       {/* TITLE */}
       <h2 className="text-lg font-bold text-center">
-        HM Technology - Quotation Terms & Conditions
+        {inforData.companyName} - Quotation Terms & Conditions
       </h2>
 
       {/* INTRO */}
       <p>
         These Terms and Conditions govern the supply of products and services by
-        HM Technology. By accepting our quotation, you agree to be bound by these
+        {inforData.companyName}. By accepting our quotation, you agree to be bound by these
         terms.
       </p>
 
@@ -22,10 +42,7 @@ export default function TermsContent() {
 
       <ul className="list-disc ml-6 space-y-1">
         <li>
-          60% Advance: Payable upon issuance of the Proforma Invoice (P.I.).
-        </li>
-        <li>
-          20% at Material Delivery: Payable upon delivery of materials to the site.
+          68% Advance: Payable upon issuance of the Proforma Invoice (P.I.).
         </li>
         <li>
           20% after Installation: Payable within 2 days after completion.
@@ -33,15 +50,15 @@ export default function TermsContent() {
       </ul>
 
       <p>
-        2. Payment Method: Demand Draft (DD) or Cheque in favour of HM TECHNOLOGY.
+        2. Payment Method: Demand Draft (DD) or Cheque in favour of {inforData.companyName}.
       </p>
 
       {/* BANK DETAILS */}
       <div className="border border-gray-400 rounded-md p-3 bg-gray-50">
-        <p>Account No: 582001010050986</p>
-        <p>Bank Name: Union Bank of India</p>
-        <p>Branch: Nanpura</p>
-        <p>RTGS / NEFT IFSC: UBIN0536415</p>
+        <p>Account No: {inforData.IFSC}</p>
+        <p>Bank Name: {inforData.bankName}</p>
+        <p>Branch: {inforData.branch}</p>
+        <p>RTGS / NEFT IFSC: {inforData.IFSC}</p>
       </div>
 
       {/* SECTION 2 */}
@@ -77,7 +94,7 @@ export default function TermsContent() {
         The warranty does not cover products that are fully or partially burnt,
         tampered with, or damaged due to: High voltage, Water seepage, Abuse or
         improper use, Negligent care, Damage caused by fire, earthquake, flood, or
-        other natural disasters. HM Technology's technical engineer/s' judgment and
+        other natural disasters. {inforData.companyName}'s technical engineer/s' judgment and
         assessment regarding warranty claims will be final and binding on the
         buyer.
       </p>
@@ -125,8 +142,8 @@ export default function TermsContent() {
 
       {/* CONTACT */}
       <h3 className="font-semibold mt-4">Contact Us</h3>
-      <p>Email: servicehmtechnology@gmail.com</p>
-      <p>Technical Support: +91 99041 22243</p>
+      <p>Email: {inforData.serviceEmail}</p>
+      <p>Technical Support: {inforData.serviceMo}</p>
     </div>
   );
 }
