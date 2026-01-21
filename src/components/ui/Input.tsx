@@ -11,10 +11,9 @@ interface TextInputProps {
   type?: HTMLInputTypeAttribute;
   maxLength?: number;
   register?: UseFormRegisterReturn;
-
-  /** NEW */
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
+  className?: string;
 }
 
 const Input: React.FC<TextInputProps> = ({
@@ -29,20 +28,23 @@ const Input: React.FC<TextInputProps> = ({
   register,
   leftIcon,
   rightIcon,
+  className = "",
 }) => {
   const hasError = required && !value?.trim();
 
   return (
-    <div className="space-y-1">
-      {label&&<label className="block text-sm font-semibold text-gray-700">
-        {label}
-        {required && <span className="text-red-500"> *</span>}
-      </label>}
+    <div className={`space-y-1.5 ${className}`}>
+      {label && (
+        <label className="block text-sm font-semibold text-gray-700">
+          {label}
+          {required && <span className="text-red-500"> *</span>}
+        </label>
+      )}
 
       <div className="relative">
-        {/* Left Icon */}
+        {/* Left Icon - Positioned consistently */}
         {leftIcon && (
-          <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
+          <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
             {leftIcon}
           </span>
         )}
@@ -53,29 +55,42 @@ const Input: React.FC<TextInputProps> = ({
           value={value}
           maxLength={maxLength}
           {...register}
-          onChange={(e) => onChange?.(e)}
-          className={`w-full rounded-sm px-4 py-1.5 border transition-colors
-            focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-            ${leftIcon ? "pl-10" : ""}
-            ${rightIcon ? "pr-10" : ""}
+          onChange={(e) => {
+            onChange?.(e);
+            register?.onChange?.(e); // Ensure react-hook-form change still triggers
+          }}
+          className={`
+            w-full rounded-md border transition-all duration-200
+            focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none
+            
+            /* Responsive Text: 16px on mobile to prevent auto-zoom on iOS, 14px on desktop */
+            text-base md:text-sm 
+            
+            /* Responsive Padding: Slightly larger vertical padding for easier tapping on mobile */
+            py-2.5 md:py-1.5 
+            
+            ${leftIcon ? "pl-10" : "pl-4"}
+            ${rightIcon ? "pr-10" : "pr-4"}
             ${
               hasError || errorMessage
-                ? "border-red-300 bg-red-50"
-                : "border-gray-300"
+                ? "border-red-300 bg-red-50 text-red-900 placeholder-red-300"
+                : "border-gray-300 bg-white text-gray-900"
             }
           `}
         />
 
         {/* Right Icon */}
         {rightIcon && (
-          <span className="absolute inset-y-0 right-3 flex items-center text-gray-400">
+          <span className="absolute inset-y-0 right-3 flex items-center text-gray-400 pointer-events-none">
             {rightIcon}
           </span>
         )}
       </div>
 
       {(hasError || errorMessage) && (
-        <p className="text-sm text-red-600">{errorMessage}</p>
+        <p className="text-xs md:text-sm text-red-600 font-medium animate-in fade-in slide-in-from-top-1">
+          {errorMessage || "This field is required"}
+        </p>
       )}
     </div>
   );

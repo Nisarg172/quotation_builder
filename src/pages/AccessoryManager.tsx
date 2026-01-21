@@ -11,6 +11,8 @@ import {
   ChevronUp,
   ChevronDown,
   Filter,
+  PackageOpen,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -46,25 +48,21 @@ export default function AccessoryManager() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Enhanced state for table features
+  // Table state
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState<
-    keyof ProductWithoutAccessory | null
-  >(null);
+  const [sortField, setSortField] = useState<keyof ProductWithoutAccessory | null>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [groupByCategory, setGroupByCategory] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const itemsPerPage = 10;
 
   const [openDrawer, setOpenDrawer] = useState(false);
-  const [editingProduct, setEditingProduct] =
-    useState<ProductWithoutAccessory | null>(null);
-
-  const [confirmDelete, setConfirmDelete] = useState<{
-    open: boolean;
-    id: string | null;
-  }>({ open: false, id: null });
+  const [editingProduct, setEditingProduct] = useState<ProductWithoutAccessory | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; id: string | null }>({
+    open: false,
+    id: null,
+  });
 
   const {
     register,
@@ -72,28 +70,15 @@ export default function AccessoryManager() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<ProductInput>({
-    defaultValues: {
-      name: "",
-      description: "",
-      model: "",
-      price: undefined,
-      make: "",
-      installation_amount: undefined,
-      category_id: undefined,
-      imageFile: null,
-      is_accessory: true,
-      base_quantity: 1,
-    },
-  });
+  } = useForm<ProductInput>();
 
-  // Fetch products and categories
   useEffect(() => {
     fetchProducts();
     fetchCategories();
   }, []);
 
   const fetchProducts = async () => {
+    setLoading(true);
     const { data, error } = await getProduct(true);
     if (error) toast.error(error.message);
     else setProducts(data || []);
@@ -106,20 +91,18 @@ export default function AccessoryManager() {
     else setCategories(data || []);
   };
 
-  // Save product
   const onSubmit = async (form: ProductInput) => {
     try {
       let imageUrl: string | null = editingProduct?.image_url || null;
 
-      // Upload image only on submit
-      if (form.imageFile && form.imageFile instanceof File) {
-        const fileName = `${Date.now()}_${form.imageFile.name}`;
+      if (form.imageFile instanceof File) {
+        const fileExt = form.imageFile.name.split(".").pop();
+        const fileName = `${Date.now()}.${fileExt}`;
         const { error: uploadError, data } = await supabase.storage
           .from("image")
           .upload(fileName, form.imageFile);
 
         if (uploadError) throw uploadError;
-
         imageUrl = `${import.meta.env.VITE_IMAGE_BASE_URL}/${data.fullPath}`;
       }
 
@@ -127,20 +110,17 @@ export default function AccessoryManager() {
         name: form.name,
         description: form.description,
         model: form.model,
-        price: form.price,
+        price: Number(form.price),
         make: form.make,
-        installation_amount: form.installation_amount || 0,
+        installation_amount: Number(form.installation_amount || 0),
         category_id: form.category_id,
         is_accessory: true,
         image_url: imageUrl,
-        base_quantity: form.base_quantity,
+        base_quantity: Number(form.base_quantity || 1),
       };
 
       if (editingProduct) {
-        const { error } = await editProduct({
-          id: editingProduct.id,
-          data: payload,
-        });
+        const { error } = await editProduct({ id: editingProduct.id, data: payload });
         if (error) throw error;
         toast.success("Accessory updated");
       } else {
@@ -149,31 +129,19 @@ export default function AccessoryManager() {
         toast.success("Accessory created");
       }
 
-      reset({});
-      setOpenDrawer(false);
-      setEditingProduct(null);
+      handleCloseDrawer();
       fetchProducts();
     } catch (err: any) {
-      console.log(err);
       toast.error(err.message);
     }
   };
 
-  // Delete product
-  const handleDelete = async () => {
-    if (!confirmDelete.id) return;
-    const { error } = await deleteProduct(confirmDelete.id);
-
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Product deleted");
-      fetchProducts();
-    }
-
-    setConfirmDelete({ open: false, id: null });
+  const handleCloseDrawer = () => {
+    reset({});
+    setEditingProduct(null);
+    setOpenDrawer(false);
   };
 
-  // When editing, preload form values
   const startEdit = (p: ProductWithoutAccessory) => {
     setEditingProduct(p);
     reset({
@@ -185,81 +153,58 @@ export default function AccessoryManager() {
       installation_amount: p.installation_amount,
       category_id: p.category_id ?? undefined,
       base_quantity: p.base_quantity,
-      imageFile: p.image_url, // keep empty, preview shows existing
+      imageFile: p.image_url,
     });
     setOpenDrawer(true);
   };
 
-  // Enhanced filtering and sorting logic
+  const handleDelete = async () => {
+    if (!confirmDelete.id) return;
+    const { error } = await deleteProduct(confirmDelete.id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Deleted successfully");
+      fetchProducts();
+    }
+    setConfirmDelete({ open: false, id: null });
+  };
+
+  // Logic: Filter & Sort
   const filteredAndSortedProducts = useMemo(() => {
-    let filtered = products.filter((product) => {
+    let result = products.filter((p) => {
+      const search = searchTerm.toLowerCase();
       const matchesSearch =
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.model?.toLowerCase().includes(searchTerm.toLowerCase()) ??
-          false) ||
-        (product.make?.toLowerCase().includes(searchTerm.toLowerCase()) ??
-          false) ||
-        (product.description
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ??
-          false);
-
-      const matchesCategory =
-        selectedCategory === "" || product.category_id === selectedCategory;
-
-      return matchesSearch && matchesCategory;
+        p.name.toLowerCase().includes(search) ||
+        p.model?.toLowerCase().includes(search) ||
+        p.make?.toLowerCase().includes(search);
+      const matchesCat = !selectedCategory || p.category_id === selectedCategory;
+      return matchesSearch && matchesCat;
     });
 
     if (sortField) {
-      filtered.sort((a, b) => {
-        const aValue = a[sortField];
-        const bValue = b[sortField];
-
-        if (aValue === null || aValue === undefined) return 1;
-        if (bValue === null || bValue === undefined) return -1;
-
-        if (typeof aValue === "string" && typeof bValue === "string") {
-          return sortDirection === "asc"
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
-        }
-
-        if (typeof aValue === "number" && typeof bValue === "number") {
-          return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
-        }
-
-        return 0;
+      result.sort((a, b) => {
+        const aVal = a[sortField] ?? "";
+        const bVal = b[sortField] ?? "";
+        const factor = sortDirection === "asc" ? 1 : -1;
+        return aVal > bVal ? factor : aVal < bVal ? -factor : 0;
       });
     }
-
-    return filtered;
+    return result;
   }, [products, searchTerm, selectedCategory, sortField, sortDirection]);
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredAndSortedProducts.length / itemsPerPage);
   const paginatedProducts = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredAndSortedProducts.slice(
-      startIndex,
-      startIndex + itemsPerPage,
-    );
-  }, [filteredAndSortedProducts, currentPage, itemsPerPage]);
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredAndSortedProducts.slice(start, start + itemsPerPage);
+  }, [filteredAndSortedProducts, currentPage]);
 
-  // Group by category logic
   const groupedProducts = useMemo(() => {
     if (!groupByCategory) return null;
-
-    return filteredAndSortedProducts.reduce(
-      (acc, product) => {
-        const categoryName = product.category?.name || "Uncategorized";
-        if (!acc[categoryName]) {
-          acc[categoryName] = [];
-        }
-        acc[categoryName].push(product);
-        return acc;
-      },
-      {} as Record<string, ProductWithoutAccessory[]>,
-    );
+    return filteredAndSortedProducts.reduce((acc, p) => {
+      const catName = p.category?.name || "Uncategorized";
+      if (!acc[catName]) acc[catName] = [];
+      acc[catName].push(p);
+      return acc;
+    }, {} as Record<string, ProductWithoutAccessory[]>);
   }, [filteredAndSortedProducts, groupByCategory]);
 
   const handleSort = (field: keyof ProductWithoutAccessory) => {
@@ -269,90 +214,42 @@ export default function AccessoryManager() {
       setSortField(field);
       setSortDirection("asc");
     }
-    setCurrentPage(1);
   };
 
-  const SortIcon = ({ field }: { field: keyof ProductWithoutAccessory }) => {
-    if (sortField !== field) return null;
-    return sortDirection === "asc" ? (
-      <ChevronUp className="h-4 w-4 inline ml-1" />
-    ) : (
-      <ChevronDown className="h-4 w-4 inline ml-1" />
-    );
-  };
-
-  // Product Row Component
-  const ProductRow = ({
-    product,
-    onEdit,
-    onDelete,
-  }: {
-    product: ProductWithoutAccessory;
-    onEdit: (product: ProductWithoutAccessory) => void;
-    onDelete: (id: string) => void;
-  }) => (
-    <tr className="hover:bg-gray-50 transition-colors">
-      <td className="px-6 py-4">
-        <div className="flex items-center">
-          <div className="flex-shrink-0 h-12 w-12">
+  // Sub-component: Product Row
+  const ProductRow = ({ product }: { product: ProductWithoutAccessory }) => (
+    <tr className="hover:bg-gray-50/80 transition-colors group">
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-lg overflow-hidden bg-gray-100 border flex-shrink-0">
             {product.image_url ? (
-              <img
-                src={product.image_url}
-                alt={product.name}
-                className="h-12 w-12 object-cover rounded-lg border border-gray-200"
-              />
+              <img src={product.image_url} alt="" className="h-full w-full object-cover" />
             ) : (
-              <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <span className="text-gray-400 text-xs">No Image</span>
-              </div>
+              <ImageIcon className="h-full w-full p-2 text-gray-300" />
             )}
           </div>
-          <div className="ml-4">
-            <div className="text-sm font-medium text-gray-900">
-              {product.name}
-            </div>
-            {product.description && (
-              <div className="text-sm text-gray-500 truncate max-w-xs">
-                {product.description}
-              </div>
-            )}
+          <div className="max-w-[200px]">
+            <p className="text-sm font-semibold text-gray-900 truncate">{product.name}</p>
+            <p className="text-xs text-gray-500 truncate">{product.description || "No description"}</p>
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 text-sm text-gray-900">
-        {product.model || "-"}
-      </td>
-      <td className="px-6 py-4 text-sm text-gray-900">{product.make || "-"}</td>
-      <td className="px-6 py-4 text-sm font-medium text-gray-900">
-        ₹{product.price.toLocaleString()}
-      </td>
-      <td className="px-6 py-4 text-sm text-gray-900">
-        <div className="space-y-1">
-          <div>Amount 1: ₹{product.installation_amount.toLocaleString()}</div>
-        </div>
-      </td>
+      <td className="px-6 py-4 text-sm text-gray-600">{product.model || "-"}</td>
+      <td className="px-6 py-4 text-sm text-gray-600">{product.make || "-"}</td>
+      <td className="px-6 py-4 text-sm font-bold text-gray-900">₹{product.price.toLocaleString()}</td>
+      <td className="px-6 py-4 text-sm text-gray-600">₹{product.installation_amount}</td>
       <td className="px-6 py-4">
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          {product.category?.name || "Uncategorized"}
+        <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-medium border border-blue-100">
+          {product.category?.name || "None"}
         </span>
       </td>
       <td className="px-6 py-4 text-right">
-        <div className="flex items-center justify-end space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(product)}
-            className="flex items-center"
-          >
-            <Pencil className="h-4 w-4" />
+        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button variant="outline" size="sm" onClick={() => startEdit(product)}>
+            <Pencil size={14} />
           </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => onDelete(product.id)}
-            className="flex items-center"
-          >
-            <Trash2 className="h-4 w-4" />
+          <Button variant="destructive" size="sm" onClick={() => setConfirmDelete({ open: true, id: product.id })}>
+            <Trash2 size={14} />
           </Button>
         </div>
       </td>
@@ -360,250 +257,122 @@ export default function AccessoryManager() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Enhanced Controls */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 mb-3">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            <div className="flex flex-col sm:flex-row gap-4 flex-1">
-              {/* Search */}
-              <Input
-                leftIcon={<Search size={18}/>}
-                placeholder="Search Accessories..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
+    <div className="min-h-screen bg-[#f8f9fa] p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Top Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Accessory Manager</h1>
+            <p className="text-gray-500 text-sm">Create and manage your product accessories inventory</p>
+          </div>
+          <Button onClick={() => setOpenDrawer(true)} className="rounded-xl px-5 shadow-blue-200 shadow-lg">
+            <Plus className="mr-2 h-4 w-4" /> Add Accessory
+          </Button>
+        </div>
+
+        {/* Filter Toolbar */}
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4">
+          <div className="flex-1">
+            <Input
+              leftIcon={<Search size={18} className="text-gray-400" />}
+              placeholder="Quick search accessories..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="border-none bg-gray-50 focus:ring-2 rounded-xl"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="bg-gray-50 border-none rounded-xl text-sm px-4 py-2.5 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            >
+              <option value="">All Categories</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-600 bg-gray-50 px-4 py-2 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+              <input
+                type="checkbox"
+                checked={groupByCategory}
+                onChange={(e) => setGroupByCategory(e.target.checked)}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-
-              {/* Category Filter */}
-              <select
-                value={selectedCategory}
-                onChange={(e) => {
-                  setSelectedCategory(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="px-4 py-1.5 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Categories</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* View Options */}
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={groupByCategory}
-                  onChange={(e) => setGroupByCategory(e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <Filter className="h-4 w-4" />
-                Group by Category
-              </label>
-
-              <div className="text-sm text-gray-600">
-                <Button
-                  onClick={() => {
-                    reset();
-                    setEditingProduct(null);
-                    setOpenDrawer(true);
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <Plus className="h-4 w-4" /> Add Accessories
-                </Button>
-              </div>
-            </div>
+              <Filter size={16} /> Group View
+            </label>
           </div>
         </div>
 
-        {/* Enhanced Product List */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        {/* List Content */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">Loading products...</span>
+            <div className="p-20 text-center flex flex-col items-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
+              <p className="text-gray-500 animate-pulse">Loading Inventory...</p>
             </div>
-          ) : products.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <Plus className="h-8 w-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No products yet
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Get started by adding your first product
-              </p>
-              <Button
-                onClick={() => {
-                  reset();
-                  setEditingProduct(null);
-                  setOpenDrawer(true);
-                }}
-              >
-                <Plus className="h-4 w-4 mr-2" /> Add Product
-              </Button>
+          ) : filteredAndSortedProducts.length === 0 ? (
+            <div className="p-20 text-center">
+              <PackageOpen className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+              <h3 className="text-lg font-bold text-gray-900">No accessories found</h3>
+              <p className="text-gray-500">Try adjusting your filters or search term</p>
             </div>
           ) : groupByCategory && groupedProducts ? (
-            <div className="space-y-6 p-6">
-              {Object.entries(groupedProducts).map(
-                ([categoryName, categoryProducts]) => (
-                  <div
-                    key={categoryName}
-                    className="border border-gray-200 rounded-lg overflow-hidden"
-                  >
-                    <div className="bg-blue-50 px-4 py-1.5 border-b border-gray-200">
-                      <h3 className="text-lg font-semibold text-blue-900">
-                        {categoryName}
-                      </h3>
-                      <p className="text-sm text-blue-700">
-                        {categoryProducts.length} products
-                      </p>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <tbody className="divide-y divide-gray-200">
-                          {categoryProducts.map((p) => (
-                            <ProductRow
-                              key={p.id}
-                              product={p}
-                              onEdit={startEdit}
-                              onDelete={(id) =>
-                                setConfirmDelete({ open: true, id })
-                              }
-                            />
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+            <div className="p-6 space-y-8">
+              {Object.entries(groupedProducts).map(([cat, items]) => (
+                <div key={cat} className="space-y-3">
+                  <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                    <span className="w-8 h-[1px] bg-gray-200"></span> {cat} ({items.length})
+                  </h2>
+                  <div className="overflow-x-auto rounded-xl border border-gray-100">
+                    <table className="w-full text-left">
+                      <tbody className="divide-y divide-gray-100">
+                        {items.map((p) => <ProductRow key={p.id} product={p} />)}
+                      </tbody>
+                    </table>
                   </div>
-                ),
-              )}
+                </div>
+              ))}
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-gray-50/50 border-b border-gray-100">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSort("name")}
-                        className="flex items-center hover:text-blue-600"
+                    {["name", "model", "make", "price"].map((head) => (
+                      <th
+                        key={head}
+                        className="px-6 py-4 text-xs font-bold text-gray-500 uppercase cursor-pointer hover:text-blue-600 transition-colors"
+                        onClick={() => handleSort(head as any)}
                       >
-                        Product <SortIcon field="name" />
-                      </button>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSort("model")}
-                        className="flex items-center hover:text-blue-600"
-                      >
-                        Model <SortIcon field="model" />
-                      </button>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSort("make")}
-                        className="flex items-center hover:text-blue-600"
-                      >
-                        Make <SortIcon field="make" />
-                      </button>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSort("price")}
-                        className="flex items-center hover:text-blue-600"
-                      >
-                        Price <SortIcon field="price" />
-                      </button>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Installation
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Actions
-                    </th>
+                        <div className="flex items-center gap-1">
+                          {head} {sortField === head && (sortDirection === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+                        </div>
+                      </th>
+                    ))}
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Installation</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Category</th>
+                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {paginatedProducts.map((p) => (
-                    <ProductRow
-                      key={p.id}
-                      product={p}
-                      onEdit={startEdit}
-                      onDelete={(id) => setConfirmDelete({ open: true, id })}
-                    />
-                  ))}
+                <tbody className="divide-y divide-gray-100">
+                  {paginatedProducts.map((p) => <ProductRow key={p.id} product={p} />)}
                 </tbody>
               </table>
             </div>
           )}
 
           {/* Pagination */}
-          {!groupByCategory && totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                {Math.min(
-                  currentPage * itemsPerPage,
-                  filteredAndSortedProducts.length,
-                )}{" "}
-                of {filteredAndSortedProducts.length} results
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                  disabled={currentPage === 1}
-                >
-                  Previous
+          {!groupByCategory && filteredAndSortedProducts.length > itemsPerPage && (
+            <div className="p-4 border-t border-gray-50 flex items-center justify-between bg-gray-50/30">
+              <p className="text-xs text-gray-500">
+                Page {currentPage} of {Math.ceil(filteredAndSortedProducts.length / itemsPerPage)}
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(v => v - 1)}>
+                  Prev
                 </Button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(
-                    (page) =>
-                      page === 1 ||
-                      page === totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1),
-                  )
-                  .map((page, index, array) => (
-                    <div key={page} className="flex items-center">
-                      {index > 0 && array[index - 1] !== page - 1 && (
-                        <span className="px-2 text-gray-400">...</span>
-                      )}
-                      <Button
-                        variant={currentPage === page ? "primary" : "outline"}
-                        size="sm"
-                        onClick={() => setCurrentPage(page)}
-                        className="min-w-[2.5rem]"
-                      >
-                        {page}
-                      </Button>
-                    </div>
-                  ))}
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}
-                >
+                <Button variant="outline" size="sm" disabled={currentPage >= Math.ceil(filteredAndSortedProducts.length / itemsPerPage)} onClick={() => setCurrentPage(v => v + 1)}>
                   Next
                 </Button>
               </div>
@@ -612,179 +381,72 @@ export default function AccessoryManager() {
         </div>
       </div>
 
-      {/* Drawer Form */}
       <Drawer
         open={openDrawer}
-        onClose={() => {
-          if (editingProduct) reset({});
-          setOpenDrawer(false);
-        }}
-        title={editingProduct ? "Edit Accessories" : "Add New Accessories"}
+        onClose={handleCloseDrawer}
+        title={editingProduct ? "Update Accessory" : "New Accessory"}
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
-          {/* Product Name */}
-          <Input
-            label="Product Name"
-            placeholder="Enter Product Name"
-            register={register("name", {
-              required: "Product name is required",
-            })}
-            errorMessage={errors?.name?.message}
-          />
-
-          {/* Description */}
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-gray-700">
-              Description
-            </label>
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
+          <Input label="Product Name" placeholder="e.g. Wireless Remote" register={register("name", { required: true })} errorMessage={errors.name && "Required"} />
+          
+          <div className="space-y-1">
+            <label className="text-sm font-bold text-gray-700">Description</label>
             <textarea
-              placeholder="Enter product description"
-              rows={3}
-              className="w-full border border-gray-300 rounded-sm px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
               {...register("description")}
+              className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 h-24 resize-none text-sm"
+              placeholder="Brief details about the accessory..."
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Model */}
-
-            <Input
-              label="Model"
-              placeholder="Enter model number"
-              register={register("model", { required: "Model is required" })}
-              errorMessage={errors?.model?.message}
-            />
-
-            {/* Price */}
-            <Input
-              label="Price (₹)"
-              register={register("price", {
-                required: "Price is required",
-                // min: { value: 0.01, message: "Price must be greater than 0" },
-              })}
-              errorMessage={errors?.price?.message}
-              type="number"
-              placeholder="Enter price"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Model" register={register("model")} />
+            <Input label="Make" register={register("make")} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Make */}
-            <Input
-              label="Make"
-              placeholder="Enter make"
-              register={register("make")}
-            />
-
-            {/* Installation Amount */}
-            <Input
-              label="Installation Amount"
-              type="number"
-              placeholder="Enter installation amount 1"
-              register={register("installation_amount")}
-            />
-
-            {/* Base Quantity */}
-            <Input
-              label="base Quantity"
-              type="number"
-              placeholder="Enter base quantity"
-              register={register("base_quantity")}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Price (₹)" type="number" register={register("price", { required: true })} />
+            <Input label="Installation (₹)" type="number" register={register("installation_amount")} />
           </div>
 
-          {/* Category */}
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Base Qty" type="number" register={register("base_quantity")} />
+            <div className="space-y-1">
+              <label className="text-sm font-bold text-gray-700">Category</label>
+              <select {...register("category_id")} className="w-full p-2.5 rounded-xl border border-gray-200 text-sm">
+                <option value="">Select Category</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-gray-700">
-              Category *
-            </label>
-            <select
-              className="w-full border border-gray-300 rounded-sm px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              {...register("category_id", { required: "Category is required" })}
-            >
-              <option value="">Select Category</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            {errors.category_id && (
-              <p className="text-sm text-red-600 flex items-center gap-1">
-                {errors.category_id.message}
-              </p>
-            )}
-          </div>
-
-          {/* Image Upload */}
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-gray-700">
-              Product Image {!editingProduct && "*"}
-            </label>
+            <label className="text-sm font-bold text-gray-700">Image</label>
             <Controller
               control={control}
               name="imageFile"
-              // rules={{ required: !editingProduct && "Image is required" }}
-              render={({ field }) => {
-                let PreviewUrl: null | string = null;
-                if (field.value instanceof File) {
-                  PreviewUrl = URL.createObjectURL(field.value);
-                } else {
-                  PreviewUrl = field.value;
-                }
-                return (
-                  <FileUploader
-                    onChange={(file) => field.onChange(file)}
-                    previewUrl={PreviewUrl}
-                  />
-                );
-              }}
+              render={({ field }) => (
+                <FileUploader
+                  onChange={field.onChange}
+                  previewUrl={typeof field.value === "string" ? field.value : field.value ? URL.createObjectURL(field.value) : null}
+                />
+              )}
             />
-            {errors.imageFile && (
-              <p className="text-sm text-red-600 flex items-center gap-1">
-                {errors.imageFile.message}
-              </p>
-            )}
           </div>
 
-          {/* Buttons */}
-          <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpenDrawer(false)}
-              className="px-6"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 flex items-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  {editingProduct ? "Updating..." : "Creating..."}
-                </>
-              ) : editingProduct ? (
-                "Update Product"
-              ) : (
-                "Save Product"
-              )}
+          <div className="flex gap-3 pt-4">
+            <Button type="submit" disabled={isSubmitting} className="flex-1 rounded-xl py-6">
+              {isSubmitting ? "Processing..." : editingProduct ? "Update Item" : "Create Item"}
             </Button>
           </div>
         </form>
       </Drawer>
 
-      {/* Confirm Delete */}
       <ConfirmDialog
         open={confirmDelete.open}
         onCancel={() => setConfirmDelete({ open: false, id: null })}
         onConfirm={handleDelete}
-        title="Delete Accessory"
-        description="This action cannot be undone."
-        icon={<Trash2 className="h-8 w-8 text-red-600" />}
+        title="Delete Accessory?"
+        description="This will permanently remove the item from your inventory."
       />
     </div>
   );

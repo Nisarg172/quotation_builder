@@ -196,7 +196,7 @@ const BORDER = "#000";
               The warranty does not cover products that are fully or partially
               burnt, tampered with, or damaged due to: High voltage, Water seepage,
               Abuse or improper use, Negligent care, Damage caused by fire,
-              earthquake, flood, or other natural disasters. HM Technology's
+              earthquake, flood, or other natural disasters. {infoData.companyName}'s
               technical engineer/s'judgment and assessment regarding warranty claims
               will be final and binding on the buyer.
             </Text>

@@ -1,5 +1,4 @@
 interface Props {
-
   inforData: {
     id: number;
     companyName: string;
@@ -15,135 +14,124 @@ interface Props {
     bankName: string;
     branch: string;
     IFSC: string;
+  }
 }
 
-}
-export default function TermsContent({inforData}:Props) {
+export default function TermsContent({ inforData }: Props) {
   return (
-    <div className="text-sm text-gray-800 leading-relaxed space-y-4">
-      {/* TITLE */}
-      <h2 className="text-lg font-bold text-center">
-        {inforData.companyName} - Quotation Terms & Conditions
-      </h2>
-
-      {/* INTRO */}
-      <p>
-        These Terms and Conditions govern the supply of products and services by
-        {inforData.companyName}. By accepting our quotation, you agree to be bound by these
-        terms.
-      </p>
-
-      {/* SECTION 1 */}
-      <h3 className="font-semibold mt-4">
-        1. PAYMENT OF SUPPLY & SERVICE
-      </h3>
-
-      <p className="font-medium">1. Payment Schedule:</p>
-
-      <ul className="list-disc ml-6 space-y-1">
-        <li>
-          68% Advance: Payable upon issuance of the Proforma Invoice (P.I.).
-        </li>
-        <li>
-          20% after Installation: Payable within 2 days after completion.
-        </li>
-      </ul>
-
-      <p>
-        2. Payment Method: Demand Draft (DD) or Cheque in favour of {inforData.companyName}.
-      </p>
-
-      {/* BANK DETAILS */}
-      <div className="border border-gray-400 rounded-md p-3 bg-gray-50">
-        <p>Account No: {inforData.IFSC}</p>
-        <p>Bank Name: {inforData.bankName}</p>
-        <p>Branch: {inforData.branch}</p>
-        <p>RTGS / NEFT IFSC: {inforData.IFSC}</p>
+    <div className="text-sm text-gray-800 leading-relaxed pb-8">
+      {/* TITLE - Responsive text size */}
+      <div className="text-center mb-6 border-b pb-4">
+        <h2 className="text-base sm:text-lg font-bold uppercase tracking-tight text-gray-900">
+          {inforData.companyName}
+        </h2>
+        <p className="text-xs sm:text-sm font-medium text-gray-500 mt-1">
+          Quotation Terms & Conditions
+        </p>
       </div>
 
-      {/* SECTION 2 */}
-      <h3 className="font-semibold mt-4">
-        2. GOODS DELIVERY
-      </h3>
+      <div className="space-y-6">
+        {/* INTRO */}
+        <p className="text-gray-600 italic px-1">
+          These Terms and Conditions govern the supply of products and services by
+          {inforData.companyName}. By accepting our quotation, you agree to be bound by these terms.
+        </p>
 
-      <p className="ml-4">
-        <span className="font-semibold">1. Delivery Timeline:</span>{" "}
-        Goods will be delivered within 3 to 25 days from the date of receipt of
-        the Purchase Order (PO), or as per stock availability for specific items.
-      </p>
+        {/* SECTION 1 */}
+        <section>
+          <h3 className="flex items-center gap-2 font-bold text-gray-900 mb-3 border-l-4 border-blue-600 pl-3">
+            1. PAYMENT OF SUPPLY & SERVICE
+          </h3>
+          
+          <div className="ml-4 space-y-3">
+            <div>
+              <p className="font-semibold text-gray-700 mb-2">1. Payment Schedule:</p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold">•</span>
+                  <span><span className="font-bold text-gray-900">68% Advance:</span> Payable upon issuance of the Proforma Invoice (P.I.).</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold">•</span>
+                  <span><span className="font-bold text-gray-900">20% after Installation:</span> Payable within 2 days after completion.</span>
+                </li>
+              </ul>
+            </div>
 
-      <p className="ml-4">
-        <span className="font-semibold">2. Delivery Lot:</span>{" "}
-        All goods shall be delivered in a single lot.
-      </p>
+            <p className="text-gray-700">
+              <span className="font-semibold">2. Payment Method:</span> Demand Draft (DD) or Cheque in favour of <span className="font-medium text-black">{inforData.companyName}</span>.
+            </p>
 
-      {/* SECTION 3 */}
-      <h3 className="font-semibold mt-4">
-        3. STANDARD WARRANTY OF PRODUCTS
-      </h3>
+            {/* BANK DETAILS - Responsive Grid */}
+            <div className="border border-blue-100 rounded-xl p-4 bg-blue-50/50 mt-4 shadow-sm">
+              <h4 className="text-xs font-bold text-blue-800 uppercase mb-3 tracking-wider">Bank Details for RTGS/NEFT</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-xs sm:text-sm">
+                <p><span className="text-gray-500">Acc No:</span> <span className="font-mono font-bold">{inforData.accountNo}</span></p>
+                <p><span className="text-gray-500">IFSC:</span> <span className="font-mono font-bold text-blue-700">{inforData.IFSC}</span></p>
+                <p><span className="text-gray-500">Bank:</span> <span className="font-medium">{inforData.bankName}</span></p>
+                <p><span className="text-gray-500">Branch:</span> <span className="font-medium">{inforData.branch}</span></p>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      <p className="ml-4">
-        <span className="font-semibold">1. Warranty Coverage:</span>{" "}
-        Automation Products are warranted against all manufacturing defects,
-        including full replacement or parts, for a period of 12 Months from the
-        date of delivery.
-      </p>
+        {/* SECTION 2 */}
+        <section>
+          <h3 className="flex items-center gap-2 font-bold text-gray-900 mb-3 border-l-4 border-blue-600 pl-3">
+            2. GOODS DELIVERY
+          </h3>
+          <div className="ml-4 space-y-2">
+            <p>
+              <span className="font-bold text-gray-700">1. Delivery Timeline:</span> Goods will be delivered within 3 to 25 days from the date of receipt of the Purchase Order (PO).
+            </p>
+            <p>
+              <span className="font-bold text-gray-700">2. Delivery Lot:</span> All goods shall be delivered in a single lot.
+            </p>
+          </div>
+        </section>
 
-      <p className="ml-4">
-        <span className="font-semibold">2. Warranty Exclusions:</span>{" "}
-        The warranty does not cover products that are fully or partially burnt,
-        tampered with, or damaged due to: High voltage, Water seepage, Abuse or
-        improper use, Negligent care, Damage caused by fire, earthquake, flood, or
-        other natural disasters. {inforData.companyName}'s technical engineer/s' judgment and
-        assessment regarding warranty claims will be final and binding on the
-        buyer.
-      </p>
+        {/* SECTION 3 */}
+        <section>
+          <h3 className="flex items-center gap-2 font-bold text-gray-900 mb-3 border-l-4 border-blue-600 pl-3">
+            3. PRODUCT WARRANTY
+          </h3>
+          <div className="ml-4 space-y-3">
+            <p>
+              <span className="font-bold text-gray-700">1. Coverage:</span> Automation Products carry a <span className="underline decoration-blue-500 decoration-2">12-month warranty</span> from delivery against manufacturing defects.
+            </p>
+            <p className="bg-amber-50 p-3 rounded-lg border-l-4 border-amber-400 text-amber-900 text-xs sm:text-sm">
+              <span className="font-bold">Exclusions:</span> Warranty is void if products are burnt, tampered with, or damaged by high voltage, water seepage, natural disasters, or improper use.
+            </p>
+          </div>
+        </section>
 
-      {/* SECTION 4 */}
-      <h3 className="font-semibold mt-4">
-        4. SCOPE OF BUYER
-      </h3>
+        {/* SECTION 4 & 5 Combined for brevity on mobile */}
+        <section className="bg-gray-50 p-4 rounded-xl">
+           <h3 className="font-bold text-gray-900 mb-2">4. SCOPE of BUYER & JURISDICTION</h3>
+           <p className="text-xs text-gray-600">
+             Buyer is responsible for UPS power supply, site modifications, civil/electrical work, and internal fittings. Any disputes are subject to <span className="font-bold text-gray-900">Surat Jurisdiction</span>.
+           </p>
+        </section>
 
-      <p className="ml-4">
-        <span className="font-semibold">1. Power Supply:</span>{" "}
-        Providing stabilized/UPS power with proper distribution and termination,
-        including necessary switching and protection.
-      </p>
-
-      <p className="ml-4">
-        <span className="font-semibold">2. Site Modifications:</span>{" "}
-        Undertaking any required site modifications, civil works, or electrical
-        work that may be identified during the execution phase.
-      </p>
-
-      <p className="ml-4">
-        <span className="font-semibold">3. Internal Fittings:</span>{" "}
-        Providing internal cement sheets, ACP sheet material and fittings,
-        furniture, and any inside/outside wooden work, if required.
-      </p>
-
-      <p className="ml-4">
-        <span className="font-semibold">4. Additional Materials:</span>{" "}
-        Any materials required at the time of installation, other than those
-        explicitly included in the submitted rates, will be charged extra.
-      </p>
-
-      {/* SECTION 5 */}
-      <h3 className="font-semibold mt-4">
-        5. JURISDICTION
-      </h3>
-
-      <p>
-        In the event of any dispute arising from or in connection with this
-        quotation or the services/products provided, the matter shall be referred
-        to the court at <span className="font-semibold">Surat</span>. The decision
-        of the said court shall be final and binding on all parties involved.
-      </p>
-
-      {/* CONTACT */}
-      <h3 className="font-semibold mt-4">Contact Us</h3>
-      <p>Email: {inforData.serviceEmail}</p>
-      <p>Technical Support: {inforData.serviceMo}</p>
+        {/* CONTACT - Quick Action Buttons for Mobile */}
+        <div className="border-t pt-6 mt-8">
+          <h3 className="font-bold text-gray-900 mb-4 text-center">Need Technical Support?</h3>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <a 
+              href={`mailto:${inforData.serviceEmail}`} 
+              className="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300 p-3 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors"
+            >
+              <span className="text-lg">✉️</span> {inforData.serviceEmail}
+            </a>
+            <a 
+              href={`tel:${inforData.serviceMo}`} 
+              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 active:scale-95 transition-all shadow-sm"
+            >
+              <span className="text-lg">📞</span> Call Support
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

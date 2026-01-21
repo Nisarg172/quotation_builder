@@ -40,10 +40,7 @@ export default function Home() {
   });
 
   const coumpanyOption = [
-    {
-      label: "Hm Technology",
-      value: 1,
-    },
+    { label: "Hm Technology", value: 1 },
     { label: "Torque Innovations India", value: 2 },
   ];
 
@@ -53,7 +50,6 @@ export default function Home() {
 
   async function addProduct(productId: string) {
     let foundProduct: ProductWithAccessories | null = null;
-
     for (const cat of products) {
       const prod = cat.product.find((p) => p.id === productId);
       if (prod) {
@@ -61,7 +57,6 @@ export default function Home() {
         break;
       }
     }
-
     if (!foundProduct) return;
 
     const newItem: QuoteItem = {
@@ -73,18 +68,14 @@ export default function Home() {
       makeModel: foundProduct.model || "",
       qty: 1,
       unitRate: foundProduct.price,
-      // amount: foundProduct.price,
-      image: foundProduct.image_url
-        ? await urlToBase64(foundProduct.image_url)
-        : "",
+      image: foundProduct.image_url ? await urlToBase64(foundProduct.image_url) : "",
       installation_amount: foundProduct.installation_amount || 0,
       catagoryName: foundProduct.catagoryName,
-      // totalInstallation: foundProduct.installation_amount || 0,
     };
 
     const accessoryAsProduct: QuoteItem[] = await Promise.all(
       foundProduct?.accessories?.map(async ({ accessory }, index) => {
-        const newItem: QuoteItem = {
+        return {
           id: accessory.id,
           sn: quote.items.length + 1 + index + 1,
           name: accessory.name,
@@ -93,32 +84,21 @@ export default function Home() {
           makeModel: accessory.model || "",
           qty: accessory.base_quantity || 1,
           unitRate: accessory.price,
-          // amount: accessory.price * (accessory.base_quantity || 1),
-          image: accessory.image_url
-            ? await urlToBase64(accessory.image_url)
-            : "",
+          image: accessory.image_url ? await urlToBase64(accessory.image_url) : "",
           installation_amount: accessory.installation_amount || 0,
-          catagoryName: foundProduct.catagoryName,
-          // totalInstallation: accessory.installation_amount || 0,
+          catagoryName: foundProduct!.catagoryName,
         };
-
-        return newItem;
-      }) || [],
+      }) || []
     );
 
     const items = [...quote.items, newItem, ...accessoryAsProduct];
     const mergedItems = items.reduce<QuoteItem[]>((acc, item) => {
       const existing = acc.find((i) => i.id === item.id);
-
       if (existing) {
         existing.qty += item.qty;
-        // existing.amount = existing.qty * existing.unitRate;
-        // existing.totalInstallation =
-        //   existing.qty * (existing.installation_amount || 0);
       } else {
         acc.push({ ...item });
       }
-
       return acc;
     }, []);
     updateQuote(mergedItems);
@@ -143,72 +123,44 @@ export default function Home() {
       makeModel: foundProduct.model || "",
       qty: 1,
       unitRate: foundProduct.price,
-      // amount: foundProduct.price,
-      image: foundProduct.image_url
-        ? await urlToBase64(foundProduct.image_url)
-        : "",
+      image: foundProduct.image_url ? await urlToBase64(foundProduct.image_url) : "",
       installation_amount: foundProduct.installation_amount || 0,
       catagoryName: foundProduct.catagoryName,
-      // totalInstallation: foundProduct.installation_amount || 0,
     };
 
     const items = [...quote.items, newItem];
     const mergedItems = items.reduce<QuoteItem[]>((acc, item) => {
       const existing = acc.find((i) => i.id === item.id);
-
       if (existing) {
         existing.qty += item.qty;
-        // existing.amount = existing.qty * existing.unitRate;
-        // existing.totalInstallation =
-        //   existing.qty * (existing.installation_amount || 0);
       } else {
         acc.push({ ...item });
       }
-
       return acc;
     }, []);
     updateQuote(mergedItems);
   }
 
   function updateItem(idx: number, changes: Partial<QuoteItem>) {
-    const items = quote.items.map((it, i) => {
-      if (i !== idx) return it;
-      const updated = { ...it, ...changes };
-      // updated.amount = updated.qty * updated.unitRate;
-      // updated.totalInstallation = updated.qty * updated.installation_amount;
-      return updated;
-    });
+    const items = quote.items.map((it, i) => (i !== idx ? it : { ...it, ...changes }));
     updateQuote(items);
   }
 
   function updateInstallation(idx: number, value: number) {
-    const items = quote.items.map((it, i) => {
-      if (i !== idx) return it;
-      return {
-        ...it,
-        installation_amount: value,
-        totalInstallation: it.qty * value,
-      };
-    });
+    const items = quote.items.map((it, i) =>
+      i !== idx ? it : { ...it, installation_amount: value, totalInstallation: it.qty * value }
+    );
     updateQuote(items);
   }
 
   function removeItem(idx: number) {
-    const items = quote.items
-      .filter((_, i) => i !== idx)
-      .map((it, i) => ({ ...it, sn: i + 1 }));
+    const items = quote.items.filter((_, i) => i !== idx).map((it, i) => ({ ...it, sn: i + 1 }));
     updateQuote(items);
   }
 
   function updateQuote(items: QuoteItem[]) {
-    const supplyTotal = Number(
-      items.reduce((sum, it) => sum + it.unitRate * it.qty, 0).toFixed(2),
-    );
-
-    const installationTotal = Number(
-      items.reduce((sum, it) => sum + it.installation_amount*it.qty, 0).toFixed(2),
-    );
-
+    const supplyTotal = Number(items.reduce((sum, it) => sum + it.unitRate * it.qty, 0).toFixed(2));
+    const installationTotal = Number(items.reduce((sum, it) => sum + it.installation_amount * it.qty, 0).toFixed(2));
     setQuote({
       ...quote,
       items,
@@ -219,19 +171,16 @@ export default function Home() {
   }
 
   const savepdfAndShare = async (data: QuoteData) => {
-    // check customer is existing or not if not exist add them
     let customerId: string | null = null;
-    const { data: customerData, error: customerError } =
-      await getCustomerByMobileNo(data.mobileNo);
+    const { data: customerData, error: customerError } = await getCustomerByMobileNo(data.mobileNo);
     if (customerError) {
       toast.error(customerError.message);
-    } else if (customerData?.length == 0 || !customerData) {
-      const { data: customeCreateData, error: customerCreateError } =
-        await createCustomer({
-          address: data.address,
-          mobile_no: data.mobileNo,
-          name: data.customerName,
-        });
+    } else if (customerData?.length === 0 || !customerData) {
+      const { data: customeCreateData, error: customerCreateError } = await createCustomer({
+        address: data.address,
+        mobile_no: data.mobileNo,
+        name: data.customerName,
+      });
       if (customerCreateError) {
         toast.error(customerCreateError.message);
       } else {
@@ -241,7 +190,6 @@ export default function Home() {
       customerId = customerData?.at(0)?.id || null;
     }
 
-    //add data
     if (customerId) {
       const billQuatioPyloade = {
         customer_id: customerId,
@@ -251,85 +199,62 @@ export default function Home() {
         installation_total: data.installationTotal,
         is_purches_order: data.isPurchesOrder,
         supply_total: data.supplyTotal,
-        coumpany_id:data.coumpanyId,
-        gst_number:data?.gstNumber||null
+        coumpany_id: data.coumpanyId,
+        gst_number: data?.gstNumber || null,
       };
-      const { data: billQuationData, error: billQuationError } =
-        await createBillQuation(billQuatioPyloade);
+      const { data: billQuationData, error: billQuationError } = await createBillQuation(billQuatioPyloade);
       if (billQuationError) {
         toast.error(billQuationError.message);
       } else {
-        const billQuationProductPayload = data.items.map((ele) => {
-          return {
-            product_id: ele.id,
-            bill_quatation_id: billQuationData.id,
-            quantity: ele.qty,
-            unit_rate: ele.unitRate,
-            installation_amount: ele.installation_amount,
-            // amount: ele.amount,
-            // total_Installation: ele.totalInstallation,
-            category_name: ele.catagoryName,
-            
-          };
-        });
+        const billQuationProductPayload = data.items.map((ele) => ({
+          product_id: ele.id,
+          bill_quatation_id: billQuationData.id,
+          quantity: ele.qty,
+          unit_rate: ele.unitRate,
+          installation_amount: ele.installation_amount,
+          category_name: ele.catagoryName,
+        }));
 
-        const { error: createBillQuationProductError } =
-          await createBillQuationProduct(billQuationProductPayload);
-        if (createBillQuationProductError) {
-          toast.error(createBillQuationProductError.message);
-        }
+        const { error: createBillQuationProductError } = await createBillQuationProduct(billQuationProductPayload);
+        if (createBillQuationProductError) toast.error(createBillQuationProductError.message);
       }
 
       const link = `${import.meta.env.VITE_BASE_URL}pdf/${billQuationData?.id}`;
       const message = `Please check this quotation:\n${link}`;
-
       const whatsappUrl = `https://wa.me/${data.mobileNo}?text=${encodeURIComponent(message)}`;
-
       window.open(whatsappUrl, "_blank");
       navigate(`/pdf/${billQuationData?.id}`);
     }
   };
-  // ✅ Group items by category
-  const groupedItems = quote.items.reduce<Record<string, QuoteItem[]>>(
-    (acc, item) => {
-      if (!acc[item.catagoryName]) acc[item.catagoryName] = [];
-      acc[item.catagoryName].push(item);
-      return acc;
-    },
-    {},
-  );
 
-  // ✅ Group products for react-select
+  const groupedItems = quote.items.reduce<Record<string, QuoteItem[]>>((acc, item) => {
+    if (!acc[item.catagoryName]) acc[item.catagoryName] = [];
+    acc[item.catagoryName].push(item);
+    return acc;
+  }, {});
+
   const productGroupedOptions = products.map((cat) => ({
     label: cat.name,
     options: cat.product
       .filter((p) => !quote.items.some((it) => it.name === p.name))
-      .map((p) => ({
-        value: p.id,
-        label: p.name,
-      })),
+      .map((p) => ({ value: p.id, label: p.name })),
   }));
 
   const accessoryGroupedOptions = accessories.map((cat) => ({
     label: cat.name,
     options: cat.product
       .filter((p) => !quote.items.some((it) => it.name === p.name))
-      .map((p) => ({
-        value: p.id,
-        label: p.name,
-      })),
+      .map((p) => ({ value: p.id, label: p.name })),
   }));
 
   const fetchProducts = async () => {
     const { data, error } = await getProductWithCatagory();
-
     if (error) toast.error(error.message);
     else setProducts(data || []);
   };
 
   const fetchAccessories = async () => {
     const { data, error } = await getAccessoryWithCatagory();
-
     if (error) toast.error(error.message);
     else setAccessories(data || []);
   };
@@ -340,490 +265,263 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="p-3 bg-gray-50 min-h-screen">
-      {/* Enhanced Client Info */}
+    <div className="p-2 sm:p-4 bg-gray-50 min-h-screen">
+      {/* Form Card */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Customer Name */}
-          <div className="space-y-1">
-            <label className="block text-sm font-semibold text-gray-700">
-              Customer Name <span className="text-red-500">*</span>
-            </label>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">Customer Name *</label>
             <input
               type="text"
-              placeholder="Enter customer name"
-              className={`w-full border rounded-sm px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                !quote.customerName.trim()
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-300"
-              }`}
+              className={`w-full border rounded-md px-3 py-2 text-sm ${!quote.customerName.trim() ? "border-red-300 bg-red-50" : "border-gray-300"}`}
               value={quote.customerName}
-              onChange={(e) =>
-                setQuote({ ...quote, customerName: e.target.value })
-              }
-              required
+              onChange={(e) => setQuote({ ...quote, customerName: e.target.value })}
             />
-            {!quote.customerName.trim() && (
-              <p className="text-sm text-red-600">Customer name is required</p>
-            )}
           </div>
 
-          {/* Mobile Number */}
-          <div className="space-y-1">
-            <label className="block text-sm font-semibold text-gray-700">
-              Mobile Number <span className="text-red-500">*</span>
-            </label>
+          {/* Mobile */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">Mobile Number *</label>
             <input
               type="tel"
-              placeholder="Enter 10-digit mobile number"
-              className={`w-full border rounded-sm px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                !quote.mobileNo.trim() ||
-                !/^[6-9]\d{9}$/.test(quote.mobileNo.trim())
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-300"
-              }`}
+              className={`w-full border rounded-md px-3 py-2 text-sm ${!/^[6-9]\d{9}$/.test(quote.mobileNo.trim()) ? "border-red-300 bg-red-50" : "border-gray-300"}`}
               value={quote.mobileNo}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, "").slice(0, 10);
-                setQuote({ ...quote, mobileNo: value });
-              }}
-              maxLength={10}
-              required
+              onChange={(e) => setQuote({ ...quote, mobileNo: e.target.value.replace(/\D/g, "").slice(0, 10) })}
             />
-            {!quote.mobileNo.trim() ? (
-              <p className="text-sm text-red-600">Mobile number is required</p>
-            ) : !/^[6-9]\d{9}$/.test(quote.mobileNo.trim()) ? (
-              <p className="text-sm text-red-600">
-                Please enter a valid 10-digit Indian mobile number
-              </p>
-            ) : null}
           </div>
 
           {/* Address */}
-          <div className="space-y-1">
-            <label className="block text-sm font-semibold text-gray-700">
-              Address <span className="text-red-500">*</span>
-            </label>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">Address *</label>
             <input
               type="text"
-              placeholder="Enter address"
-              className={`w-full border rounded-sm px-4 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                !quote.address?.trim()
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-300"
-              }`}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
               value={quote.address || ""}
               onChange={(e) => setQuote({ ...quote, address: e.target.value })}
-              required
             />
-            {!quote.address?.trim() && (
-              <p className="text-sm text-red-600">Address is required</p>
-            )}
           </div>
 
           {/* Product Select */}
-          <div className="space-y-1">
-            <label className="block text-sm font-semibold text-gray-700">
-              Select Product to Add
-            </label>
-            <div className="w-full max-w-md">
-              <Select
-                options={productGroupedOptions}
-                placeholder="Search and select a product..."
-                onChange={(selected) => {
-                  if (selected) addProduct((selected as any).value);
-                }}
-                isSearchable
-                isClearable
-                className="react-select-container"
-                classNamePrefix="react-select"
-              />
-            </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">Select Product</label>
+            <Select
+              options={productGroupedOptions}
+              onChange={(s) => s && addProduct((s as any).value)}
+              className="text-sm"
+            />
           </div>
 
-          {/* Select Accessories */}
-          <div className="space-y-1">
-            <label className="block text-sm font-semibold text-gray-700">
-              Select Accessories to Add
-            </label>
-            <div className="w-full max-w-md">
-              <Select
-                options={accessoryGroupedOptions}
-                placeholder="Search and select a accessory..."
-                onChange={(selected) => {
-                  if (selected) addAccessories((selected as any).value);
-                }}
-                isSearchable
-                isClearable
-                className="react-select-container"
-                classNamePrefix="react-select"
-              />
-            </div>
+          {/* Accessories Select */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">Select Accessories</label>
+            <Select
+              options={accessoryGroupedOptions}
+              onChange={(s) => s && addAccessories((s as any).value)}
+              className="text-sm"
+            />
           </div>
 
-          {/*is purches order  */}
-          <div className="space-y-1">
-            <label className="block text-sm font-semibold text-gray-700">
-              is Purches order
-            </label>
-            <div className="flex items-center">
+          {/* Company & PO Toggle */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-700">PO Order</label>
               <button
-                type="button"
-                onClick={() =>
-                  setQuote({
-                    ...quote,
-                    isPurchesOrder: !quote.isPurchesOrder,
-                  })
-                }
-                className={`relative inline-flex h-6 w-11 my-1.5 items-center rounded-full transition-colors ${
-                  quote.isPurchesOrder ? "bg-blue-600" : "bg-gray-300"
-                }`}
+                onClick={() => setQuote({ ...quote, isPurchesOrder: !quote.isPurchesOrder })}
+                className={`w-11 h-6 rounded-full transition-colors relative ${quote.isPurchesOrder ? "bg-blue-600" : "bg-gray-300"}`}
               >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    quote.isPurchesOrder ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
+                <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${quote.isPurchesOrder ? "translate-x-5" : ""}`} />
               </button>
             </div>
-          </div>
-
-          {/* select coumpany  */}
-          <div className="space-y-1">
-            <label className="block text-sm font-semibold text-gray-700">
-              select coumpany
-            </label>
-            <div className="w-full max-w-md">
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-700">Company</label>
               <Select
                 options={coumpanyOption}
                 defaultValue={coumpanyOption[0]}
-                placeholder="select coumpany"
-                onChange={(selected) => {
-                  if (selected) setCoumpany(selected);
-                }}
-                isSearchable
-                isClearable
-                className="react-select-container"
-                classNamePrefix="react-select"
+                onChange={(s) => s && setCoumpany(s)}
+                className="text-xs sm:text-sm"
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Preview Table */}
-      <table className="w-full table-auto border-collapse bg-white shadow rounded text-sm text-center">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border p-2">Sr.</th>
-            <th className="border p-2">Item Description</th>
-            <th className="border p-2">Image</th>
-            <th className="border p-2">Make</th>
-            <th className="border p-2">Model No.</th>
-
-            <th className="border p-2">Qty</th>
-            <th className="border p-2">Unit Rate</th>
-            <th className="border p-2">Installation  </th>
-
-            <th className="border p-2">Total</th>
-            <th className="border p-2"></th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {Object.entries(groupedItems).map(([category, items]) => (
-            <React.Fragment key={category}>
-              {/* ✅ Category Title Row */}
-              <tr className="bg-gray-200 font-semibold">
-                <td colSpan={12} className="border p-2 text-left">
-                  {category}
-                </td>
+      {/* Table Section - Horizontal Scroll on Mobile */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[800px] table-auto text-sm text-center">
+            <thead className="bg-gray-50 text-gray-600 font-medium">
+              <tr>
+                <th className="p-3 border-b">Sr.</th>
+                <th className="p-3 border-b text-left">Description</th>
+                <th className="p-3 border-b">Image</th>
+                <th className="p-3 border-b">Qty</th>
+                <th className="p-3 border-b">Rate</th>
+                <th className="p-3 border-b">Inst.</th>
+                <th className="p-3 border-b">Total</th>
+                <th className="p-3 border-b"></th>
               </tr>
-
-              {items.map((it) => {
-                const total = ((it.unitRate*it.qty) + (it.installation_amount *it.qty));
-                return (
-                  <tr key={it.sn} className="border-t">
-                    <td className="border p-2">{it.sn}</td>
-                    <td className="border p-2 text-left">{it.description}</td>
-                    <td className="border p-2">
-                      {it.image && (
-                        <img
-                          src={it.image}
-                          alt=""
-                          className="w-12 h-12 object-contain mx-auto"
-                        />
-                      )}
-                    </td>
-                    <td className="border p-2">{it.make}</td>
-                    <td className="border p-2">{it.makeModel}</td>
-                    {/* quantity   */}
-                    <td className="border p-2">
-                      <input
-                        type="number"
-                        className="w-16 border p-1"
-                        value={it.qty === 0 ? "" : it.qty.toString()}
-                        onChange={(e) =>
-                          updateItem(it.sn - 1, {
-                            qty:
-                              e.target.value === ""
-                                ? 0
-                                : Number(e.target.value),
-                          })
-                        }
-                      />
-                    </td>
-                    {/* unit rate of product  */}
-                    <td className="border p-2">
-                      <input
-                        type="number"
-                        className="w-24 border p-1"
-                        value={it.unitRate === 0 ? "" : it.unitRate.toString()}
-                        onChange={(e) =>
-                          updateItem(it.sn - 1, {
-                            unitRate:
-                              e.target.value === ""
-                                ? 0
-                                : Number(e.target.value),
-                          })
-                        }
-                      />
-                    </td>
-
-                    
-                    {/* unite rate of installation */}
-                    <td className="border p-2">
-                      <input
-                        type="number"
-                        className="w-24 border p-1"
-                        value={
-                          it.installation_amount === 0
-                            ? ""
-                            : it.installation_amount.toString()
-                        }
-                        onChange={(e) =>
-                          updateInstallation(
-                            it.sn - 1,
-                            e.target.value === "" ? 0 : Number(e.target.value),
-                          )
-                        }
-                      />
-                    </td>
-                    
-                    <td className="border p-2 text-right">
-                      {total.toFixed(2)}
-                    </td>
-                    <td className="border p-2">
-                       <IoClose onClick={() => removeItem(it.sn - 1)} className=" text-red-600 transition-transform duration-300 hover:rotate-90" size={18}/>
-                      
+            </thead>
+            <tbody>
+              {Object.entries(groupedItems).map(([category, items]) => (
+                <React.Fragment key={category}>
+                  <tr className="bg-blue-50/50">
+                    <td colSpan={8} className="p-2 text-left font-bold text-blue-700 px-4">
+                      {category}
                     </td>
                   </tr>
-                );
-              })}
-            </React.Fragment>
-          ))}
-        </tbody>
-      </table>
+                  {items.map((it) => {
+                    const total = (it.unitRate * it.qty) + (it.installation_amount * it.qty);
+                    return (
+                      <tr key={it.sn} className="hover:bg-gray-50 transition-colors">
+                        <td className="p-3 border-b text-gray-500">{it.sn}</td>
+                        <td className="p-3 border-b text-left max-w-xs">
+                          <div className="font-medium text-gray-900">{it.name}</div>
+                          <div className="text-xs text-gray-500 truncate">{it.description}</div>
+                        </td>
+                        <td className="p-3 border-b">
+                          {it.image && <img src={it.image} className="w-10 h-10 object-contain mx-auto" alt="" />}
+                        </td>
+                        <td className="p-3 border-b">
+                          <input
+                            type="number"
+                            className="w-14 border rounded p-1 text-center"
+                            value={it.qty || ""}
+                            onChange={(e) => updateItem(it.sn - 1, { qty: Number(e.target.value) })}
+                          />
+                        </td>
+                        <td className="p-3 border-b">
+                          <input
+                            type="number"
+                            className="w-20 border rounded p-1 text-center"
+                            value={it.unitRate || ""}
+                            onChange={(e) => updateItem(it.sn - 1, { unitRate: Number(e.target.value) })}
+                          />
+                        </td>
+                        <td className="p-3 border-b">
+                          <input
+                            type="number"
+                            className="w-20 border rounded p-1 text-center"
+                            value={it.installation_amount || ""}
+                            onChange={(e) => updateInstallation(it.sn - 1, Number(e.target.value))}
+                          />
+                        </td>
+                        <td className="p-3 border-b font-semibold">₹{total.toFixed(2)}</td>
+                        <td className="p-3 border-b">
+                          <button onClick={() => removeItem(it.sn - 1)} className="text-red-500 hover:bg-red-50 p-1 rounded-full">
+                            <IoClose size={20} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-      {/* TOTALS + PDF DOWNLOAD */}
+      {/* Summary Section */}
       {quote.items.length > 0 && (
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* ================= TOTALS CARD ================= */}
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div className="p-6 space-y-4">
-              {/* SUPPLY TOTAL */}
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-500">
-                  Supply Total
-                </span>
-                <span className="text-base font-semibold text-gray-900">
-                  ₹ {Number(quote.supplyTotal).toFixed(2)}
-                </span>
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Totals Calculation */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+            <div className="flex justify-between text-gray-600">
+              <span>Supply Subtotal</span>
+              <span className="font-semibold">₹{quote.supplyTotal.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={quote.gstOnSupply}
+                  onChange={(e) => setQuote({ ...quote, gstOnSupply: e.target.checked })}
+                  className="rounded text-blue-600"
+                />
+                GST on Supply (18%)
+              </label>
+              <span className="text-sm font-medium">
+                ₹{quote.gstOnSupply ? (quote.supplyTotal * 0.18).toFixed(2) : "0.00"}
+              </span>
+            </div>
+            <hr />
+            <div className="flex justify-between text-gray-600">
+              <span>Installation Subtotal</span>
+              <span className="font-semibold">₹{quote.installationTotal.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={quote.gstOnInstallation}
+                  onChange={(e) => setQuote({ ...quote, gstOnInstallation: e.target.checked })}
+                  className="rounded text-blue-600"
+                />
+                GST on Installation (18%)
+              </label>
+              <span className="text-sm font-medium">
+                ₹{quote.gstOnInstallation ? (quote.installationTotal * 0.18).toFixed(2) : "0.00"}
+              </span>
+            </div>
+            {(quote.gstOnSupply || quote.gstOnInstallation) && (
+              <div className="pt-2">
+                <input
+                  type="text"
+                  placeholder="Enter GST Number"
+                  className="w-full border rounded-md px-3 py-2 text-sm uppercase"
+                  value={quote.gstNumber}
+                  onChange={(e) => setQuote({ ...quote, gstNumber: e.target.value.toUpperCase() })}
+                />
               </div>
-
-              {/* GST ON SUPPLY */}
-              <div className="flex justify-between items-center">
-                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={quote.gstOnSupply || false}
-                    onChange={(e) =>
-                      setQuote({
-                        ...quote,
-                        gstOnSupply: e.target.checked,
-                      })
-                    }
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  Add GST on Supply{" "}
-                  <span className="text-xs text-gray-400">(18%)</span>
-                </label>
-                <span className="text-sm font-medium text-gray-900">
-                  ₹{" "}
-                  {quote.gstOnSupply
-                    ? ((quote.supplyTotal * 18) / 100).toFixed(2)
-                    : "0.00"}
-                </span>
-              </div>
-
-              {/* INSTALLATION TOTAL */}
-              <div className="flex justify-between items-center pt-2">
-                <span className="text-sm font-medium text-gray-500">
-                  Installation Total
-                </span>
-                <span className="text-base font-semibold text-gray-900">
-                  ₹ {Number(quote.installationTotal).toFixed(2)}
-                </span>
-              </div>
-
-              {/* GST ON INSTALLATION */}
-              <div className="flex justify-between items-center">
-                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={quote.gstOnInstallation || false}
-                    onChange={(e) =>
-                      setQuote({
-                        ...quote,
-                        gstOnInstallation: e.target.checked,
-                      })
-                    }
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  Add GST on Installation{" "}
-                  <span className="text-xs text-gray-400">(18%)</span>
-                </label>
-                <span className="text-sm font-medium text-gray-900">
-                  ₹{" "}
-                  {quote.gstOnInstallation
-                    ? ((quote.installationTotal * 18) / 100).toFixed(2)
-                    : "0.00"}
-                </span>
-              </div>
-
-              {/* gst input  */}
-              {(quote.gstOnSupply || quote.gstOnInstallation) && (
-                <div className="pt-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    GST Number
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Enter GST Number"
-                    value={quote.gstNumber}
-                    onChange={(e) =>
-                      setQuote({
-                        ...quote,
-                        gstNumber: e.target.value.toUpperCase(),
-                      })
-                    }
-                    className="w-full rounded-sm border border-gray-300 px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              )}
-
-              {/* GRAND TOTAL */}
-              <div className="mt-4 border-t pt-4 flex justify-between items-center">
-                <span className="text-lg font-bold text-gray-800">
-                  Grand Total
-                </span>
-                <span className="text-xl font-extrabold text-blue-600">
-                  ₹{" "}
-                  {(
-                    Number(quote.supplyTotal) +
-                    Number(quote.installationTotal) +
-                    (quote.gstOnSupply ? (quote.supplyTotal * 18) / 100 : 0) +
-                    (quote.gstOnInstallation
-                      ? (quote.installationTotal * 18) / 100
-                      : 0)
-                  ).toFixed(2)}
-                </span>
-              </div>
+            )}
+            <div className="pt-4 border-t flex justify-between items-center">
+              <span className="text-lg font-bold">Grand Total</span>
+              <span className="text-2xl font-black text-blue-600">
+                ₹{(
+                  quote.supplyTotal +
+                  quote.installationTotal +
+                  (quote.gstOnSupply ? quote.supplyTotal * 0.18 : 0) +
+                  (quote.gstOnInstallation ? quote.installationTotal * 0.18 : 0)
+                ).toFixed(2)}
+              </span>
             </div>
           </div>
 
-          {/* ================= PDF DOWNLOAD CARD ================= */}
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-6 flex flex-col justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">
-                Generate Quotation
-              </h2>
-              <p className="text-sm text-gray-500 mb-6">
-                Download customer or staff quotation in PDF format.
-              </p>
-            </div>
+          {/* Action Buttons */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center gap-4">
+            <h3 className="text-lg font-bold text-center">Export Options</h3>
+            {quote.customerName && quote.mobileNo.length === 10 ? (
+              <>
+                <Button className="w-full py-6 text-lg" onClick={() => savepdfAndShare(quote)}>
+                  💾 Save & Share via WhatsApp
+                </Button>
 
-            {quote.customerName.trim() &&
-            quote.mobileNo.trim() &&
-            /^[6-9]\d{9}$/.test(quote.mobileNo.trim()) ? (
-              <div className="flex flex-col gap-4">
-                {/* save  */}
-                <Button
-                  variant="primary"
-                  children={"Save and Share"}
-                  onClick={() => {
-                    savepdfAndShare(quote);
-                  }}
-                />
-                {/* CUSTOMER PDF */}
                 <PDFDownloadLink
-                  document={
-                    <QuotePDF data={{ ...quote, coumpanyId: coumpany.value }} />
-                  }
-                  fileName={`${quote.customerName.replace(/\s+/g, "_")}.pdf`}
+                  document={<QuotePDF data={{ ...quote, coumpanyId: coumpany.value }} />}
+                  fileName={`${quote.customerName}_Quotation.pdf`}
                 >
                   {({ loading }) => (
-                    <button className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition-all shadow-sm">
-                      {loading ? (
-                        <>
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                          Generating PDF...
-                        </>
-                      ) : (
-                        <>📄 Customer Quotation (With Prices)</>
-                      )}
+                    <button className="w-full py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                      {loading ? "Generating..." : "📄 Download Customer Copy"}
                     </button>
                   )}
                 </PDFDownloadLink>
 
-                {/* STAFF PDF */}
                 <PDFDownloadLink
                   document={<StaffQuotePDF data={{ ...quote }} />}
-                  fileName={`${quote.customerName.replace(
-                    /\s+/g,
-                    "_",
-                  )}_staff_copy.pdf`}
+                  fileName={`${quote.customerName}_Staff_Copy.pdf`}
                 >
                   {({ loading }) => (
-                    <button className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all shadow-sm">
-                      {loading ? (
-                        <>
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                          Generating PDF...
-                        </>
-                      ) : (
-                        <>🔒 Staff Copy (No Prices)</>
-                      )}
+                    <button className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                      {loading ? "Generating..." : "🔒 Download Staff Copy"}
                     </button>
                   )}
                 </PDFDownloadLink>
-              </div>
+              </>
             ) : (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-                <p className="text-red-700 font-semibold flex items-center gap-2">
-                  ⚠️ Missing customer information
-                </p>
-                <ul className="mt-2 text-sm text-red-600 list-disc list-inside">
-                  {!quote.customerName.trim() && (
-                    <li>Customer name is required</li>
-                  )}
-                  {!quote.mobileNo.trim() && <li>Mobile number is required</li>}
-                  {quote.mobileNo.trim() &&
-                    !/^[6-9]\d{9}$/.test(quote.mobileNo.trim()) && (
-                      <li>Enter a valid 10-digit mobile number</li>
-                    )}
-                  {!quote.address?.trim() && <li>Address is required</li>}
-                </ul>
+              <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg text-amber-800 text-sm text-center">
+                Please complete customer details to enable export.
               </div>
             )}
           </div>

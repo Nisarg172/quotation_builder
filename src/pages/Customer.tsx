@@ -1,12 +1,15 @@
 'use client';
 
+import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FaFilePdf, FaReceipt, FaFileInvoiceDollar } from 'react-icons/fa';
+import { toast } from 'sonner';
+
 import DataTable from '@/components/Table/DataTable';
 import { getCustomers } from '@/Api/customer';
 import { CustomerColumns } from '@/components/customer.columns';
-import { useState } from 'react';
-import { FaFilePdf } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
 
+// --- Types ---
 type BillQuotation = {
   id: string;
   created_at: string;
@@ -25,100 +28,122 @@ type CustomerType = {
 
 export default function Customer() {
   const [openRowId, setOpenRowId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const fetchCustomer = async (params: {
+  // Memoized fetcher to prevent unnecessary re-renders in DataTable
+  const fetchCustomer = useCallback(async (params: {
     search: string;
     sortBy: string;
     sortOrder: 'asc' | 'desc';
     page: number;
     limit: number;
   }) => {
-    const data = await getCustomers(params);
-    return data;
-  };
+    try {
+      const data = await getCustomers(params);
+      return data;
+    } catch (error: any) {
+      toast.error("Failed to load customers");
+      return { data: [], total: 0 };
+    }
+  }, []);
 
   const toggleRow = (id: string) => {
     setOpenRowId((prev) => (prev === id ? null : id));
   };
 
-  const navigate = useNavigate();
+  // --- Sub-component: Billing Records ---
+  const CustomerBillSubRow = ({ bills }: { bills: BillQuotation[] }) => {
+    if (!bills || bills.length === 0) {
+      return (
+        <div className="ml-12 my-3 rounded-xl border border-dashed border-gray-200 bg-gray-50/50 px-6 py-8 text-center">
+          <p className="text-sm text-gray-400">No billing records found for this customer.</p>
+        </div>
+      );
+    }
 
-
-  const  CustomerBillSubRow =({
-  bills,
-}: {
-  bills: BillQuotation[];
-})=> {
-  if (!bills || bills.length === 0) {
     return (
-      <div className="ml-10 my-2 rounded-md border bg-gray-50 px-4 py-3 text-sm text-gray-500">
-        No billing records found
+      <div className="ml-12 my-3 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        {/* Header */}
+        <div className="grid grid-cols-5 gap-4 bg-gray-50 px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-500 border-b">
+          <span>Date</span>
+          <span>Document ID</span>
+          <span>Grand Total</span>
+          <span>Type</span>
+          <span className="text-right">Actions</span>
+        </div>
+
+        {/* Rows */}
+        <div className="divide-y divide-gray-100">
+          {bills.map((bill) => (
+            <div
+              key={bill.id}
+              className="grid grid-cols-5 gap-4 px-5 py-3 text-sm items-center hover:bg-blue-50/30 transition-colors"
+            >
+              <span className="text-gray-600 font-medium">
+                {new Date(bill.created_at).toLocaleDateString('en-IN', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric'
+                })}
+              </span>
+
+              <span className="font-mono text-xs text-gray-400 truncate uppercase">
+                #{bill.id.slice(0, 8)}...
+              </span>
+
+              <span className="font-bold text-gray-900">
+                ₹{bill.grand_total.toLocaleString('en-IN')}
+              </span>
+
+              <span>
+                {bill.is_purches_order ? (
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                    <FaReceipt size={10} /> PO
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                    <FaFileInvoiceDollar size={10} /> Quote
+                  </span>
+                )}
+              </span>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => navigate(`/pdf/${bill.id}`)}
+                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                  title="View PDF"
+                >
+                  <FaFilePdf size={18} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
-  }
+  };
 
   return (
-    <div className="ml-10 my-2 rounded-md border bg-gray-50">
-      {/* Header */}
-      <div className="grid grid-cols-5 gap-4 px-4 py-2 text-xs font-semibold text-gray-600 border-b">
-        <span>Date</span>
-        <span>Quotation ID</span>
-        <span>Total</span>
-        <span>Type</span>
-        <span>view pdf</span>
-      </div>
-
-      {/* Rows */}
-      {bills.map((bill) => (
-        <div
-          key={bill.id}
-          className="grid grid-cols-5 gap-4 px-4 py-2 text-sm border-b last:border-b-0"
-        >
-          <span>
-            {new Date(bill.created_at).toLocaleDateString()}
-          </span>
-
-          <span className="truncate">{bill.id}</span>
-
-          <span className="font-medium">
-            ₹{bill.grand_total.toLocaleString()}
-          </span>
-
-          <span
-            className={
-              bill.is_purches_order
-                ? 'text-green-600 font-medium'
-                : 'text-blue-600 font-medium'
-            }
-          >
-            {bill.is_purches_order ? 'Purchase Order' : 'Quotation'}
-          </span>
-
-           <span className="font-medium" onClick={()=>navigate(`/pdf/${bill?.id}`)}>
-            <FaFilePdf size={22} className='hover:text-red-600'/>
-            
-          </span>
-          
+    <div className="min-h-screen bg-gray-50/50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex items-end justify-between">
+          <div>
+            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Customer Database</h1>
+            <p className="text-sm text-gray-500">View customer details and history</p>
+          </div>
         </div>
-      ))}
+
+        <DataTable<CustomerType>
+          columns={CustomerColumns({ openRowId, toggleRow })}
+          fetcher={fetchCustomer}
+          defaultSortBy="name"
+          renderSubRow={(row) =>
+            openRowId === row.id ? (
+              <CustomerBillSubRow bills={row.bill_quatation} />
+            ) : null
+          }
+        />
+      </div>
     </div>
   );
 }
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <DataTable<CustomerType>
-        columns={CustomerColumns({ openRowId, toggleRow })}
-        fetcher={fetchCustomer}
-        defaultSortBy="name"
-        renderSubRow={(row) =>
-          openRowId === row.id ? (
-            <CustomerBillSubRow bills={row.bill_quatation} />
-          ) : null
-        }
-      />
-    </div>
-  );
-}
-
-
-
