@@ -161,14 +161,15 @@ export default function ProductManager() {
         const { error, data } = await addProduct(payload);
         if (error) throw error;
         else {
-          const productAccessoryIds = form.accessory.map((acc) => ({
+          const productAccessoryIds = form.accessory?.map((acc) => ({
             accessory_id: acc.value,
             product_id: data.id,
           }));
+          if(productAccessoryIds?.length>0){
           const { error: addProductAccessoryError } =
             await addProductAccessory(productAccessoryIds);
           if (addProductAccessoryError) throw addProductAccessoryError;
-          toast.success("Product created");
+          toast.success("Product created");}
         }
       }
 
