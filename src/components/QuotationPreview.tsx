@@ -65,7 +65,7 @@ export default function QuotePreview({ data }: { data: QuoteData }) {
             {data.gstNumber && (
               <p className="max-w-xs">GST:{data.gstNumber || "-"}</p>
             )}
-            <p className="mt-2">Customer: {data.customerName || "-"}</p>
+            <p className="max-w-xs">Customer: {data.customerName || "-"}</p>
             <p>Mobile: {data.mobileNo || "-"}</p>
             <p className="max-w-xs">Address: {data.address || "-"}</p>
           </div>
@@ -74,9 +74,9 @@ export default function QuotePreview({ data }: { data: QuoteData }) {
         {/* TABLE */}
         <div className="overflow-x-auto">
           <table className="w-full border border-gray-300">
-            <thead className="sticky top-0 bg-gray-100">
+            <thead className="sticky top-0 bg-gray-100 font-bold text-blue-600">
               {/* MAIN HEADER */}
-              <tr className="text-xs font-semibold text-gray-700">
+              <tr className="text-gray-700">
                 <th className="border px-2 py-3 text-center w-[4%]">Sr</th>
 
                 <th className="border px-3 py-3 text-left w-[35%]">

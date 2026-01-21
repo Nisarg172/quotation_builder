@@ -25,7 +25,7 @@ const BillQuotation = () => {
       customerName:data.customer.name,
       address:data.customer.address,
       mobileNo:data.customer.mobile_no,
-      gstNumber:data.gstNumber||undefined,
+      gstNumber:data.gst_number||undefined,
       coumpanyId:data.coumpany_id,
       isPurchesOrder:data.is_purches_order,
       gstOnInstallation:data.gst_on_installation,
