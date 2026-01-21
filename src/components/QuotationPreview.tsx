@@ -74,7 +74,7 @@ export default function QuotePreview({ data }: { data: QuoteData }) {
         {/* TABLE */}
         <div className="overflow-x-auto">
           <table className="w-full border border-gray-300">
-            <thead className="sticky top-0 bg-gray-100 font-bold text-blue-600">
+            <thead className="sticky top-0 bg-gray-100 font-bold">
               {/* MAIN HEADER */}
               <tr className="text-gray-700">
                 <th className="border px-2 py-3 text-center w-[4%]">Sr</th>
