@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import React, { useEffect, useState, type FC } from "react";
 import Select from "react-select";
 import type {
   ProductWithAccessories,
@@ -8,8 +7,6 @@ import type {
   QuoteItem,
 } from "../Types/type";
 import { urlToBase64 } from "../utils/function";
-import QuotePDF from "../components/QuotePDF";
-import StaffQuotePDF from "../components/StaffQuotePDF";
 import {
   getAccessoryWithCatagory,
   getProductWithCatagory,
@@ -22,22 +19,23 @@ import { createBillQuationProduct } from "@/Api/BillQuatationProduct";
 import { useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
 
-export default function Home() {
+const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
+
   const navigate = useNavigate();
-  const [quote, setQuote] = useState<QuoteData>({
-    items: [],
-    customerName: "",
-    mobileNo: "",
-    grandTotal: 0,
-    supplyTotal: 0,
-    installationTotal: 0,
-    address: "",
-    gstOnInstallation: false,
-    gstOnSupply: false,
-    isPurchesOrder: false,
-    coumpanyId: 1,
-    gstNumber: "",
-  });
+  const [quote, setQuote] = useState<QuoteData>(quateData??{
+  items: [],
+  customerName: "",
+  mobileNo: "",
+  grandTotal: 0,
+  supplyTotal: 0,
+  installationTotal: 0,
+  address: "",
+  gstOnInstallation: false,
+  gstOnSupply: false,
+  isPurchesOrder: false,
+  coumpanyId: 1,
+  gstNumber: "",
+});
 
   const coumpanyOption = [
     { label: "Hm Technology", value: 1 },
@@ -46,7 +44,7 @@ export default function Home() {
 
   const [products, setProducts] = useState<ProductWithCatagory[]>([]);
   const [accessories, setAccessories] = useState<ProductWithCatagory[]>([]);
-  const [coumpany, setCoumpany] = useState(coumpanyOption[0]);
+  // const [coumpany, setCoumpany] = useState(coumpanyOption[0]);
 
   async function addProduct(productId: string) {
     let foundProduct: ProductWithAccessories | null = null;
@@ -335,10 +333,13 @@ export default function Home() {
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-700">Company</label>
+              
               <Select
                 options={coumpanyOption}
-                defaultValue={coumpanyOption[0]}
-                onChange={(s) => s && setCoumpany(s)}
+                defaultValue={coumpanyOption[quateData?.coumpanyId?quateData?.coumpanyId-1:0]}
+                onChange={(s) => s && 
+                  setQuote((prev)=>({...prev,coumpanyId:s.value}))
+                  }
                 className="text-xs sm:text-sm"
               />
             </div>
@@ -530,3 +531,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default Home;

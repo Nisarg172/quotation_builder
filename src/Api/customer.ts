@@ -38,7 +38,9 @@ export const getCustomers = async ({
 
   let query = supabase
     .from(tableName)
-    .select('*,bill_quatation(id,created_at,grand_total,is_purches_order)', { count: 'exact' })
+    .select(`*,
+      bill_quatation(id,created_at,grand_total,supply_total,installation_total,gst_on_installation,gst_on_supply,is_purches_order,coumpany_id)`,
+       { count: 'exact' })
     // .is('deleted_at', null)
     .order(sortBy, { ascending: sortOrder === 'asc' });
 

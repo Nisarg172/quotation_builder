@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BillQuatation from "./pages/BillQuatation";
 import Customer from "./pages/Customer";
+import EditQuatation from "./pages/EditQuatation";
 
 function AppContent() {
   const { user, signOut } = useAuth();
@@ -29,9 +30,12 @@ function AppContent() {
       {user && (
         <nav className="hidden md:block bg-white border-b border-slate-200 sticky top-0 z-20">
           <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
-            <h1 className="text-xl font-bold text-slate-800">
-              HM Technology
-            </h1>
+            <div className="flex items-center">
+              <img src="/logo.png" alt="logo " className="w-12" />
+              <h1 className="text-xl font-bold text-slate-800">
+                Quatation Bulder
+              </h1>
+            </div>
 
             <div className="flex items-center space-x-6">
               <NavLinks />
@@ -50,7 +54,12 @@ function AppContent() {
       {/* ================= MOBILE TOP BAR ================= */}
       {user && (
         <div className="md:hidden sticky top-0 z-30 bg-white border-b flex items-center justify-between px-4 h-14">
-          <h1 className="text-lg font-bold text-slate-800">HM Technology</h1>
+         <div className="flex items-center">
+              <img src="/logo.png" alt="logo " className="w-12" />
+              <h1 className="text-xl font-bold text-slate-800">
+                Quatation Bulder
+              </h1>
+            </div>
           <button
             onClick={() => setOpen(true)}
             className="p-2 rounded-lg hover:bg-slate-100"
@@ -101,15 +110,64 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/pdf/:id" element={<BillQuatation />} />
 
-          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-          <Route path="/customer" element={<ProtectedRoute><Customer /></ProtectedRoute>} />
-          <Route path="/product" element={<ProtectedRoute><ProductManager /></ProtectedRoute>} />
-          <Route path="/accessories" element={<ProtectedRoute><AccessoryManager /></ProtectedRoute>} />
-          <Route path="/category" element={<ProtectedRoute><CategoryManager /></ProtectedRoute>} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/:id"
+            element={
+              <ProtectedRoute>
+                <EditQuatation />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customer"
+            element={
+              <ProtectedRoute>
+                <Customer />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/product"
+            element={
+              <ProtectedRoute>
+                <ProductManager />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/accessories"
+            element={
+              <ProtectedRoute>
+                <AccessoryManager />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/category"
+            element={
+              <ProtectedRoute>
+                <CategoryManager />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
 
-      <Toaster position="top-right" richColors closeButton expand duration={4000} />
+      <Toaster
+        position="top-right"
+        richColors
+        closeButton
+        expand
+        duration={4000}
+      />
     </div>
   );
 }
@@ -121,11 +179,21 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
 
   return (
     <>
-      <Link to="/" onClick={onClick} className={cls}>Home</Link>
-      <Link to="/customer" onClick={onClick} className={cls}>Customer</Link>
-      <Link to="/product" onClick={onClick} className={cls}>Products</Link>
-      <Link to="/accessories" onClick={onClick} className={cls}>Accessories</Link>
-      <Link to="/category" onClick={onClick} className={cls}>Categories</Link>
+      <Link to="/" onClick={onClick} className={cls}>
+        Home
+      </Link>
+      <Link to="/customer" onClick={onClick} className={cls}>
+        Customer
+      </Link>
+      <Link to="/product" onClick={onClick} className={cls}>
+        Products
+      </Link>
+      <Link to="/accessories" onClick={onClick} className={cls}>
+        Accessories
+      </Link>
+      <Link to="/category" onClick={onClick} className={cls}>
+        Categories
+      </Link>
     </>
   );
 }

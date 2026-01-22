@@ -20,7 +20,6 @@ export const CustomerColumns = ({
   openRowId,
   toggleRow,
 }: ColumnProps): Column<CustomerType>[] => [
- 
   {
     label: "Name",
     key: "name",
@@ -36,16 +35,20 @@ export const CustomerColumns = ({
     key: "address",
     sortable: true,
   },
-   {
+  {
     label: "",
     render: (row) => (
       <button
         onClick={() => toggleRow(row.id)}
-        className={`transition-transform duration-200 ${
-          openRowId === row.id ? "rotate-90" : ""
-        }`}
+        className={`
+    flex items-center justify-center
+    p-3 -m-3
+    transition-transform duration-200
+    cursor-pointer
+    ${openRowId === row.id ? "rotate-90" : ""}
+  `}
       >
-        <FaChevronRight size={14} />
+        <FaChevronRight size={20} />
       </button>
     ),
   },

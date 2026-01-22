@@ -1,13 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaFilePdf, FaReceipt, FaFileInvoiceDollar } from 'react-icons/fa';
-import { toast } from 'sonner';
+import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaFilePdf, FaReceipt, FaFileInvoiceDollar } from "react-icons/fa";
+import { toast } from "sonner";
 
-import DataTable from '@/components/Table/DataTable';
-import { getCustomers } from '@/Api/customer';
-import { CustomerColumns } from '@/components/customer.columns';
+import DataTable from "@/components/Table/DataTable";
+import { getCustomers } from "@/Api/customer";
+import { CustomerColumns } from "@/components/customer.columns";
+import { MdEdit } from "react-icons/md";
+import { CoumpanyInfo } from "@/utils/const";
 
 // --- Types ---
 type BillQuotation = {
@@ -15,6 +17,11 @@ type BillQuotation = {
   created_at: string;
   grand_total: number;
   is_purches_order: boolean;
+  coumpany_id: number;
+  supply_total: number;
+  installation_total: number;
+  gst_on_installation: boolean;
+  gst_on_supply: boolean;
 };
 
 type CustomerType = {
@@ -31,21 +38,24 @@ export default function Customer() {
   const navigate = useNavigate();
 
   // Memoized fetcher to prevent unnecessary re-renders in DataTable
-  const fetchCustomer = useCallback(async (params: {
-    search: string;
-    sortBy: string;
-    sortOrder: 'asc' | 'desc';
-    page: number;
-    limit: number;
-  }) => {
-    try {
-      const data = await getCustomers(params);
-      return data;
-    } catch (error: any) {
-      toast.error("Failed to load customers");
-      return { data: [], total: 0 };
-    }
-  }, []);
+  const fetchCustomer = useCallback(
+    async (params: {
+      search: string;
+      sortBy: string;
+      sortOrder: "asc" | "desc";
+      page: number;
+      limit: number;
+    }) => {
+      try {
+        const data = await getCustomers(params);
+        return data;
+      } catch (error: any) {
+        toast.error("Failed to load customers");
+        return { data: [], total: 0 };
+      }
+    },
+    [],
+  );
 
   const toggleRow = (id: string) => {
     setOpenRowId((prev) => (prev === id ? null : id));
@@ -56,7 +66,9 @@ export default function Customer() {
     if (!bills || bills.length === 0) {
       return (
         <div className="ml-12 my-3 rounded-xl border border-dashed border-gray-200 bg-gray-50/50 px-6 py-8 text-center">
-          <p className="text-sm text-gray-400">No billing records found for this customer.</p>
+          <p className="text-sm text-gray-400">
+            No billing records found for this customer.
+          </p>
         </div>
       );
     }
@@ -64,10 +76,11 @@ export default function Customer() {
     return (
       <div className="ml-12 my-3 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         {/* Header */}
-        <div className="grid grid-cols-5 gap-4 bg-gray-50 px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-500 border-b">
+        <div className="grid grid-cols-6 gap-4 bg-gray-50 px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-500 border-b">
           <span>Date</span>
           <span>Document ID</span>
           <span>Grand Total</span>
+          <span>Coumpany Name</span>
           <span>Type</span>
           <span className="text-right">Actions</span>
         </div>
@@ -77,13 +90,16 @@ export default function Customer() {
           {bills.map((bill) => (
             <div
               key={bill.id}
-              className="grid grid-cols-5 gap-4 px-5 py-3 text-sm items-center hover:bg-blue-50/30 transition-colors"
+              className="grid grid-cols-6 gap-4 px-5 py-3 text-sm items-center hover:bg-blue-50/30 transition-colors"
             >
               <span className="text-gray-600 font-medium">
-                {new Date(bill.created_at).toLocaleDateString('en-IN', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric'
+                {new Date(bill.created_at).toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
                 })}
               </span>
 
@@ -92,7 +108,14 @@ export default function Customer() {
               </span>
 
               <span className="font-bold text-gray-900">
-                ₹{bill.grand_total.toLocaleString('en-IN')}
+                ₹{bill.grand_total +
+                (bill.gst_on_supply ? bill.supply_total * 0.18 : 0) +
+                  (bill.gst_on_installation ? bill.installation_total * 0.18 : 0)
+                }
+              </span>
+
+              <span className="font-bold text-gray-900">
+                {CoumpanyInfo[bill.coumpany_id - 1]?.companyName}
               </span>
 
               <span>
@@ -111,9 +134,15 @@ export default function Customer() {
                 <button
                   onClick={() => navigate(`/pdf/${bill.id}`)}
                   className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                  title="View PDF"
                 >
                   <FaFilePdf size={18} />
+                </button>
+
+                <button
+                  onClick={() => navigate(`/${bill.id}`)}
+                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-red-50 rounded-lg transition-all"
+                >
+                  <MdEdit size={18} />
                 </button>
               </div>
             </div>
@@ -128,8 +157,12 @@ export default function Customer() {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-end justify-between">
           <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Customer Database</h1>
-            <p className="text-sm text-gray-500">View customer details and history</p>
+            <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+              Customer Database
+            </h1>
+            <p className="text-sm text-gray-500">
+              View customer details and history
+            </p>
           </div>
         </div>
 
