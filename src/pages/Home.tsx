@@ -66,7 +66,7 @@ export default function Home() {
       description: foundProduct.description || "",
       make: foundProduct.make || "",
       makeModel: foundProduct.model || "",
-      qty: 1,
+      qty: foundProduct?.base_quantity||1,
       unitRate: foundProduct.price,
       image: foundProduct.image_url ? await urlToBase64(foundProduct.image_url) : "",
       installation_amount: foundProduct.installation_amount || 0,
@@ -445,7 +445,7 @@ export default function Home() {
                 ₹{quote.gstOnSupply ? (quote.supplyTotal * 0.18).toFixed(2) : "0.00"}
               </span>
             </div>
-            <hr />
+            
             <div className="flex justify-between text-gray-600">
               <span>Installation Subtotal</span>
               <span className="font-semibold">₹{quote.installationTotal.toFixed(2)}</span>
@@ -497,7 +497,7 @@ export default function Home() {
                   💾 Save & Share via WhatsApp
                 </Button>
 
-                <PDFDownloadLink
+                {/* <PDFDownloadLink
                   document={<QuotePDF data={{ ...quote, coumpanyId: coumpany.value }} />}
                   fileName={`${quote.customerName}_Quotation.pdf`}
                 >
@@ -517,14 +517,14 @@ export default function Home() {
                       {loading ? "Generating..." : "🔒 Download Staff Copy"}
                     </button>
                   )}
-                </PDFDownloadLink>
+                </PDFDownloadLink> */}
               </>
             ) : (
               <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg text-amber-800 text-sm text-center">
                 Please complete customer details to enable export.
               </div>
             )}
-          </div>
+          </div> 
         </div>
       )}
     </div>

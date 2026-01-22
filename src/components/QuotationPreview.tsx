@@ -79,7 +79,7 @@ export default function QuotePreview({ data }: { data: QuoteData }) {
         </div>
 
         {/* TABLE WRAPPER - Horizontal Scroll for Mobile */}
-        <div className="overflow-x-auto rounded-lg border border-gray-300">
+        <div className="overflow-x-auto border border-gray-300">
           <table className="w-full min-w-[800px] border-collapse">
             <thead className="bg-gray-100 font-bold">
               <tr className="text-gray-700">

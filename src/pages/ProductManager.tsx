@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { supabase } from "../supabase";
 import {
   Pencil,
   Trash2,
@@ -33,6 +32,7 @@ import {
   removeAccessoryByProductId,
 } from "@/Api/ProductAccessory";
 import Input from "@/components/ui/Input";
+import { removeMedia, uploadeMedia } from "@/Api/storage";
 
 export default function ProductManager() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -50,12 +50,15 @@ export default function ProductManager() {
 
   const [openDrawer, setOpenDrawer] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [accessoryOptions, SetAccessoryOptions] = useState<AccessoryOption[]>([]);
+  const [accessoryOptions, SetAccessoryOptions] = useState<AccessoryOption[]>(
+    [],
+  );
 
   const [confirmDelete, setConfirmDelete] = useState<{
     open: boolean;
     id: string | null;
-  }>({ open: false, id: null });
+    imageUrl: string | null;
+  }>({ open: false, id: null, imageUrl: null });
 
   const {
     register,
@@ -108,12 +111,38 @@ export default function ProductManager() {
 
       if (form.imageFile && form.imageFile instanceof File) {
         const fileName = `${Date.now()}_${form.imageFile.name}`;
-        const { error: uploadError, data } = await supabase.storage
-          .from("image")
-          .upload(fileName, form.imageFile);
+        const { error: uploadError, data } = await uploadeMedia({
+          bucketName: "image",
+          fileName,
+          file: form.imageFile,
+        });
 
         if (uploadError) throw uploadError;
+        // remove old media
+        if (imageUrl) {
+          const removePath = imageUrl
+            ?.split(`${import.meta.env.VITE_IMAGE_BASE_URL}/image/`)
+            .at(1);
+          removePath &&
+            (await removeMedia({
+              bucketName: "image",
+              removePath: [removePath],
+            }));
+        }
         imageUrl = `${import.meta.env.VITE_IMAGE_BASE_URL}/${data.fullPath}`;
+      }
+
+      // remove image
+      if (!form.imageFile && imageUrl) {
+        const removePath = imageUrl
+          ?.split(`${import.meta.env.VITE_IMAGE_BASE_URL}/image/`)
+          .at(1);
+        removePath &&
+          (await removeMedia({
+            bucketName: "image",
+            removePath: [removePath],
+          }));
+        imageUrl = null;
       }
 
       const payload = {
@@ -126,13 +155,15 @@ export default function ProductManager() {
         category_id: form.category_id,
         is_accessory: false,
         image_url: imageUrl,
+        base_quantity:Number(form.base_quantity || 1)
       };
 
       if (editingProduct) {
         if (JSON.stringify(form.accessory) !== JSON.stringify(editProduct)) {
           const { error: removeAccessoryByProductIdError } =
             await removeAccessoryByProductId(editingProduct.id);
-          if (removeAccessoryByProductIdError) throw removeAccessoryByProductIdError;
+          if (removeAccessoryByProductIdError)
+            throw removeAccessoryByProductIdError;
 
           const productAccessoryIds = form.accessory.map((acc) => ({
             accessory_id: acc.value,
@@ -177,12 +208,19 @@ export default function ProductManager() {
   const handleDelete = async () => {
     if (!confirmDelete.id) return;
     const { error } = await deleteProduct(confirmDelete.id);
+
+    const removePath = confirmDelete.imageUrl
+      ?.split(`${import.meta.env.VITE_IMAGE_BASE_URL}/image/`)
+      .at(1);
+    removePath &&
+      (await removeMedia({ bucketName: "image", removePath: [removePath] }));
+
     if (error) toast.error(error.message);
     else {
       toast.success("Product deleted");
       fetchProducts();
     }
-    setConfirmDelete({ open: false, id: null });
+    setConfirmDelete({ open: false, id: null, imageUrl: null });
   };
 
   const startEdit = (p: Product) => {
@@ -197,6 +235,7 @@ export default function ProductManager() {
       category_id: p.category_id ?? undefined,
       imageFile: p.image_url,
       accessory: p.accessory,
+       base_quantity: p.base_quantity,
     });
     setOpenDrawer(true);
   };
@@ -205,9 +244,14 @@ export default function ProductManager() {
     let filtered = products.filter((product) => {
       const matchesSearch =
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.model?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-        (product.make?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-        (product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+        (product.model?.toLowerCase().includes(searchTerm.toLowerCase()) ??
+          false) ||
+        (product.make?.toLowerCase().includes(searchTerm.toLowerCase()) ??
+          false) ||
+        (product.description
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ??
+          false);
 
       const matchesCategory =
         selectedCategory === "" || product.category_id === selectedCategory;
@@ -222,7 +266,9 @@ export default function ProductManager() {
         if (aValue === null || aValue === undefined) return 1;
         if (bValue === null || bValue === undefined) return -1;
         if (typeof aValue === "string" && typeof bValue === "string") {
-          return sortDirection === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+          return sortDirection === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
         }
         if (typeof aValue === "number" && typeof bValue === "number") {
           return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
@@ -236,17 +282,23 @@ export default function ProductManager() {
   const totalPages = Math.ceil(filteredAndSortedProducts.length / itemsPerPage);
   const paginatedProducts = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredAndSortedProducts.slice(startIndex, startIndex + itemsPerPage);
+    return filteredAndSortedProducts.slice(
+      startIndex,
+      startIndex + itemsPerPage,
+    );
   }, [filteredAndSortedProducts, currentPage, itemsPerPage]);
 
   const groupedProducts = useMemo(() => {
     if (!groupByCategory) return null;
-    return filteredAndSortedProducts.reduce((acc, product) => {
-      const categoryName = product.category?.name || "Uncategorized";
-      if (!acc[categoryName]) acc[categoryName] = [];
-      acc[categoryName].push(product);
-      return acc;
-    }, {} as Record<string, Product[]>);
+    return filteredAndSortedProducts.reduce(
+      (acc, product) => {
+        const categoryName = product.category?.name || "Uncategorized";
+        if (!acc[categoryName]) acc[categoryName] = [];
+        acc[categoryName].push(product);
+        return acc;
+      },
+      {} as Record<string, Product[]>,
+    );
   }, [filteredAndSortedProducts, groupByCategory]);
 
   const handleSort = (field: keyof Product) => {
@@ -289,7 +341,9 @@ export default function ProductManager() {
               />
             ) : (
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <span className="text-gray-400 text-[10px] text-center px-1">No Image</span>
+                <span className="text-gray-400 text-[10px] text-center px-1">
+                  No Image
+                </span>
               </div>
             )}
           </div>
@@ -305,9 +359,15 @@ export default function ProductManager() {
           </div>
         </div>
       </td>
-      <td className="px-4 py-4 text-sm text-gray-900 hidden md:table-cell">{product.model || "-"}</td>
-      <td className="px-4 py-4 text-sm text-gray-900 hidden sm:table-cell">{product.make || "-"}</td>
-      <td className="px-4 py-4 text-sm font-medium text-gray-900">₹{product.price.toLocaleString()}</td>
+      <td className="px-4 py-4 text-sm text-gray-900 hidden md:table-cell">
+        {product.model || "-"}
+      </td>
+      <td className="px-4 py-4 text-sm text-gray-900 hidden sm:table-cell">
+        {product.make || "-"}
+      </td>
+      <td className="px-4 py-4 text-sm font-medium text-gray-900">
+        ₹{product.price.toLocaleString()}
+      </td>
       <td className="px-4 py-4 text-sm text-gray-900 hidden lg:table-cell">
         <div>₹{product.installation_amount.toLocaleString()}</div>
       </td>
@@ -318,10 +378,20 @@ export default function ProductManager() {
       </td>
       <td className="px-4 py-4 text-right">
         <div className="flex items-center justify-end space-x-1 sm:space-x-2">
-          <Button variant="outline" size="sm" onClick={() => onEdit(product)} className="p-2 sm:px-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(product)}
+            className="p-2 sm:px-3"
+          >
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button variant="destructive" size="sm" onClick={() => onDelete(product.id)} className="p-2 sm:px-3">
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => onDelete(product.id)}
+            className="p-2 sm:px-3"
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -394,45 +464,64 @@ export default function ProductManager() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
-              <span className="text-gray-500 font-medium">Loading catalog...</span>
+              <span className="text-gray-500 font-medium">
+                Loading catalog...
+              </span>
             </div>
           ) : products.length === 0 ? (
             <div className="text-center py-20 px-4">
               <div className="w-20 h-20 mx-auto mb-4 bg-gray-50 rounded-full flex items-center justify-center">
                 <Plus className="h-10 w-10 text-gray-300" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">No products found</h3>
-              <p className="text-gray-500 mt-1 mb-6">Start building your catalog by adding products.</p>
+              <h3 className="text-lg font-semibold text-gray-900">
+                No products found
+              </h3>
+              <p className="text-gray-500 mt-1 mb-6">
+                Start building your catalog by adding products.
+              </p>
               <Button onClick={() => setOpenDrawer(true)}>
                 <Plus className="h-4 w-4 mr-2" /> Add Your First Product
               </Button>
             </div>
           ) : groupByCategory && groupedProducts ? (
             <div className="p-4 sm:p-6 space-y-8">
-              {Object.entries(groupedProducts).map(([categoryName, categoryProducts]) => (
-                <div key={categoryName} className="border border-gray-100 rounded-xl overflow-hidden shadow-sm">
-                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-100 flex justify-between items-center">
-                    <h3 className="font-bold text-gray-800">{categoryName}</h3>
-                    <span className="text-xs font-medium bg-gray-200 px-2 py-1 rounded text-gray-600">
-                      {categoryProducts.length} Items
-                    </span>
+              {Object.entries(groupedProducts).map(
+                ([categoryName, categoryProducts]) => (
+                  <div
+                    key={categoryName}
+                    className="border border-gray-100 rounded-xl overflow-hidden shadow-sm"
+                  >
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-100 flex justify-between items-center">
+                      <h3 className="font-bold text-gray-800">
+                        {categoryName}
+                      </h3>
+                      <span className="text-xs font-medium bg-gray-200 px-2 py-1 rounded text-gray-600">
+                        {categoryProducts.length} Items
+                      </span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <tbody className="divide-y divide-gray-100">
+                          {categoryProducts.map((p) => (
+                            <ProductRow
+                              key={p.id}
+                              product={p}
+                              onEdit={startEdit}
+                              onDelete={(id) =>
+                                setConfirmDelete({
+                                  open: true,
+                                  id,
+                                  imageUrl: p.image_url,
+                                })
+                              }
+                            />
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <tbody className="divide-y divide-gray-100">
-                        {categoryProducts.map((p) => (
-                          <ProductRow
-                            key={p.id}
-                            product={p}
-                            onEdit={startEdit}
-                            onDelete={(id) => setConfirmDelete({ open: true, id })}
-                          />
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ))}
+                ),
+              )}
             </div>
           ) : (
             <>
@@ -441,28 +530,46 @@ export default function ProductManager() {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase">
-                        <button onClick={() => handleSort("name")} className="flex items-center hover:text-blue-600 transition-colors">
+                        <button
+                          onClick={() => handleSort("name")}
+                          className="flex items-center hover:text-blue-600 transition-colors"
+                        >
                           Product <SortIcon field="name" />
                         </button>
                       </th>
                       <th className="px-4 py-4 text-xs font-bold text-gray-600 uppercase hidden md:table-cell">
-                        <button onClick={() => handleSort("model")} className="flex items-center hover:text-blue-600 transition-colors">
+                        <button
+                          onClick={() => handleSort("model")}
+                          className="flex items-center hover:text-blue-600 transition-colors"
+                        >
                           Model <SortIcon field="model" />
                         </button>
                       </th>
                       <th className="px-4 py-4 text-xs font-bold text-gray-600 uppercase hidden sm:table-cell">
-                        <button onClick={() => handleSort("make")} className="flex items-center hover:text-blue-600 transition-colors">
+                        <button
+                          onClick={() => handleSort("make")}
+                          className="flex items-center hover:text-blue-600 transition-colors"
+                        >
                           Make <SortIcon field="make" />
                         </button>
                       </th>
                       <th className="px-4 py-4 text-xs font-bold text-gray-600 uppercase">
-                        <button onClick={() => handleSort("price")} className="flex items-center hover:text-blue-600 transition-colors">
+                        <button
+                          onClick={() => handleSort("price")}
+                          className="flex items-center hover:text-blue-600 transition-colors"
+                        >
                           Price <SortIcon field="price" />
                         </button>
                       </th>
-                      <th className="px-4 py-4 text-xs font-bold text-gray-600 uppercase hidden lg:table-cell">Installation</th>
-                      <th className="px-4 py-4 text-xs font-bold text-gray-600 uppercase hidden sm:table-cell">Category</th>
-                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-600 uppercase">Actions</th>
+                      <th className="px-4 py-4 text-xs font-bold text-gray-600 uppercase hidden lg:table-cell">
+                        Installation
+                      </th>
+                      <th className="px-4 py-4 text-xs font-bold text-gray-600 uppercase hidden sm:table-cell">
+                        Category
+                      </th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-600 uppercase">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -471,7 +578,13 @@ export default function ProductManager() {
                         key={p.id}
                         product={p}
                         onEdit={startEdit}
-                        onDelete={(id) => setConfirmDelete({ open: true, id })}
+                        onDelete={(id) =>
+                          setConfirmDelete({
+                            open: true,
+                            id,
+                            imageUrl: p.image_url,
+                          })
+                        }
                       />
                     ))}
                   </tbody>
@@ -481,27 +594,50 @@ export default function ProductManager() {
               {totalPages > 1 && (
                 <div className="px-6 py-4 bg-white border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="text-sm text-gray-500 order-2 sm:order-1">
-                    Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span>-
-                    <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredAndSortedProducts.length)}</span> of{" "}
-                    <span className="font-medium">{filteredAndSortedProducts.length}</span>
+                    Showing{" "}
+                    <span className="font-medium">
+                      {(currentPage - 1) * itemsPerPage + 1}
+                    </span>
+                    -
+                    <span className="font-medium">
+                      {Math.min(
+                        currentPage * itemsPerPage,
+                        filteredAndSortedProducts.length,
+                      )}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-medium">
+                      {filteredAndSortedProducts.length}
+                    </span>
                   </div>
                   <div className="flex items-center space-x-1 order-1 sm:order-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
                       disabled={currentPage === 1}
                     >
                       Prev
                     </Button>
                     <div className="flex space-x-1">
                       {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter(p => p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1))
+                        .filter(
+                          (p) =>
+                            p === 1 ||
+                            p === totalPages ||
+                            (p >= currentPage - 1 && p <= currentPage + 1),
+                        )
                         .map((page, idx, arr) => (
                           <div key={page} className="flex items-center">
-                            {idx > 0 && arr[idx-1] !== page - 1 && <span className="px-1 text-gray-400">...</span>}
+                            {idx > 0 && arr[idx - 1] !== page - 1 && (
+                              <span className="px-1 text-gray-400">...</span>
+                            )}
                             <Button
-                              variant={currentPage === page ? "primary" : "outline"}
+                              variant={
+                                currentPage === page ? "primary" : "outline"
+                              }
                               size="sm"
                               onClick={() => setCurrentPage(page)}
                               className="w-8 h-8 p-0"
@@ -514,7 +650,9 @@ export default function ProductManager() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
                       disabled={currentPage === totalPages}
                     >
                       Next
@@ -535,16 +673,23 @@ export default function ProductManager() {
         }}
         title={editingProduct ? "Edit Product" : "Add New Product"}
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 space-y-5">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="p-4 sm:p-6 space-y-5"
+        >
           <Input
             label="Product Name"
             placeholder="Enter product name"
             errorMessage={errors?.name?.message}
-            register={register("name", { required: "Product name is required" })}
+            register={register("name", {
+              required: "Product name is required",
+            })}
           />
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-gray-700">Description</label>
+            <label className="block text-sm font-semibold text-gray-700">
+              Description
+            </label>
             <textarea
               placeholder="Enter details..."
               rows={3}
@@ -560,6 +705,15 @@ export default function ProductManager() {
               errorMessage={errors?.model?.message}
               register={register("model", { required: "Model is required" })}
             />
+
+            <Input
+              label="Maker"
+              placeholder="Brand name"
+              register={register("make")}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Input
               label="Price (₹)"
               placeholder="0.00"
@@ -567,29 +721,45 @@ export default function ProductManager() {
               errorMessage={errors?.price?.message}
               register={register("price", { required: "Price is required" })}
             />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Maker" placeholder="Brand name" register={register("make")} />
-            <Input label="Installation Fee" type="number" placeholder="0" register={register("installation_amount")} />
+            <Input
+              label="Installation Fee"
+              type="number"
+              placeholder="0"
+              register={register("installation_amount")}
+            />
+            <Input
+              label="Base Qty"
+              type="number"
+              register={register("base_quantity")}
+            />
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-gray-700">Category</label>
+            <label className="block text-sm font-semibold text-gray-700">
+              Category
+            </label>
             <select
               className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none"
               {...register("category_id", { required: "Category is required" })}
             >
               <option value="">Select Category</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
-            {errors.category_id && <p className="text-xs text-red-600 mt-1">{errors.category_id.message}</p>}
+            {errors.category_id && (
+              <p className="text-xs text-red-600 mt-1">
+                {errors.category_id.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-gray-700">Accessories</label>
+            <label className="block text-sm font-semibold text-gray-700">
+              Accessories
+            </label>
             <Controller
               name="accessory"
               control={control}
@@ -615,24 +785,46 @@ export default function ProductManager() {
 
           <div className="space-y-1.5">
             <label className="block text-sm font-semibold text-gray-700">
-              Product Image {!editingProduct && <span className="text-red-500">*</span>}
+              Product Image{" "}
+              {!editingProduct && <span className="text-red-500">*</span>}
             </label>
             <Controller
               control={control}
               name="imageFile"
               render={({ field }) => {
-                const preview = field.value instanceof File ? URL.createObjectURL(field.value) : field.value;
-                return <FileUploader onChange={(file) => field.onChange(file)} previewUrl={preview as string} />;
+                const preview =
+                  field.value instanceof File
+                    ? URL.createObjectURL(field.value)
+                    : field.value;
+                return (
+                  <FileUploader
+                    onChange={(file) => field.onChange(file)}
+                    previewUrl={preview as string}
+                  />
+                );
               }}
             />
           </div>
 
           <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t mt-8">
-            <Button type="button" variant="outline" onClick={() => setOpenDrawer(false)} className="w-full sm:w-auto">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpenDrawer(false)}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-              {isSubmitting ? "Processing..." : editingProduct ? "Update Product" : "Save Product"}
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              {isSubmitting
+                ? "Processing..."
+                : editingProduct
+                  ? "Update Product"
+                  : "Save Product"}
             </Button>
           </div>
         </form>
@@ -640,7 +832,9 @@ export default function ProductManager() {
 
       <ConfirmDialog
         open={confirmDelete.open}
-        onCancel={() => setConfirmDelete({ open: false, id: null })}
+        onCancel={() =>
+          setConfirmDelete({ open: false, id: null, imageUrl: null })
+        }
         onConfirm={handleDelete}
         title="Delete Product"
         description="Are you sure? This will permanently remove the item from your database."

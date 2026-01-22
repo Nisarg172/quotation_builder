@@ -71,6 +71,7 @@ export type ProductWithCatagory = {
     model: string | null;
     name: string;
     price: number;
+    base_quantity: number;
   }[];
 };
 
@@ -85,6 +86,7 @@ export type ProductInput = {
   imageFile: File | null | string;
   is_accessory: boolean;
   accessory: AccessoryOption[];
+  base_quantity:number
 };
 
 export type ProductWithAccessories = {
@@ -98,6 +100,7 @@ export type ProductWithAccessories = {
   name: string;
   price: number;
   catagoryName: string;
+  base_quantity: number;
   accessories?: {
     accessory: {
       category_id: string | null;

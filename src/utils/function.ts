@@ -7,3 +7,8 @@ export async function urlToBase64(url: string): Promise<string> {
       reader.readAsDataURL(blob);
     });
   }
+
+  export const toTitleCase = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());

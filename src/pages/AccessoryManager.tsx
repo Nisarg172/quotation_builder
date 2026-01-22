@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { supabase } from "../supabase";
 import {
   Pencil,
   Trash2,
@@ -29,6 +28,7 @@ import {
 } from "@/Api/ProductApi";
 import { getCatagory } from "@/Api/CategoryApi";
 import Input from "@/components/ui/Input";
+import { removeMedia, uploadeMedia } from "@/Api/storage";
 
 type ProductInput = {
   name: string;
@@ -50,7 +50,9 @@ export default function AccessoryManager() {
 
   // Table state
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState<keyof ProductWithoutAccessory | null>("name");
+  const [sortField, setSortField] = useState<
+    keyof ProductWithoutAccessory | null
+  >("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [groupByCategory, setGroupByCategory] = useState(false);
@@ -58,10 +60,16 @@ export default function AccessoryManager() {
   const itemsPerPage = 10;
 
   const [openDrawer, setOpenDrawer] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<ProductWithoutAccessory | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; id: string | null }>({
+  const [editingProduct, setEditingProduct] =
+    useState<ProductWithoutAccessory | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{
+    open: boolean;
+    id: string | null;
+    imageUrl:string|null
+  }>({
     open: false,
     id: null,
+    imageUrl:null
   });
 
   const {
@@ -95,15 +103,40 @@ export default function AccessoryManager() {
     try {
       let imageUrl: string | null = editingProduct?.image_url || null;
 
-      if (form.imageFile instanceof File) {
-        const fileExt = form.imageFile.name.split(".").pop();
-        const fileName = `${Date.now()}.${fileExt}`;
-        const { error: uploadError, data } = await supabase.storage
-          .from("image")
-          .upload(fileName, form.imageFile);
+      if (form.imageFile && form.imageFile instanceof File) {
+        const fileName = `${Date.now()}_${form.imageFile.name}`;
+        const { error: uploadError, data } = await uploadeMedia({
+          bucketName: "image",
+          fileName,
+          file: form.imageFile,
+        });
 
         if (uploadError) throw uploadError;
+        // remove old media
+        if (imageUrl) {
+          const removePath = imageUrl
+            ?.split(`${import.meta.env.VITE_IMAGE_BASE_URL}/image/`)
+            .at(1);
+          removePath &&
+            (await removeMedia({
+              bucketName: "image",
+              removePath: [removePath],
+            }));
+        }
         imageUrl = `${import.meta.env.VITE_IMAGE_BASE_URL}/${data.fullPath}`;
+      }
+
+      // remove image
+      if (!form.imageFile && imageUrl) {
+        const removePath = imageUrl
+          ?.split(`${import.meta.env.VITE_IMAGE_BASE_URL}/image/`)
+          .at(1);
+        removePath &&
+          (await removeMedia({
+            bucketName: "image",
+            removePath: [removePath],
+          }));
+        imageUrl = null;
       }
 
       const payload = {
@@ -120,7 +153,10 @@ export default function AccessoryManager() {
       };
 
       if (editingProduct) {
-        const { error } = await editProduct({ id: editingProduct.id, data: payload });
+        const { error } = await editProduct({
+          id: editingProduct.id,
+          data: payload,
+        });
         if (error) throw error;
         toast.success("Accessory updated");
       } else {
@@ -158,17 +194,23 @@ export default function AccessoryManager() {
     setOpenDrawer(true);
   };
 
-  const handleDelete = async () => {
+ const handleDelete = async () => {
     if (!confirmDelete.id) return;
     const { error } = await deleteProduct(confirmDelete.id);
+
+    const removePath = confirmDelete.imageUrl
+      ?.split(`${import.meta.env.VITE_IMAGE_BASE_URL}/image/`)
+      .at(1);
+    removePath &&
+      (await removeMedia({ bucketName: "image", removePath: [removePath] }));
+
     if (error) toast.error(error.message);
     else {
-      toast.success("Deleted successfully");
+      toast.success("Product deleted");
       fetchProducts();
     }
-    setConfirmDelete({ open: false, id: null });
+    setConfirmDelete({ open: false, id: null, imageUrl: null });
   };
-
   // Logic: Filter & Sort
   const filteredAndSortedProducts = useMemo(() => {
     let result = products.filter((p) => {
@@ -177,7 +219,8 @@ export default function AccessoryManager() {
         p.name.toLowerCase().includes(search) ||
         p.model?.toLowerCase().includes(search) ||
         p.make?.toLowerCase().includes(search);
-      const matchesCat = !selectedCategory || p.category_id === selectedCategory;
+      const matchesCat =
+        !selectedCategory || p.category_id === selectedCategory;
       return matchesSearch && matchesCat;
     });
 
@@ -199,12 +242,15 @@ export default function AccessoryManager() {
 
   const groupedProducts = useMemo(() => {
     if (!groupByCategory) return null;
-    return filteredAndSortedProducts.reduce((acc, p) => {
-      const catName = p.category?.name || "Uncategorized";
-      if (!acc[catName]) acc[catName] = [];
-      acc[catName].push(p);
-      return acc;
-    }, {} as Record<string, ProductWithoutAccessory[]>);
+    return filteredAndSortedProducts.reduce(
+      (acc, p) => {
+        const catName = p.category?.name || "Uncategorized";
+        if (!acc[catName]) acc[catName] = [];
+        acc[catName].push(p);
+        return acc;
+      },
+      {} as Record<string, ProductWithoutAccessory[]>,
+    );
   }, [filteredAndSortedProducts, groupByCategory]);
 
   const handleSort = (field: keyof ProductWithoutAccessory) => {
@@ -223,21 +269,35 @@ export default function AccessoryManager() {
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-lg overflow-hidden bg-gray-100 border flex-shrink-0">
             {product.image_url ? (
-              <img src={product.image_url} alt="" className="h-full w-full object-cover" />
+              <img
+                src={product.image_url}
+                alt=""
+                className="h-full w-full object-cover"
+              />
             ) : (
               <ImageIcon className="h-full w-full p-2 text-gray-300" />
             )}
           </div>
           <div className="max-w-[200px]">
-            <p className="text-sm font-semibold text-gray-900 truncate">{product.name}</p>
-            <p className="text-xs text-gray-500 truncate">{product.description || "No description"}</p>
+            <p className="text-sm font-semibold text-gray-900 truncate">
+              {product.name}
+            </p>
+            <p className="text-xs text-gray-500 truncate">
+              {product.description || "No description"}
+            </p>
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 text-sm text-gray-600">{product.model || "-"}</td>
+      <td className="px-6 py-4 text-sm text-gray-600">
+        {product.model || "-"}
+      </td>
       <td className="px-6 py-4 text-sm text-gray-600">{product.make || "-"}</td>
-      <td className="px-6 py-4 text-sm font-bold text-gray-900">₹{product.price.toLocaleString()}</td>
-      <td className="px-6 py-4 text-sm text-gray-600">₹{product.installation_amount}</td>
+      <td className="px-6 py-4 text-sm font-bold text-gray-900">
+        ₹{product.price.toLocaleString()}
+      </td>
+      <td className="px-6 py-4 text-sm text-gray-600">
+        ₹{product.installation_amount}
+      </td>
       <td className="px-6 py-4">
         <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-medium border border-blue-100">
           {product.category?.name || "None"}
@@ -245,10 +305,18 @@ export default function AccessoryManager() {
       </td>
       <td className="px-6 py-4 text-right">
         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button variant="outline" size="sm" onClick={() => startEdit(product)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => startEdit(product)}
+          >
             <Pencil size={14} />
           </Button>
-          <Button variant="destructive" size="sm" onClick={() => setConfirmDelete({ open: true, id: product.id })}>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setConfirmDelete({ open: true, id: product.id,imageUrl:product.image_url })}
+          >
             <Trash2 size={14} />
           </Button>
         </div>
@@ -262,10 +330,17 @@ export default function AccessoryManager() {
         {/* Top Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Accessory Manager</h1>
-            <p className="text-gray-500 text-sm">Create and manage your product accessories inventory</p>
+            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+              Accessory Manager
+            </h1>
+            <p className="text-gray-500 text-sm">
+              Create and manage your product accessories inventory
+            </p>
           </div>
-          <Button onClick={() => setOpenDrawer(true)} className="rounded-xl px-5 shadow-blue-200 shadow-lg">
+          <Button
+            onClick={() => setOpenDrawer(true)}
+            className="rounded-xl px-5 shadow-blue-200 shadow-lg"
+          >
             <Plus className="mr-2 h-4 w-4" /> Add Accessory
           </Button>
         </div>
@@ -289,7 +364,9 @@ export default function AccessoryManager() {
             >
               <option value="">All Categories</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-600 bg-gray-50 px-4 py-2 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
@@ -309,25 +386,34 @@ export default function AccessoryManager() {
           {loading ? (
             <div className="p-20 text-center flex flex-col items-center">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
-              <p className="text-gray-500 animate-pulse">Loading Inventory...</p>
+              <p className="text-gray-500 animate-pulse">
+                Loading Inventory...
+              </p>
             </div>
           ) : filteredAndSortedProducts.length === 0 ? (
             <div className="p-20 text-center">
               <PackageOpen className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-              <h3 className="text-lg font-bold text-gray-900">No accessories found</h3>
-              <p className="text-gray-500">Try adjusting your filters or search term</p>
+              <h3 className="text-lg font-bold text-gray-900">
+                No accessories found
+              </h3>
+              <p className="text-gray-500">
+                Try adjusting your filters or search term
+              </p>
             </div>
           ) : groupByCategory && groupedProducts ? (
             <div className="p-6 space-y-8">
               {Object.entries(groupedProducts).map(([cat, items]) => (
                 <div key={cat} className="space-y-3">
                   <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <span className="w-8 h-[1px] bg-gray-200"></span> {cat} ({items.length})
+                    <span className="w-8 h-[1px] bg-gray-200"></span> {cat} (
+                    {items.length})
                   </h2>
                   <div className="overflow-x-auto rounded-xl border border-gray-100">
                     <table className="w-full text-left">
                       <tbody className="divide-y divide-gray-100">
-                        {items.map((p) => <ProductRow key={p.id} product={p} />)}
+                        {items.map((p) => (
+                          <ProductRow key={p.id} product={p} />
+                        ))}
                       </tbody>
                     </table>
                   </div>
@@ -346,38 +432,67 @@ export default function AccessoryManager() {
                         onClick={() => handleSort(head as any)}
                       >
                         <div className="flex items-center gap-1">
-                          {head} {sortField === head && (sortDirection === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+                          {head}{" "}
+                          {sortField === head &&
+                            (sortDirection === "asc" ? (
+                              <ChevronUp size={14} />
+                            ) : (
+                              <ChevronDown size={14} />
+                            ))}
                         </div>
                       </th>
                     ))}
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Installation</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Category</th>
-                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase">Actions</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
+                      Installation
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
+                      Category
+                    </th>
+                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {paginatedProducts.map((p) => <ProductRow key={p.id} product={p} />)}
+                  {paginatedProducts.map((p) => (
+                    <ProductRow key={p.id} product={p} />
+                  ))}
                 </tbody>
               </table>
             </div>
           )}
 
           {/* Pagination */}
-          {!groupByCategory && filteredAndSortedProducts.length > itemsPerPage && (
-            <div className="p-4 border-t border-gray-50 flex items-center justify-between bg-gray-50/30">
-              <p className="text-xs text-gray-500">
-                Page {currentPage} of {Math.ceil(filteredAndSortedProducts.length / itemsPerPage)}
-              </p>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(v => v - 1)}>
-                  Prev
-                </Button>
-                <Button variant="outline" size="sm" disabled={currentPage >= Math.ceil(filteredAndSortedProducts.length / itemsPerPage)} onClick={() => setCurrentPage(v => v + 1)}>
-                  Next
-                </Button>
+          {!groupByCategory &&
+            filteredAndSortedProducts.length > itemsPerPage && (
+              <div className="p-4 border-t border-gray-50 flex items-center justify-between bg-gray-50/30">
+                <p className="text-xs text-gray-500">
+                  Page {currentPage} of{" "}
+                  {Math.ceil(filteredAndSortedProducts.length / itemsPerPage)}
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((v) => v - 1)}
+                  >
+                    Prev
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={
+                      currentPage >=
+                      Math.ceil(filteredAndSortedProducts.length / itemsPerPage)
+                    }
+                    onClick={() => setCurrentPage((v) => v + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
 
@@ -387,10 +502,17 @@ export default function AccessoryManager() {
         title={editingProduct ? "Update Accessory" : "New Accessory"}
       >
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
-          <Input label="Product Name" placeholder="e.g. Wireless Remote" register={register("name", { required: true })} errorMessage={errors.name && "Required"} />
-          
+          <Input
+            label="Product Name"
+            placeholder="e.g. Wireless Remote"
+            register={register("name", { required: true })}
+            errorMessage={errors.name && "Required"}
+          />
+
           <div className="space-y-1">
-            <label className="text-sm font-bold text-gray-700">Description</label>
+            <label className="text-sm font-bold text-gray-700">
+              Description
+            </label>
             <textarea
               {...register("description")}
               className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 h-24 resize-none text-sm"
@@ -398,26 +520,57 @@ export default function AccessoryManager() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Model" register={register("model")} />
-            <Input label="Make" register={register("make")} />
+         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Model"
+              placeholder="e.g. XP-200"
+              errorMessage={errors?.model?.message}
+              register={register("model", { required: "Model is required" })}
+            />
+
+            <Input
+              label="Maker"
+              placeholder="Brand name"
+              register={register("make")}
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Price (₹)" type="number" register={register("price", { required: true })} />
-            <Input label="Installation (₹)" type="number" register={register("installation_amount")} />
+           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Input
+              label="Price (₹)"
+              type="number"
+              register={register("price", { required: true })}
+            />
+            <Input
+              label="Installation (₹)"
+              type="number"
+              register={register("installation_amount")}
+            />
+
+            <Input
+              label="Base Qty"
+              type="number"
+              register={register("base_quantity")}
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Base Qty" type="number" register={register("base_quantity")} />
+            
             <div className="space-y-1">
-              <label className="text-sm font-bold text-gray-700">Category</label>
-              <select {...register("category_id")} className="w-full p-2.5 rounded-xl border border-gray-200 text-sm">
+              <label className="text-sm font-bold text-gray-700">
+                Category
+              </label>
+              <select
+                {...register("category_id")}
+                className="w-full p-2.5 rounded-xl border border-gray-200 text-sm"
+              >
                 <option value="">Select Category</option>
-                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
               </select>
             </div>
-          </div>
 
           <div className="space-y-2">
             <label className="text-sm font-bold text-gray-700">Image</label>
@@ -427,15 +580,29 @@ export default function AccessoryManager() {
               render={({ field }) => (
                 <FileUploader
                   onChange={field.onChange}
-                  previewUrl={typeof field.value === "string" ? field.value : field.value ? URL.createObjectURL(field.value) : null}
+                  previewUrl={
+                    typeof field.value === "string"
+                      ? field.value
+                      : field.value
+                        ? URL.createObjectURL(field.value)
+                        : null
+                  }
                 />
               )}
             />
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="submit" disabled={isSubmitting} className="flex-1 rounded-xl py-6">
-              {isSubmitting ? "Processing..." : editingProduct ? "Update Item" : "Create Item"}
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 rounded-xl py-6"
+            >
+              {isSubmitting
+                ? "Processing..."
+                : editingProduct
+                  ? "Update Item"
+                  : "Create Item"}
             </Button>
           </div>
         </form>
@@ -443,7 +610,7 @@ export default function AccessoryManager() {
 
       <ConfirmDialog
         open={confirmDelete.open}
-        onCancel={() => setConfirmDelete({ open: false, id: null })}
+        onCancel={() => setConfirmDelete({ open: false, id: null,imageUrl:null })}
         onConfirm={handleDelete}
         title="Delete Accessory?"
         description="This will permanently remove the item from your inventory."
