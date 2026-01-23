@@ -22,7 +22,7 @@ export type QuoteData = {
   installationTotal: number;
   gstOnInstallation: boolean;
   gstOnSupply:boolean ;
-  address: string;
+  address?: string|null;
   isPurchesOrder: boolean;
   coumpanyId:number,
   gstNumber?: string,

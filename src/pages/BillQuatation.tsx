@@ -32,7 +32,7 @@ const BillQuotation = () => {
       // Mapping logic separated for clarity
       const formattedData: QuoteData = {
         customerName: data.customer.name,
-        address: data.customer.address,
+        address: data?.address,
         mobileNo: data.customer.mobile_no,
         gstNumber: data.gst_number || undefined,
         coumpanyId: data.coumpany_id,

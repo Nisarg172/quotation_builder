@@ -175,7 +175,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
       toast.error(customerError.message);
     } else if (customerData?.length === 0 || !customerData) {
       const { data: customeCreateData, error: customerCreateError } = await createCustomer({
-        address: data.address,
+        address: data?.address||"-",
         mobile_no: data.mobileNo,
         name: data.customerName,
       });
@@ -199,6 +199,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
         supply_total: data.supplyTotal,
         coumpany_id: data.coumpanyId,
         gst_number: data?.gstNumber || null,
+        address:data?.address,
       };
       const { data: billQuationData, error: billQuationError } = await createBillQuation(billQuatioPyloade);
       if (billQuationError) {

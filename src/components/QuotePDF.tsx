@@ -46,8 +46,9 @@ const styles = StyleSheet.create({
   cell: {
     borderRightWidth: 1,
     borderColor: BORDER,
-    padding: 4,
+    padding: 3,
     justifyContent: "center",
+     wordBreak: "break-all"
     
     
   },
@@ -55,9 +56,9 @@ const styles = StyleSheet.create({
   /* UPDATED COLUMN WIDTHS */
   colSr: { width: "3%" },
   colDesc: { width: "35%" },
-  colImg: { width: "13%", alignItems: "center" },
+  colImg: { width: "12%", alignItems: "center" },
   colMake:{width:"7%"},
-  colModel:{width:"9%"},
+  colModel:{width:"10%"},
   colQty: { width: "4%" },
   colSupply: { width: "9%" },
   colInstall: { width: "10%" },
@@ -155,7 +156,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
 
             <Text>Customer: {data.customerName || "-"}</Text>
             <Text>Mobile: {data.mobileNo || "-"}</Text>
-            <Text>Address: {data.address || "-"}</Text>
+            <Text>Address: {data?.address || "-"}</Text>
           </View>
         </View>
 
@@ -273,6 +274,11 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                         styles.cell,
                         styles.colModel,
                         styles.center,
+                        { flexShrink: 1,
+                          flex: 1,
+                  flexWrap: "wrap"
+                         }
+                        
                       ]}
                     >
                      {it.makeModel || "-"}
@@ -282,17 +288,17 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                       {it.qty}
                     </Text>
 
-                    <Text style={[styles.cell, styles.colSupply, styles.right]}>
+                    <Text style={[styles.cell, styles.colSupply, styles.center]}>
                       {it.unitRate}
                     </Text>
 
                     <Text
-                      style={[styles.cell, styles.colInstall, styles.right]}
+                      style={[styles.cell, styles.colInstall, styles.center]}
                     >
                       {it.installation_amount.toFixed(2)}
                     </Text>
 
-                    <Text style={[styles.cell, styles.colTotal, styles.right]}>
+                    <Text style={[styles.cell, styles.colTotal, styles.center]}>
                       {(it.unitRate*it.qty+it.installation_amount*it.qty).toFixed(2)}
                     </Text>
                   </View>

@@ -73,7 +73,7 @@ export default function QuotePreview({ data }: { data: QuoteData }) {
             <p><span className="font-medium">Customer:</span> {data.customerName || "-"}</p>
             <p><span className="font-medium">Mobile:</span> {data.mobileNo || "-"}</p>
             <p className="max-w-xs md:ml-auto md:text-right">
-              <span className="font-medium">Address:</span> {data.address || "-"}
+              <span className="font-medium">Address:</span> {data?.address || "-"}
             </p>
           </div>
         </div>

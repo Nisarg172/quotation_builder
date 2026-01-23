@@ -164,7 +164,7 @@ export default function StaffQuotePDF({ data }: { data: QuoteData }) {
                       <Text style={{ ...styles.bold, textAlign: "right" }}>Quote No: {random5Digit}</Text>
                       <Text>Customer: {data.customerName || "-"}</Text>
                       <Text>Mobile: {data.mobileNo || "-"}</Text>
-                      <Text>Address: {data.address || "-"}</Text>
+                      <Text>Address: {data?.address || "-"}</Text>
                     </View>
         </View>
 
