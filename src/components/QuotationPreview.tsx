@@ -56,7 +56,7 @@ export default function QuotePreview({ data }: { data: QuoteData }) {
             <div>
               <h1 className="text-lg font-bold text-gray-900">{infoData.companyName}</h1>
               <div className="text-gray-600 space-y-0.5">
-                <p><span className="font-medium text-gray-800">GST:</span> {infoData.GST}</p>
+                {infoData?.GST&&<p><span className="font-medium text-gray-800">GST:</span> {infoData.GST}</p>}
                 <p><span className="font-medium text-gray-800">Contact:</span> {infoData.contactName}</p>
                 <p><span className="font-medium text-gray-800">Phone:</span> {infoData.contactNo}</p>
                 <p><span className="font-medium text-gray-800">Email:</span> {infoData.email}</p>

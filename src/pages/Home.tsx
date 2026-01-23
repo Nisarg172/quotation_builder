@@ -40,6 +40,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
   const coumpanyOption = [
     { label: "Hm Technology", value: 1 },
     { label: "Torque Innovations India", value: 2 },
+    { label: "Elko Ep India", value: 3 },
   ];
 
   const [products, setProducts] = useState<ProductWithCatagory[]>([]);

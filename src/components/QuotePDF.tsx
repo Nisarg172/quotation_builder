@@ -131,7 +131,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
               <Image src={infoData.logo} style={{ width: 46, height: 46 }} />
             )}
             <Text style={styles.companyName}>{infoData.companyName}</Text>
-            <Text style={styles.contactSmall}>GST: {infoData.GST}</Text>
+            {infoData?.GST&&<Text style={styles.contactSmall}>GST: {infoData.GST}</Text>}
             <Text style={styles.contactSmall}>
               Contact: {infoData.contactName}
             </Text>

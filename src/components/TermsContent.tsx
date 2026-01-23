@@ -6,7 +6,7 @@ interface Props {
     contactName: string;
     contactNo: string;
     email: string;
-    GST: string;
+    GST?: string;
     serviceEmail: string;
     serviceMo: string;
     address: string;

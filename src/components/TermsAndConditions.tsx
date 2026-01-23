@@ -13,7 +13,7 @@ interface Props {
     contactName: string;
     contactNo: string;
     email: string;
-    GST: string;
+    GST?: string;
     address: string;
     serviceEmail:string
     serviceMo:string
