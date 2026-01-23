@@ -79,10 +79,11 @@ const styles = StyleSheet.create({
 
 
 
-const random5Digit = Math.floor(10000 + Math.random() * 90000);
-let srNo = 0;
+
 
 export default function QuotePDF({ data }: { data: QuoteData }) {
+  const random5Digit = Math.floor(10000 + Math.random() * 90000);
+  let srNo = 0;
   const infoData =
     CoumpanyInfo.find(({ id }) => id == data.coumpanyId) || CoumpanyInfo[0];
 
