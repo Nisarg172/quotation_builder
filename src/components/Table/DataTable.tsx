@@ -68,7 +68,7 @@ export default function DataTable<T>({
         <div className="w-full sm:w-64">
           <Input
             type="text"
-            placeholder="Search..."
+            placeholder="Search...s"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -79,10 +79,10 @@ export default function DataTable<T>({
         </div>
       </div>
 
-      {/* Table Wrapper for Horizontal Scroll */}
-      <div className="w-full overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+      {/* --- DESKTOP VIEW --- */}
+      <div className="hidden sm:block w-full overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
         <table className="min-w-full divide-y divide-gray-200 bg-white">
-          <thead className="bg-gray-50 text-xs uppercase text-gray-700">
+          <thead className="bg-gray-50 text-xs capitalize text-gray-700">
             <tr>
               {columns.map((c, i) => (
                 <th
@@ -105,7 +105,7 @@ export default function DataTable<T>({
                         <button
                           type="button"
                           onClick={(e) => {
-                            e.stopPropagation(); // Prevent sorting when clicking filter
+                            e.stopPropagation();
                             setOpenFilter(
                               openFilter === c.key ? null : (c.key as string)
                             );
@@ -168,10 +168,7 @@ export default function DataTable<T>({
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td
-                  colSpan={columns.length}
-                  className="py-10 text-center text-sm text-gray-500 font-medium"
-                >
+                <td colSpan={columns.length} className="py-10 text-center text-sm text-gray-500 font-medium">
                   No records found
                 </td>
               </tr>
@@ -192,7 +189,7 @@ export default function DataTable<T>({
                     <tr>
                       <td colSpan={columns.length} className="p-0 border-t-0">
                         <div className="bg-gray-50 overflow-hidden transition-all">
-                           {renderSubRow(row)}
+                          {renderSubRow(row)}
                         </div>
                       </td>
                     </tr>
@@ -204,10 +201,106 @@ export default function DataTable<T>({
         </table>
       </div>
 
-      {/* Pagination - Stacked on Mobile */}
+   {/* --- MOBILE CARD VIEW --- */}
+<div className="sm:hidden space-y-4">
+  {loading ? (
+    <div className="p-8 text-center text-sm text-gray-500 bg-white border rounded-lg">
+      Loading...
+    </div>
+  ) : data.length === 0 ? (
+    <div className="p-8 text-center text-sm text-gray-500 bg-white border rounded-lg">
+      No records found
+    </div>
+  ) : (
+    data.map((row, i) => {
+      const addressColumn = columns.find(
+        (c) => c.label.toLowerCase() === "address"
+      );
+
+      const nonAddressColumns = columns.filter(
+        (c) => c.label.toLowerCase() !== "address"
+      );
+
+      const nameColumn = nonAddressColumns[0];
+      const mobileColumn = nonAddressColumns[1];
+      const actionColumn = nonAddressColumns[nonAddressColumns.length - 1];
+
+      return (
+        <div
+          key={i}
+          className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden"
+        >
+          {/* ===== HEADER ===== */}
+          <div className="relative p-4">
+            <div className="grid grid-cols-[1fr_1fr_auto] gap-3 items-start">
+              {/* NAME */}
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase font-bold text-gray-400">
+                  {nameColumn?.label}
+                </p>
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {nameColumn?.render
+                    ? nameColumn.render(row)
+                    : String((row as any)[nameColumn?.key as string] ?? "-")}
+                </p>
+              </div>
+
+              {/* MOBILE */}
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase font-bold text-gray-400">
+                  {mobileColumn?.label}
+                </p>
+                <p className="text-sm text-gray-700 truncate">
+                  {mobileColumn?.render
+                    ? mobileColumn.render(row)
+                    : String((row as any)[mobileColumn?.key as string] ?? "-")}
+                </p>
+              </div>
+
+              {/* ACTION ICON */}
+              {actionColumn?.render && (
+                <div className="pt-4">
+                  {actionColumn.render(row)}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ===== ADDRESS ===== */}
+          {addressColumn && (
+            <div className="px-4 pb-4 pt-0 border-t border-gray-100">
+              <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
+                {addressColumn.label}
+              </p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                {addressColumn.render
+                  ? addressColumn.render(row)
+                  : String(
+                      (row as any)[addressColumn.key as string] ?? "-"
+                    )}
+              </p>
+            </div>
+          )}
+
+          {/* ===== EXPANDED SUB ROW ===== */}
+          {renderSubRow && (
+            <div className="bg-gray-50 border-t border-gray-200 px-3 py-3">
+              {renderSubRow(row)}
+            </div>
+          )}
+        </div>
+      );
+    })
+  )}
+</div>
+
+
+
+      {/* Pagination */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
         <span className="text-sm text-gray-600 order-2 sm:order-1 font-medium">
-          Page <span className="text-black">{page}</span> of <span className="text-black">{meta.totalPages || 1}</span>
+          Page <span className="text-black">{page}</span> of{" "}
+          <span className="text-black">{meta.totalPages || 1}</span>
         </span>
 
         <div className="flex items-center gap-2 order-1 sm:order-2 w-full sm:w-auto">

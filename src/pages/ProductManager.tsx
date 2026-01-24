@@ -412,7 +412,7 @@ export default function ProductManager() {
         <div>₹{product.installation_amount.toLocaleString()}</div>
       </td>
       <td className="px-4 py-4 hidden sm:table-cell">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+        <span className="inline-flex items-center px-5 py-0.5 rounded-xl text-xs font-medium bg-blue-100 text-blue-800">
           {product.category?.name || "Uncategorized"}
         </span>
       </td>
@@ -572,7 +572,7 @@ export default function ProductManager() {
                 {paginatedProducts.map((p) => (
                   <div
                     key={p.id}
-                    className="relative group overflow-hidden bg-white rounded-3xl border border-gray-100 shadow-xl transition-all duration-500 hover:-translate-y-1 mobile-hover-card"
+                    className="relative group overflow-hidden bg-white rounded-xl  shadow-xl transition-all duration-500 hover:-translate-y-1 mobile-hover-card"
                   >
                     {/* Diagonal hover gradient layer, similar to Home item cards */}
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 translate-x-[100%] translate-y-[100%] group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-700 ease-in-out z-0 opacity-[0.04]" />
@@ -696,7 +696,7 @@ export default function ProductManager() {
                 <table className="w-full text-left">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase">
+                      <th className="px-6 py-4 text-xs font-bold text-gray-600 ">
                         <button
                           onClick={() => handleSort("name")}
                           className="flex items-center hover:text-blue-600 transition-colors"
@@ -704,7 +704,7 @@ export default function ProductManager() {
                           Product <SortIcon field="name" />
                         </button>
                       </th>
-                      <th className="px-4 py-4 text-xs font-bold text-gray-600 uppercase hidden md:table-cell">
+                      <th className="px-4 py-4 text-xs font-bold text-gray-600  hidden md:table-cell">
                         <button
                           onClick={() => handleSort("model")}
                           className="flex items-center hover:text-blue-600 transition-colors"
@@ -712,7 +712,7 @@ export default function ProductManager() {
                           Model <SortIcon field="model" />
                         </button>
                       </th>
-                      <th className="px-4 py-4 text-xs font-bold text-gray-600 uppercase hidden sm:table-cell">
+                      <th className="px-4 py-4 text-xs font-bold text-gray-600 capitalize hidden sm:table-cell">
                         <button
                           onClick={() => handleSort("make")}
                           className="flex items-center hover:text-blue-600 transition-colors"
@@ -720,7 +720,7 @@ export default function ProductManager() {
                           Make <SortIcon field="make" />
                         </button>
                       </th>
-                      <th className="px-4 py-4 text-xs font-bold text-gray-600 uppercase">
+                      <th className="px-4 py-4 text-xs font-bold text-gray-600 ">
                         <button
                           onClick={() => handleSort("price")}
                           className="flex items-center hover:text-blue-600 transition-colors"
@@ -728,13 +728,13 @@ export default function ProductManager() {
                           Price <SortIcon field="price" />
                         </button>
                       </th>
-                      <th className="px-4 py-4 text-xs font-bold text-gray-600 uppercase hidden lg:table-cell">
+                      <th className="px-4 py-4 text-xs font-bold text-gray-600  hidden lg:table-cell">
                         Installation
                       </th>
-                      <th className="px-4 py-4 text-xs font-bold text-gray-600 uppercase hidden sm:table-cell">
+                      <th className="px-4 py-4 text-xs font-bold text-gray-600  hidden sm:table-cell">
                         Category
                       </th>
-                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-600 uppercase">
+                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-600 ">
                         Actions
                       </th>
                     </tr>
@@ -842,7 +842,7 @@ export default function ProductManager() {
       >
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="p-4 sm:p-6 space-y-5"
+          className="p-4 sm:p-1 space-y-5"
         >
           <Input
             label="Product Name"

@@ -355,7 +355,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
             <Select
               options={productGroupedOptions}
               onChange={(s) => s && addProduct((s as any).value)}
-              className="text-sm"
+              className="text-sm z-1"
             />
           </div>
 
@@ -389,7 +389,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
               </button>
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-700">
+              <label className="text-sm font-semibold  text-gray-700">
                 Company
               </label>
 
@@ -403,7 +403,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                 onChange={(s) =>
                   s && setQuote((prev) => ({ ...prev, coumpanyId: s.value }))
                 }
-                className="text-xs sm:text-sm"
+                className="text-xs  sm:text-sm"
               />
             </div>
           </div>
@@ -527,8 +527,8 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
         <div className="md:hidden space-y-8 pb-24 px-4">
           {Object.entries(groupedItems).map(([category, items]) => (
             <div key={category} className="space-y-4">
-              <div className="sticky top-0 z-20 bg-brand-gradient/80 backdrop-blur-md py-4 border-b-2 border-transparent mb-2">
-                <h3 className="text-lg font-black text-white tracking-tighter uppercase">
+              <div className="sticky top-0 bg-brand-gradient/80 backdrop-blur-md py-4 border-b-2 border-transparent mb-2">
+                <h3 className="text-lg font-black text-brand-primary tracking-tighter uppercase">
                   {category}
                 </h3>
               </div>
@@ -539,7 +539,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                 return (
                   <div
                     key={it.sn}
-                    className="relative group overflow-hidden bg-white rounded-3xl border border-gray-100 shadow-xl transition-all duration-500 hover:-translate-y-2 mobile-hover-card"
+                    className="relative group overflow-hidden bg-white rounded-xl  shadow-xs transition-all duration-500 hover:-translate-y-2 mobile-hover-card"
                   >
                     {/* DIAGONAL HOVER BACKGROUND LAYER */}
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 translate-x-[100%] translate-y-[100%] group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-700 ease-in-out z-0 opacity-[0.03] md:opacity-100" />
@@ -644,10 +644,10 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
 
                     {/* Footer: The Big Total */}
                     <div className="relative z-10 bg-brand-gradient p-5 flex justify-between items-center transition-all duration-500">
-                      <span className=" text-xs text-white font-bold uppercase tracking-widest">
+                      <span className=" text-[14px] text-white font-bold  tracking-widest">
                         Total
                       </span>
-                      <div className="text-white font-black text-[16px] animate-pulse-subtle">
+                      <div className="text-white font-black text-[14px] animate-pulse-subtle">
                         ₹{total.toLocaleString("en-IN")}
                       </div>
                     </div>

@@ -33,7 +33,7 @@ function AppContent() {
             <div className="flex items-center space-x-3">
               <img src="/logo.png" alt="logo " className="w-10 h-10 rounded-md bg-white/10 p-1" />
               <h1 className="text-xl font-semibold tracking-tight text-white">
-                Quatation Bulder
+                 Quotation Builder
               </h1>
             </div>
 
@@ -59,7 +59,7 @@ function AppContent() {
           <div className="flex items-center space-x-2">
             <img src="/logo.png" alt="logo " className="w-9 h-9 rounded-md bg-white/10 p-1" />
             <h1 className="text-lg font-semibold tracking-tight text-white">
-              Quatation Bulder
+            Quotation Builder
             </h1>
           </div>
           <button
@@ -100,12 +100,15 @@ function AppContent() {
 
           <div className="pt-4 mt-4 border-t border-slate-200">
             <p className="text-sm text-slate-600 mb-2 break-all">{user?.email}</p>
-            <button
-              onClick={handleSignOut}
-              className="w-full bg-brand-primary text-white hover:opacity-90 py-2 rounded-full text-sm font-medium shadow-sm transition-colors"
-            >
-              Sign Out
-            </button>
+           <button
+  onClick={() => {
+    setOpen(false);
+    handleSignOut();
+  }}
+  className="w-full bg-brand-primary text-white hover:opacity-90 py-2 rounded-full text-sm font-medium shadow-sm transition-colors"
+>
+  Sign Out
+</button>
           </div>
         </div>
       </div>

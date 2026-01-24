@@ -62,20 +62,25 @@ export default function Customer() {
   };
 
   // --- Sub-component: Billing Records ---
-  const CustomerBillSubRow = ({ bills }: { bills: BillQuotation[] }) => {
-    if (!bills || bills.length === 0) {
-      return (
-        <div className="ml-12 my-3 rounded-xl border border-dashed border-gray-200 bg-gray-50/50 px-6 py-8 text-center">
-          <p className="text-sm text-gray-400">
-            No billing records found for this customer.
-          </p>
-        </div>
-      );
-    }
-
+// --- Sub-component: Billing Records ---
+const CustomerBillSubRow = ({ bills }: { bills: BillQuotation[] }) => {
+  if (!bills || bills.length === 0) {
     return (
-      <div className="my-3 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        {/* Header (desktop and larger) */}
+      <div className="ml-4 md:ml-12 my-3 rounded-xl border border-dashed border-gray-200 bg-gray-50/50 px-6 py-8 text-center">
+        <p className="text-sm text-gray-400">
+          No billing records found for this customer.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    /* FIX: 'sticky left-0' and 'w-[calc(100vw-2rem)]' prevents the sub-row 
+       from expanding the table width and causing a horizontal scroll.
+    */
+    <div className="sticky ' and 'w-[calc(100vw-2rem)] md:w-full overflow-hidden my-3 md:my-3 px-1">
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm ">
+        {/* Header (desktop and larger) - NOT CHANGED */}
         <div className="hidden md:grid grid-cols-6 gap-4 bg-gray-50 px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-500 border-b">
           <span>Date</span>
           <span>Document ID</span>
@@ -90,67 +95,82 @@ export default function Customer() {
           {bills.map((bill) => (
             <div
               key={bill.id}
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4 px-4 sm:px-5 py-3 text-sm items-center hover:bg-blue-50/30 transition-colors"
+              className="flex flex-col md:grid md:grid-cols-6 gap-3 md:gap-4 px-4 py-4 md:px-5 md:py-3 text-sm items-center hover:bg-blue-50/30 transition-colors"
             >
-              <span className="text-gray-600 font-medium">
-                {new Date(bill.created_at).toLocaleDateString("en-IN", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  second: "2-digit",
-                })}
-              </span>
+              {/* Row 1: Date & ID (Mobile) */}
+              <div className="flex w-full justify-between items-center md:contents">
+                <span className="text-gray-600 font-bold md:font-medium">
+                  {new Date(bill.created_at).toLocaleDateString("en-IN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "2-digit",
+                  })}
+                </span>
+                <span className="font-mono text-[10px] text-gray-400 uppercase md:text-xs">
+                  #{bill.id.slice(0, 8)}...
+                </span>
+              </div>
 
-              <span className="font-mono text-xs text-gray-400 truncate uppercase">
-                #{bill.id.slice(0, 8)}...
-              </span>
+              {/* Row 2: Amount (Mobile) */}
+              <div className="flex w-full justify-between items-center md:contents">
+                <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</span>
+                <span className="font-black text-gray-900 text-base md:text-sm md:font-bold">
+                  ₹{(bill.grand_total +
+                    (bill.gst_on_supply ? bill.supply_total * 0.18 : 0) +
+                    (bill.gst_on_installation ? bill.installation_total * 0.18 : 0)
+                  ).toLocaleString("en-IN")}
+                </span>
+              </div>
 
-              <span className="font-bold text-gray-900">
-                ₹{bill.grand_total +
-                (bill.gst_on_supply ? bill.supply_total * 0.18 : 0) +
-                  (bill.gst_on_installation ? bill.installation_total * 0.18 : 0)
-                }
-              </span>
+              {/* Row 3: Company (Mobile) */}
+              <div className="flex w-full justify-between items-center md:contents">
+                <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">Company</span>
+                <span className="font-bold text-gray-700 md:text-gray-900 truncate max-w-[150px] md:max-w-full">
+                  {CoumpanyInfo[bill.coumpany_id - 1]?.companyName}
+                </span>
+              </div>
 
-              <span className="font-bold text-gray-900">
-                {CoumpanyInfo[bill.coumpany_id - 1]?.companyName}
-              </span>
+              {/* Row 4: Type (Mobile) */}
+              <div className="flex w-full justify-between items-center md:contents">
+                <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">Type</span>
+                <span>
+                  {bill.is_purches_order ? (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase">
+                      <FaReceipt size={10} /> PO
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-brand-soft text-brand-primary text-[10px] font-bold uppercase">
+                      <FaFileInvoiceDollar size={10} /> Quote
+                    </span>
+                  )}
+                </span>
+              </div>
 
-              <span>
-                {bill.is_purches_order ? (
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
-                    <FaReceipt size={10} /> PO
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
-                    <FaFileInvoiceDollar size={10} /> Quote
-                  </span>
-                )}
-              </span>
-
-              <div className="flex justify-start md:justify-end col-span-1 sm:col-span-2 md:col-span-1">
+              {/* Row 5: Actions */}
+              <div className="flex w-full gap-2 pt-2 border-t border-gray-50 md:border-t-0 md:pt-0 md:justify-end md:col-span-1">
                 <button
                   onClick={() => navigate(`/pdf/${bill.id}`)}
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 p-2 text-red-600 bg-red-50 md:bg-transparent md:text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                 >
                   <FaFilePdf size={18} />
+                  <span className="md:hidden font-bold text-xs">VIEW PDF</span>
                 </button>
 
                 <button
                   onClick={() => navigate(`/${bill.id}`)}
-                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-red-50 rounded-lg transition-all"
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 p-2 text-blue-600 bg-blue-50 md:bg-transparent md:text-gray-400 hover:text-blue-600 hover:bg-red-50 rounded-lg transition-all"
                 >
                   <MdEdit size={18} />
+                  <span className="md:hidden font-bold text-xs">EDIT</span>
                 </button>
               </div>
             </div>
           ))}
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-4 md:p-8">
