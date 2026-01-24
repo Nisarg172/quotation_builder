@@ -74,9 +74,9 @@ export default function Customer() {
     }
 
     return (
-      <div className="ml-12 my-3 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        {/* Header */}
-        <div className="grid grid-cols-6 gap-4 bg-gray-50 px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-500 border-b">
+      <div className="my-3 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        {/* Header (desktop and larger) */}
+        <div className="hidden md:grid grid-cols-6 gap-4 bg-gray-50 px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-500 border-b">
           <span>Date</span>
           <span>Document ID</span>
           <span>Grand Total</span>
@@ -90,7 +90,7 @@ export default function Customer() {
           {bills.map((bill) => (
             <div
               key={bill.id}
-              className="grid grid-cols-6 gap-4 px-5 py-3 text-sm items-center hover:bg-blue-50/30 transition-colors"
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4 px-4 sm:px-5 py-3 text-sm items-center hover:bg-blue-50/30 transition-colors"
             >
               <span className="text-gray-600 font-medium">
                 {new Date(bill.created_at).toLocaleDateString("en-IN", {
@@ -130,7 +130,7 @@ export default function Customer() {
                 )}
               </span>
 
-              <div className="flex justify-end">
+              <div className="flex justify-start md:justify-end col-span-1 sm:col-span-2 md:col-span-1">
                 <button
                   onClick={() => navigate(`/pdf/${bill.id}`)}
                   className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
@@ -155,7 +155,7 @@ export default function Customer() {
   return (
     <div className="min-h-screen bg-gray-50/50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-end justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
           <div>
             <h1 className="text-2xl font-black text-gray-900 tracking-tight">
               Customer Database

@@ -61,7 +61,7 @@ const Input: React.FC<TextInputProps> = ({
           }}
           className={`
             w-full rounded-md border transition-all duration-200
-            focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none
+            focus:ring-2 focus:ring-[color:var(--brand-primary)] focus:border-[color:var(--brand-primary)] outline-none
             
             /* Responsive Text: 16px on mobile to prevent auto-zoom on iOS, 14px on desktop */
             text-base md:text-sm 
