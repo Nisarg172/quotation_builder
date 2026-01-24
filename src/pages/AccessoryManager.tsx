@@ -30,6 +30,7 @@ import { getCatagory } from "@/Api/CategoryApi";
 import Input from "@/components/ui/Input";
 import { removeMedia, uploadeMedia } from "@/Api/storage";
 
+
 type ProductInput = {
   name: string;
   description?: string;
