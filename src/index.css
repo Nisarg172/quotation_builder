@@ -1,13 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  /* Brand color system */
-  --brand-bg: #f5ece0;
-  --brand-primary: #c79e69;
-  --brand-primary-foreground: #2b1b05;
-  --brand-gradient-from: #EACDA3;
-  --brand-gradient-to: #D6AE7B;
+  /* Brand color system – Admin Panel (Blue Slate) */
+
+  /* App background */
+  --brand-bg: #f3f5fa;
+
+  /* Primary brand */
+  --brand-primary: #465C88;
+
+  /* Text / icons on primary */
+  --brand-primary-foreground: #ffffff;
+
+  /* Gradient (used for headers, cards, buttons) */
+  --brand-gradient-from: #5A6FA3;
+  --brand-gradient-to: #394B73;
 }
+
+.shadow-cream {
+  box-shadow: 0 2px 12px #465C88;
+}
+
 
 @layer base {
   body {

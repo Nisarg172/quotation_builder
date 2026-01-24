@@ -177,52 +177,48 @@ export default function CategoryManager() {
           ) : filteredAndSortedCategories.length > 0 ? (
             <>
               {/* Mobile card layout (aligned with ProductManager style) */}
-              <div className="md:hidden space-y-4 px-3 pb-4 sm:px-4">
+              <div className="md:hidden space-y-4 px-3 pb-4 py-6 sm:px-4">
                 {filteredAndSortedCategories.map((cat) => (
                   <div
                     key={cat.id}
-                    className="relative group overflow-hidden bg-white rounded-3xl border border-gray-100 shadow-xl transition-all duration-500 hover:-translate-y-1 mobile-hover-card"
+                    className="relative group overflow-hidden bg-white rounded-xl border border-gray-100 shadow-xs transition-all duration-500 hover:-translate-y-1 mobile-hover-card"
                   >
                     {/* Diagonal hover gradient layer */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 translate-x-[100%] translate-y-[100%] group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-700 ease-in-out z-0 opacity-[0.04]" />
+                    <div className="absolute inset-0 bg-brand-gradient translate-x-[100%] translate-y-[100%] group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-700 ease-in-out z-0 opacity-[0.1]" />
+                    <div className="relative z-10 p-4 border-l border-r border-gray-200">
+                      <div className="grid grid-cols-[100px_1fr_auto] items-center gap-3">
+                        {/* Label */}
+                        <span className="text-xs font-semibold text-gray-500 uppercase">
+                          Category
+                        </span>
 
-                    <div className="relative z-10 p-4 flex items-center justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-gray-900 font-black text-sm leading-tight group-hover:text-brand-primary transition-colors duration-300 break-words">
+                        {/* Category Name */}
+                        <span className="text-sm font-semibold text-gray-900 break-words">
                           {cat.name}
-                        </h4>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openDrawerForEdit(cat)}
-                          className="h-8 w-8 rounded-full flex items-center justify-center text-xs"
-                          title="Edit Category"
-                        >
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => setDeleteId(cat.id)}
-                          className="h-8 w-8 rounded-full flex items-center justify-center text-xs"
-                          title="Delete Category"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                        </span>
+
+                        {/* Actions */}
+                       <div className="flex items-center gap-3">
+  <button
+    onClick={() => openDrawerForEdit(cat)}
+    className="text-gray-500 hover:text-blue-600 transition"
+    title="Edit Category"
+  >
+    <Pencil className="h-4 w-4" />
+  </button>
+
+  <button
+    onClick={() => setDeleteId(cat.id)}
+    className="text-red-500 hover:text-red-700 transition"
+    title="Delete Category"
+  >
+    <Trash2 className="h-4 w-4" />
+  </button>
+</div>
+
                       </div>
                     </div>
 
-                    {/* Footer strip similar to ProductManager cards */}
-                    <div className="relative z-10 bg-brand-gradient px-4 py-2 flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-white uppercase tracking-widest">
-                        Category
-                      </span>
-                      <span className="text-xs font-semibold text-white truncate max-w-[60%]">
-                        {cat.name}
-                      </span>
-                    </div>
                   </div>
                 ))}
               </div>

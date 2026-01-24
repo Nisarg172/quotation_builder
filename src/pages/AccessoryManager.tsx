@@ -264,70 +264,94 @@ export default function AccessoryManager() {
   };
 
   // Sub-component: Product Row
-  const ProductRow = ({ product }: { product: ProductWithoutAccessory }) => (
-    <tr className="hover:bg-gray-50/80 transition-colors group">
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg overflow-hidden bg-gray-100 border flex-shrink-0">
-            {product.image_url ? (
-              <img
-                src={product.image_url}
-                alt=""
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <ImageIcon className="h-full w-full p-2 text-gray-300" />
-            )}
-          </div>
-          <div className="max-w-[200px]">
-            <p className="text-sm font-semibold text-gray-900 truncate">
-              {product.name}
-            </p>
-            <p className="text-xs text-gray-500 truncate">
-              {product.description || "No description"}
-            </p>
-          </div>
+ const ProductRow = ({ product }: { product: ProductWithoutAccessory }) => (
+  <tr className="hover:bg-gray-50 transition">
+    {/* Product */}
+    <td className="px-6 py-4">
+      <div className="flex items-center gap-4">
+        <div className="h-11 w-11 rounded-lg overflow-hidden bg-gray-100 border flex-shrink-0">
+          {product.image_url ? (
+            <img
+              src={product.image_url}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <ImageIcon className="h-full w-full p-2 text-gray-300" />
+          )}
         </div>
-      </td>
-      <td className="px-6 py-4 text-sm text-gray-600">
-        {product.model || "-"}
-      </td>
-      <td className="px-6 py-4 text-sm text-gray-600">{product.make || "-"}</td>
-      <td className="px-6 py-4 text-sm font-bold text-gray-900">
-        ₹{product.price.toLocaleString()}
-      </td>
-      <td className="px-6 py-4 text-sm text-gray-600">
-        ₹{product.installation_amount}
-      </td>
-      <td className="px-6 py-4">
-        <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-medium border border-blue-100">
-          {product.category?.name || "None"}
-        </span>
-      </td>
-      <td className="px-6 py-4 text-right">
-        <div className="inline-flex justify-end gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => startEdit(product)}
-            className="h-9 w-9 sm:w-auto sm:px-3 rounded-full flex items-center justify-center gap-1 shadow-sm"
-          >
-            <Pencil size={14} />
-            <span className="hidden sm:inline text-xs font-medium">Edit</span>
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => setConfirmDelete({ open: true, id: product.id,imageUrl:product.image_url })}
-            className="h-9 w-9 sm:w-auto sm:px-3 rounded-full flex items-center justify-center gap-1 shadow-sm"
-          >
-            <Trash2 size={14} />
-            <span className="hidden sm:inline text-xs font-medium">Delete</span>
-          </Button>
+
+        <div className="max-w-[220px]">
+          <p className="text-sm font-semibold text-gray-900 truncate">
+            {product.name}
+          </p>
+          <p className="text-xs text-gray-500 truncate">
+            {product.description || "No description"}
+          </p>
         </div>
-      </td>
-    </tr>
-  );
+      </div>
+    </td>
+
+    {/* Model */}
+    <td className="px-6 py-4 text-sm text-gray-600">
+      {product.model || "-"}
+    </td>
+
+    {/* Make */}
+    <td className="px-6 py-4 text-sm text-gray-600">
+      {product.make || "-"}
+    </td>
+
+    {/* Price */}
+    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+      ₹{product.price.toLocaleString()}
+    </td>
+
+    {/* Installation */}
+    <td className="px-6 py-4 text-sm text-gray-600">
+      ₹{product.installation_amount}
+    </td>
+
+    {/* Category */}
+    <td className="px-6 py-4">
+      <span className="inline-flex items-center rounded-md  text-brand-primary px-2 py-1 text-xs font-medium   border-blue-100">
+        {product.category?.name || "None"}
+      </span>
+    </td>
+
+    {/* Actions */}
+    <td className="px-6 py-4 text-right">
+      <div className="inline-flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => startEdit(product)}
+          className="h-9 w-9 sm:w-auto sm:px-3 rounded-full flex items-center gap-1 shadow-sm"
+        >
+          <Pencil size={14} />
+          <span className="hidden sm:inline text-xs">Edit</span>
+        </Button>
+
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() =>
+            setConfirmDelete({
+              open: true,
+              id: product.id,
+              imageUrl: product.image_url,
+            })
+          }
+          className="h-9 w-9 sm:w-auto sm:px-3 rounded-full flex items-center gap-1 shadow-sm"
+        >
+          <Trash2 size={14} />
+          <span className="hidden sm:inline text-xs">Delete</span>
+        </Button>
+      </div>
+    </td>
+  </tr>
+);
+
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-4 md:p-8">
@@ -344,7 +368,7 @@ export default function AccessoryManager() {
           </div>
           <Button
             onClick={() => setOpenDrawer(true)}
-            className="rounded-xl px-5 shadow-blue-200 shadow-lg"
+            className="shadow-cream rounded-xl px-5  "
           >
             <Plus className="mr-2 h-4 w-4" /> Add Accessory
           </Button>
@@ -435,7 +459,7 @@ export default function AccessoryManager() {
                     className="relative group overflow-hidden bg-white rounded-3xl border border-gray-100 shadow-xl transition-all duration-500 hover:-translate-y-1 mobile-hover-card"
                   >
                     {/* Diagonal hover gradient layer */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 translate-x-[100%] translate-y-[100%] group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-700 ease-in-out z-0 opacity-[0.04]" />
+                    <div className="absolute inset-0 bg-brand-gradient translate-x-[100%] translate-y-[100%] group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-700 ease-in-out z-0 opacity-[0.1]" />
 
                     <div className="relative z-10 p-4">
                       {/* Header: Category + Base Qty */}
@@ -553,43 +577,45 @@ export default function AccessoryManager() {
 
               {/* Desktop / tablet table layout */}
               <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead className="bg-gray-50/50 border-b border-gray-100">
-                    <tr>
-                      {["name", "model", "make", "price"].map((head) => (
-                        <th
-                          key={head}
-                          className="px-6 py-4 text-xs font-bold text-gray-500 uppercase cursor-pointer hover:text-blue-600 transition-colors"
-                          onClick={() => handleSort(head as any)}
-                        >
-                          <div className="flex items-center gap-1">
-                            {head}{" "}
-                            {sortField === head &&
-                              (sortDirection === "asc" ? (
-                                <ChevronUp size={14} />
-                              ) : (
-                                <ChevronDown size={14} />
-                              ))}
-                          </div>
-                        </th>
-                      ))}
-                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
-                        Installation
-                      </th>
-                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
-                        Category
-                      </th>
-                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {paginatedProducts.map((p) => (
-                      <ProductRow key={p.id} product={p} />
-                    ))}
-                  </tbody>
-                </table>
+               <table className="w-full border-collapse rounded-xl overflow-hidden bg-white shadow-sm">
+  <thead className="bg-gray-50 border-b border-gray-200">
+    <tr>
+      {["Name", "Model", "Make", "Price"].map((head) => (
+        <th
+          key={head}
+          onClick={() => handleSort(head.toLowerCase() as any)}
+          className="px-6 py-4 text-left text-xs font-semibold text-gray-500  tracking-wide cursor-pointer hover:text-blue-600 transition"
+        >
+          <div className="flex items-center gap-1">
+            {head}
+            {sortField === head.toLowerCase() &&
+              (sortDirection === "asc" ? (
+                <ChevronUp size={14} />
+              ) : (
+                <ChevronDown size={14} />
+              ))}
+          </div>
+        </th>
+      ))}
+      <th className="px-6 py-4 text-xs font-semibold text-gray-500 ">
+        Installation
+      </th>
+      <th className="px-6 py-4 text-xs font-semibold text-gray-500 ">
+        Category
+      </th>
+      <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 ">
+        Actions
+      </th>
+    </tr>
+  </thead>
+
+  <tbody className="divide-y divide-gray-100">
+    {paginatedProducts.map((p) => (
+      <ProductRow key={p.id} product={p} />
+    ))}
+  </tbody>
+</table>
+
               </div>
             </>
           )}
@@ -633,7 +659,7 @@ export default function AccessoryManager() {
         onClose={handleCloseDrawer}
         title={editingProduct ? "Update Accessory" : "New Accessory"}
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-1 space-y-5">
           <Input
             label="Product Name"
             placeholder="e.g. Wireless Remote"
