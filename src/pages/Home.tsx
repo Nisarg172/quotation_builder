@@ -13,6 +13,7 @@ import {
 } from "@/Api/CategoryApi";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import { createCustomer, getCustomerByMobileNo } from "@/Api/customer";
 import { createBillQuation } from "@/Api/BillQuatation";
 import { createBillQuationProduct } from "@/Api/BillQuatationProduct";
@@ -296,33 +297,31 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
   }, []);
 
   return (
-    <div className="p-2 sm:p-4 bg-gray-50 min-h-screen">
+    <div className="p-2 sm:p-4 bg-brand min-h-screen">
       {/* Form Card */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Customer Name */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-semibold text-gray-700">
-              Customer Name *
-            </label>
-            <input
-              type="text"
-              className={`w-full border rounded-md px-3 py-2 text-sm ${!quote.customerName.trim() ? "border-red-300 bg-red-50" : "border-gray-300"}`}
+            <Input
+              label="Customer Name"
+              required
               value={quote.customerName}
               onChange={(e) =>
                 setQuote({ ...quote, customerName: e.target.value })
+              }
+              errorMessage={
+                !quote.customerName.trim() ? "Customer name is required" : undefined
               }
             />
           </div>
 
           {/* Mobile */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-semibold text-gray-700">
-              Mobile Number *
-            </label>
-            <input
+            <Input
+              label="Mobile Number"
+              required
               type="tel"
-              className={`w-full border rounded-md px-3 py-2 text-sm ${!/^[6-9]\d{9}$/.test(quote.mobileNo.trim()) ? "border-red-300 bg-red-50" : "border-gray-300"}`}
               value={quote.mobileNo}
               onChange={(e) =>
                 setQuote({
@@ -330,17 +329,19 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                   mobileNo: e.target.value.replace(/\D/g, "").slice(0, 10),
                 })
               }
+              errorMessage={
+                !/^[6-9]\d{9}$/.test(quote.mobileNo.trim())
+                  ? "Enter valid 10-digit mobile number"
+                  : undefined
+              }
             />
           </div>
 
           {/* Address */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-semibold text-gray-700">
-              Address *
-            </label>
-            <input
-              type="text"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            <Input
+              label="Address"
+              required
               value={quote.address || ""}
               onChange={(e) => setQuote({ ...quote, address: e.target.value })}
             />
@@ -380,7 +381,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                 onClick={() =>
                   setQuote({ ...quote, isPurchesOrder: !quote.isPurchesOrder })
                 }
-                className={`w-11 h-6 rounded-full transition-colors relative ${quote.isPurchesOrder ? "bg-blue-600" : "bg-gray-300"}`}
+                className={`w-11 h-6 rounded-full transition-colors relative ${quote.isPurchesOrder ? "bg-brand-primary" : "bg-gray-300"}`}
               >
                 <div
                   className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${quote.isPurchesOrder ? "translate-x-5" : ""}`}
@@ -431,10 +432,10 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
             <tbody>
               {Object.entries(groupedItems).map(([category, items]) => (
                 <React.Fragment key={category}>
-                  <tr className="bg-blue-50/50">
+                  <tr className="bg-brand-soft/60">
                     <td
                       colSpan={8}
-                      className="p-2 text-left font-bold text-blue-700 px-4"
+                      className="p-2 text-left font-bold text-brand-primary px-4"
                     >
                       {category}
                     </td>
@@ -465,41 +466,41 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                             />
                           )}
                         </td>
-                        <td className="p-3 border-b">
-                          <input
+                        <td className="p-3 border-b align-top">
+                          <Input
                             type="number"
-                            className="w-14 border rounded p-1 text-center"
-                            value={it.qty || ""}
+                            value={String(it.qty || "")}
                             onChange={(e) =>
                               updateItem(it.sn - 1, {
                                 qty: Number(e.target.value),
                               })
                             }
+                            className="w-20"
                           />
                         </td>
-                        <td className="p-3 border-b">
-                          <input
+                        <td className="p-3 border-b align-top">
+                          <Input
                             type="number"
-                            className="w-20 border rounded p-1 text-center"
-                            value={it.unitRate || ""}
+                            value={String(it.unitRate || "")}
                             onChange={(e) =>
                               updateItem(it.sn - 1, {
                                 unitRate: Number(e.target.value),
                               })
                             }
+                            className="w-24"
                           />
                         </td>
-                        <td className="p-3 border-b">
-                          <input
+                        <td className="p-3 border-b align-top">
+                          <Input
                             type="number"
-                            className="w-20 border rounded p-1 text-center"
-                            value={it.installation_amount || ""}
+                            value={String(it.installation_amount || "")}
                             onChange={(e) =>
                               updateInstallation(
                                 it.sn - 1,
                                 Number(e.target.value),
                               )
                             }
+                            className="w-24"
                           />
                         </td>
                         <td className="p-3 border-b font-semibold">
@@ -526,8 +527,8 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
         <div className="md:hidden space-y-8 pb-24 px-4">
           {Object.entries(groupedItems).map(([category, items]) => (
             <div key={category} className="space-y-4">
-              <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md py-4 border-b-2 border-blue-600 mb-2">
-                <h3 className="text-lg font-black text-blue-900 tracking-tighter uppercase">
+              <div className="sticky top-0 z-20 bg-brand-gradient/80 backdrop-blur-md py-4 border-b-2 border-transparent mb-2">
+                <h3 className="text-lg font-black text-white tracking-tighter uppercase">
                   {category}
                 </h3>
               </div>
@@ -546,7 +547,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                     <div className="relative z-10 p-5">
                       {/* Header: ID and Delete */}
                       <div className="flex justify-between items-center mb-4">
-                        <span className="bg-[#f5ece0] text-[#c79e69] text-[10px] font-black px-3 py-1 rounded-full">
+                        <span className="bg-brand-soft text-brand-primary text-[10px] font-black px-3 py-1 rounded-full">
                           ITEM #{it.sn}
                         </span>
                         <button
@@ -573,7 +574,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <h4 className="text-gray-900 font-black text-lg leading-tight group-hover:text-blue-700 transition-colors duration-300">
+                          <h4 className="text-gray-900 font-black text-lg leading-tight group-hover:text-brand-primary transition-colors duration-300">
                             {it.name}
                           </h4>
                           <p className="text-sm text-gray-500 mt-2 line-clamp-2 leading-snug">
@@ -599,19 +600,19 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                         ].map((f) => (
                           <div
                             key={f.k}
-                            className="relative group/input   bg-gray-100/50 rounded-2xl border border-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] transition-all duration-300 focus-within:bg-white focus-within:shadow-xl focus-within:shadow-blue-100/50 focus-within:-translate-y-0.5"
+                            className="relative group/input bg-gray-100/50 rounded-2xl border border-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] transition-all duration-300 focus-within:bg-white focus-within:shadow-xl focus-within:shadow-[0_0_0_1px_rgba(199,158,105,0.25)] focus-within:-translate-y-0.5"
                           >
                             {/* Small accent dot that lights up on focus */}
-                            <div className="absolute top-2 right-2 w-1 h-1 rounded-full bg-gray-300 group-focus-within/input:bg-blue-500 transition-colors" />
+                            <div className="absolute top-2 right-2 w-1 h-1 rounded-full bg-gray-300 group-focus-within/input:bg-brand-primary transition-colors" />
 
                             <div className="p-3">
-                              <label className="block text-[8px]  font-black text-gray-400 uppercase tracking-widest mb-1 group-focus-within/input:text-blue-600  transition-colors">
+                              <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1 group-focus-within/input:text-brand-primary transition-colors">
                                 {f.label}
                               </label>
 
                               <div className="flex items-baseline">
                                 {f.k !== "qty" && (
-                                  <span className="text-[10px] font-bold text-gray-400 mr-0.5 group-focus-within/input:text-blue-400">
+                                  <span className="text-[10px] font-bold text-gray-400 mr-0.5 group-focus-within/input:text-brand-primary">
                                     ₹
                                   </span>
                                 )}
@@ -635,14 +636,14 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                             </div>
 
                             {/* Modern Gradient Bottom Border */}
-                            <div className="absolute bottom-0 left-0 h-[3px] w-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500 ease-out group-focus-within/input:w-full" />
+                            <div className="absolute bottom-0 left-0 h-[3px] w-0 bg-brand-gradient rounded-full transition-all duration-500 ease-out group-focus-within/input:w-full" />
                           </div>
                         ))}
                       </div>
                     </div>
 
                     {/* Footer: The Big Total */}
-                    <div className="relative z-10 bg-[linear-gradient(to_right,#EACDA3,#D6AE7B)] p-5 flex justify-between items-center group-hover:from-blue-700 group-hover:to-indigo-800 transition-all duration-500">
+                    <div className="relative z-10 bg-brand-gradient p-5 flex justify-between items-center transition-all duration-500">
                       <span className=" text-xs text-white font-bold uppercase tracking-widest">
                         Total
                       </span>
@@ -716,10 +717,8 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
             </div>
             {(quote.gstOnSupply || quote.gstOnInstallation) && (
               <div className="pt-2">
-                <input
-                  type="text"
-                  placeholder="Enter GST Number"
-                  className="w-full border rounded-md px-3 py-2 text-sm uppercase"
+                <Input
+                  label="GST Number"
                   value={quote.gstNumber}
                   onChange={(e) =>
                     setQuote({
@@ -727,12 +726,13 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                       gstNumber: e.target.value.toUpperCase(),
                     })
                   }
+                  className="uppercase"
                 />
               </div>
             )}
             <div className="pt-4 border-t flex justify-between items-center">
               <span className="text-lg font-bold">Grand Total</span>
-              <span className="text-2xl font-black text-blue-600">
+              <span className="text-2xl font-black text-brand-primary">
                 ₹
                 {(
                   quote.supplyTotal +

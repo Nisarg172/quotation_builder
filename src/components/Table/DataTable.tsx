@@ -3,6 +3,8 @@
 import { useServerTable } from "@/hooks/useServerTable";
 import { useState, Fragment } from "react";
 import { FaFilter } from "react-icons/fa";
+import { Search } from "lucide-react";
+import Input from "@/components/ui/Input";
 
 export type FilterOption = {
   label: string;
@@ -63,15 +65,18 @@ export default function DataTable<T>({
     <div className="space-y-4">
       {/* Search - Full width on mobile, 64 on desktop */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <input
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="Search..."
-          className="border px-3 py-2 rounded w-full sm:w-64 focus:ring-2 focus:ring-blue-500 outline-none"
-        />
+        <div className="w-full sm:w-64">
+          <Input
+            type="text"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            leftIcon={<Search size={18} className="text-gray-400" />}
+          />
+        </div>
       </div>
 
       {/* Table Wrapper for Horizontal Scroll */}
@@ -156,7 +161,7 @@ export default function DataTable<T>({
               <tr>
                 <td colSpan={columns.length} className="py-10 text-center text-sm text-gray-500">
                   <div className="flex justify-center items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
                     Loading records...
                   </div>
                 </td>

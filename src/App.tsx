@@ -25,24 +25,26 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 overflow-x-hidden">
+    <div className="min-h-screen bg-brand overflow-x-hidden">
       {/* ================= DESKTOP NAV ================= */}
       {user && (
-        <nav className="hidden md:block bg-white border-b border-slate-200 sticky top-0 z-20">
+        <nav className="hidden md:block bg-brand-gradient sticky top-0 z-20 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
-            <div className="flex items-center">
-              <img src="/logo.png" alt="logo " className="w-12" />
-              <h1 className="text-xl font-bold text-slate-800">
+            <div className="flex items-center space-x-3">
+              <img src="/logo.png" alt="logo " className="w-10 h-10 rounded-md bg-white/10 p-1" />
+              <h1 className="text-xl font-semibold tracking-tight text-white">
                 Quatation Bulder
               </h1>
             </div>
 
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-4">
               <NavLinks />
-              <span className="text-sm text-slate-600">{user.email}</span>
+              <span className="hidden md:inline text-xs font-medium text-white/80">
+                {user.email}
+              </span>
               <button
                 onClick={handleSignOut}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
+                className="bg-white/10 hover:bg-white/20 text-sm font-medium text-white px-4 py-2 rounded-full border border-white/20 transition-colors"
               >
                 Sign Out
               </button>
@@ -53,16 +55,16 @@ function AppContent() {
 
       {/* ================= MOBILE TOP BAR ================= */}
       {user && (
-        <div className="md:hidden sticky top-0 z-30 bg-white border-b flex items-center justify-between px-4 h-14">
-         <div className="flex items-center">
-              <img src="/logo.png" alt="logo " className="w-12" />
-              <h1 className="text-xl font-bold text-slate-800">
-                Quatation Bulder
-              </h1>
-            </div>
+        <div className="md:hidden sticky top-0 z-30 bg-brand-gradient flex items-center justify-between px-4 h-14 shadow-sm">
+          <div className="flex items-center space-x-2">
+            <img src="/logo.png" alt="logo " className="w-9 h-9 rounded-md bg-white/10 p-1" />
+            <h1 className="text-lg font-semibold tracking-tight text-white">
+              Quatation Bulder
+            </h1>
+          </div>
           <button
             onClick={() => setOpen(true)}
-            className="p-2 rounded-lg hover:bg-slate-100"
+            className="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
           >
             <FiMenu size={22} />
           </button>
@@ -79,24 +81,28 @@ function AppContent() {
 
       {/* ================= MOBILE DRAWER (RIGHT) ================= */}
       <div
-        className={`fixed top-0 right-0 h-full w-72 bg-white z-50 transform transition-transform duration-300
+        className={`fixed top-0 right-0 h-full w-72 bg-white/95 backdrop-blur-lg z-50 transform transition-transform duration-300 shadow-xl
         ${open ? "translate-x-0" : "translate-x-full"}`}
       >
-        <div className="flex items-center justify-between px-4 h-14 border-b">
+        <div className="flex items-center justify-between px-4 h-14 border-b border-brand-primary/20">
           <span className="font-semibold text-slate-800">Menu</span>
-          <button onClick={() => setOpen(false)}>
+          <button
+            onClick={() => setOpen(false)}
+            className="p-2 rounded-full hover:bg-slate-100 transition-colors"
+          >
             <FiX size={22} />
           </button>
         </div>
 
         <div className="p-4 space-y-2">
-          <NavLinks onClick={() => setOpen(false)} />
+          {/* Mobile nav links use dark text on light background */}
+          <NavLinks onClick={() => setOpen(false)} variant="mobile" />
 
-          <div className="pt-4 mt-4 border-t">
-            <p className="text-sm text-slate-600 mb-2">{user?.email}</p>
+          <div className="pt-4 mt-4 border-t border-slate-200">
+            <p className="text-sm text-slate-600 mb-2 break-all">{user?.email}</p>
             <button
               onClick={handleSignOut}
-              className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg text-sm"
+              className="w-full bg-brand-primary text-white hover:opacity-90 py-2 rounded-full text-sm font-medium shadow-sm transition-colors"
             >
               Sign Out
             </button>
@@ -173,9 +179,20 @@ function AppContent() {
 }
 
 /* ================= NAV LINKS ================= */
-function NavLinks({ onClick }: { onClick?: () => void }) {
+function NavLinks({
+  onClick,
+  variant = "desktop",
+}: {
+  onClick?: () => void;
+  variant?: "desktop" | "mobile";
+}) {
+  const baseCls =
+    "block px-3 py-1.5 rounded-full text-sm font-medium transition-colors";
+
   const cls =
-    "block px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100";
+    variant === "desktop"
+      ? `${baseCls} text-white/80 hover:text-white hover:bg-white/10`
+      : `${baseCls} text-slate-800 hover:bg-slate-100`;
 
   return (
     <>

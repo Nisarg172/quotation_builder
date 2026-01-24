@@ -1,8 +1,53 @@
 @import "tailwindcss";
 
+:root {
+  /* Brand color system */
+  --brand-bg: #f5ece0;
+  --brand-primary: #c79e69;
+  --brand-primary-foreground: #2b1b05;
+  --brand-gradient-from: #EACDA3;
+  --brand-gradient-to: #D6AE7B;
+}
+
+@layer base {
+  body {
+    background-color: var(--brand-bg);
+    color: #1f2933; /* slate-800 equivalent for good contrast */
+  }
+}
+
 @layer components {
   .input {
     @apply w-full border rounded px-2 py-1 text-sm;
   }
 }
 
+@layer utilities {
+  .bg-brand {
+    background-color: var(--brand-bg);
+  }
+
+  .bg-brand-primary {
+    background-color: var(--brand-primary);
+  }
+
+  .text-brand-primary {
+    color: var(--brand-primary);
+  }
+
+  .bg-brand-soft {
+    background-color: var(--brand-bg);
+  }
+
+  .bg-brand-gradient {
+    background-image: linear-gradient(
+      to right,
+      var(--brand-gradient-from),
+      var(--brand-gradient-to)
+    );
+  }
+
+  .border-brand-primary {
+    border-color: var(--brand-primary);
+  }
+}

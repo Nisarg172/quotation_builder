@@ -305,20 +305,24 @@ export default function AccessoryManager() {
         </span>
       </td>
       <td className="px-6 py-4 text-right">
-        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="inline-flex justify-end gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => startEdit(product)}
+            className="h-9 w-9 sm:w-auto sm:px-3 rounded-full flex items-center justify-center gap-1 shadow-sm"
           >
             <Pencil size={14} />
+            <span className="hidden sm:inline text-xs font-medium">Edit</span>
           </Button>
           <Button
             variant="destructive"
             size="sm"
             onClick={() => setConfirmDelete({ open: true, id: product.id,imageUrl:product.image_url })}
+            className="h-9 w-9 sm:w-auto sm:px-3 rounded-full flex items-center justify-center gap-1 shadow-sm"
           >
             <Trash2 size={14} />
+            <span className="hidden sm:inline text-xs font-medium">Delete</span>
           </Button>
         </div>
       </td>
@@ -422,45 +426,172 @@ export default function AccessoryManager() {
               ))}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50/50 border-b border-gray-100">
-                  <tr>
-                    {["name", "model", "make", "price"].map((head) => (
-                      <th
-                        key={head}
-                        className="px-6 py-4 text-xs font-bold text-gray-500 uppercase cursor-pointer hover:text-blue-600 transition-colors"
-                        onClick={() => handleSort(head as any)}
-                      >
-                        <div className="flex items-center gap-1">
-                          {head}{" "}
-                          {sortField === head &&
-                            (sortDirection === "asc" ? (
-                              <ChevronUp size={14} />
-                            ) : (
-                              <ChevronDown size={14} />
-                            ))}
+            <>
+              {/* Mobile card layout (aligned with ProductManager style) */}
+              <div className="md:hidden space-y-4 px-3 pb-4 sm:px-4">
+                {paginatedProducts.map((p) => (
+                  <div
+                    key={p.id}
+                    className="relative group overflow-hidden bg-white rounded-3xl border border-gray-100 shadow-xl transition-all duration-500 hover:-translate-y-1 mobile-hover-card"
+                  >
+                    {/* Diagonal hover gradient layer */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 translate-x-[100%] translate-y-[100%] group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-700 ease-in-out z-0 opacity-[0.04]" />
+
+                    <div className="relative z-10 p-4">
+                      {/* Header: Category + Base Qty */}
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-brand-soft text-brand-primary tracking-widest uppercase">
+                          {p.category?.name || "Uncategorized"}
+                        </span>
+                        <span className="text-[11px] text-gray-500">
+                          Base Qty{" "}
+                          <span className="font-semibold text-gray-700">
+                            {p.base_quantity ?? 1}
+                          </span>
+                        </span>
+                      </div>
+
+                      {/* Content: Image + main details */}
+                      <div className="flex gap-3">
+                        <div className="w-20 h-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden">
+                          {p.image_url ? (
+                            <img
+                              src={p.image_url}
+                              alt={p.name}
+                              className="max-h-full max-w-full object-contain drop-shadow-sm"
+                            />
+                          ) : (
+                            <div className="text-gray-300 font-bold text-[10px] text-center">
+                              NO IMAGE
+                            </div>
+                          )}
                         </div>
+
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-gray-900 font-black text-sm leading-tight group-hover:text-brand-primary transition-colors duration-300">
+                            {p.name}
+                          </h4>
+                          {p.description && (
+                            <p className="mt-1 text-xs text-gray-500 line-clamp-2 leading-snug">
+                              {p.description}
+                            </p>
+                          )}
+
+                          {/* Meta grid */}
+                          <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-gray-600">
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-gray-700">
+                                Model
+                              </span>
+                              <span className="truncate">{p.model || "-"}</span>
+                            </div>
+                            <div className="flex flex-col items-end text-right">
+                              <span className="font-semibold text-gray-700">
+                                Make
+                              </span>
+                              <span className="truncate">{p.make || "-"}</span>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-gray-700">
+                                Installation
+                              </span>
+                              <span>₹{p.installation_amount.toLocaleString()}</span>
+                            </div>
+                            <div className="flex flex-col items-end text-right">
+                              <span className="font-semibold text-gray-700">
+                                ID
+                              </span>
+                              <span className="truncate text-[10px] text-gray-500">
+                                {p.id}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="mt-3 flex items-center justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => startEdit(p)}
+                              className="h-8 px-3 rounded-full flex items-center gap-1 text-xs"
+                            >
+                              <Pencil className="h-3 w-3" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() =>
+                                setConfirmDelete({
+                                  open: true,
+                                  id: p.id,
+                                  imageUrl: p.image_url,
+                                })
+                              }
+                              className="h-8 px-3 rounded-full flex items-center gap-1 text-xs"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer: Price strip */}
+                    <div className="relative z-10 bg-brand-gradient px-4 py-3 flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-white uppercase tracking-widest">
+                        Price
+                      </span>
+                      <span className="text-lg font-black text-white">
+                        ₹{p.price.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop / tablet table layout */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-gray-50/50 border-b border-gray-100">
+                    <tr>
+                      {["name", "model", "make", "price"].map((head) => (
+                        <th
+                          key={head}
+                          className="px-6 py-4 text-xs font-bold text-gray-500 uppercase cursor-pointer hover:text-blue-600 transition-colors"
+                          onClick={() => handleSort(head as any)}
+                        >
+                          <div className="flex items-center gap-1">
+                            {head}{" "}
+                            {sortField === head &&
+                              (sortDirection === "asc" ? (
+                                <ChevronUp size={14} />
+                              ) : (
+                                <ChevronDown size={14} />
+                              ))}
+                          </div>
+                        </th>
+                      ))}
+                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
+                        Installation
                       </th>
+                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
+                        Category
+                      </th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {paginatedProducts.map((p) => (
+                      <ProductRow key={p.id} product={p} />
                     ))}
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
-                      Installation
-                    </th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
-                      Category
-                    </th>
-                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {paginatedProducts.map((p) => (
-                    <ProductRow key={p.id} product={p} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
 
           {/* Pagination */}

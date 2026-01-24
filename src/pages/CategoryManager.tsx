@@ -165,92 +165,142 @@ export default function CategoryManager() {
           </div>
         </div>
 
-        {/* Table Container */}
+        {/* Table / list container */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    <button
-                      onClick={() => handleSort("name")}
-                      className="flex items-center hover:text-blue-600 transition-colors"
-                    >
-                      Name <SortIcon field="name" />
-                    </button>
-                  </th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {loading ? (
-                  <tr>
-                    <td colSpan={2} className="px-6 py-12 text-center">
-                      <div className="flex flex-col items-center justify-center gap-3">
-                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
-                        <p className="text-gray-500 text-sm font-medium">Loading categories...</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : filteredAndSortedCategories.length > 0 ? (
-                  filteredAndSortedCategories.map((cat) => (
-                    <tr key={cat.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-medium text-gray-900 break-words">
+          {loading ? (
+            <div className="px-6 py-16 text-center">
+              <div className="flex flex-col items-center justify-center gap-3">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent" />
+                <p className="text-gray-500 text-sm font-medium">Loading categories...</p>
+              </div>
+            </div>
+          ) : filteredAndSortedCategories.length > 0 ? (
+            <>
+              {/* Mobile card layout (aligned with ProductManager style) */}
+              <div className="md:hidden space-y-4 px-3 pb-4 sm:px-4">
+                {filteredAndSortedCategories.map((cat) => (
+                  <div
+                    key={cat.id}
+                    className="relative group overflow-hidden bg-white rounded-3xl border border-gray-100 shadow-xl transition-all duration-500 hover:-translate-y-1 mobile-hover-card"
+                  >
+                    {/* Diagonal hover gradient layer */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 translate-x-[100%] translate-y-[100%] group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-700 ease-in-out z-0 opacity-[0.04]" />
+
+                    <div className="relative z-10 p-4 flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-gray-900 font-black text-sm leading-tight group-hover:text-brand-primary transition-colors duration-300 break-words">
                           {cat.name}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openDrawerForEdit(cat)}
-                            className="h-9 w-9 p-0"
-                            title="Edit Category"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => setDeleteId(cat.id)}
-                            className="h-9 w-9 p-0"
-                            title="Delete Category"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={2} className="px-6 py-16 text-center text-gray-500">
-                      <div className="flex flex-col items-center gap-2">
-                        <Search className="h-8 w-8 text-gray-300" />
-                        {searchTerm.trim() ? (
-                          <>
-                            <p className="font-medium">No results for "{searchTerm}"</p>
-                            <button
-                              onClick={() => setSearchTerm("")}
-                              className="text-blue-600 hover:text-blue-800 text-sm underline transition-colors"
-                            >
-                              Clear search filters
-                            </button>
-                          </>
-                        ) : (
-                          <p className="font-medium">Your category list is empty.</p>
-                        )}
+                        </h4>
                       </div>
-                    </td>
-                  </tr>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openDrawerForEdit(cat)}
+                          className="h-8 w-8 rounded-full flex items-center justify-center text-xs"
+                          title="Edit Category"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeleteId(cat.id)}
+                          className="h-8 w-8 rounded-full flex items-center justify-center text-xs"
+                          title="Delete Category"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Footer strip similar to ProductManager cards */}
+                    <div className="relative z-10 bg-brand-gradient px-4 py-2 flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-white uppercase tracking-widest">
+                        Category
+                      </span>
+                      <span className="text-xs font-semibold text-white truncate max-w-[60%]">
+                        {cat.name}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop / tablet table layout */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <button
+                          onClick={() => handleSort("name")}
+                          className="flex items-center hover:text-blue-600 transition-colors"
+                        >
+                          Name <SortIcon field="name" />
+                        </button>
+                      </th>
+                      <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredAndSortedCategories.map((cat) => (
+                      <tr key={cat.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-6 py-4">
+                          <span className="text-sm font-medium text-gray-900 break-words">
+                            {cat.name}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openDrawerForEdit(cat)}
+                              className="h-9 w-9 p-0"
+                              title="Edit Category"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => setDeleteId(cat.id)}
+                              className="h-9 w-9 p-0"
+                              title="Delete Category"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <div className="px-6 py-16 text-center text-gray-500">
+              <div className="flex flex-col items-center gap-2">
+                <Search className="h-8 w-8 text-gray-300" />
+                {searchTerm.trim() ? (
+                  <>
+                    <p className="font-medium">No results for "{searchTerm}"</p>
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className="text-blue-600 hover:text-blue-800 text-sm underline transition-colors"
+                    >
+                      Clear search filters
+                    </button>
+                  </>
+                ) : (
+                  <p className="font-medium">Your category list is empty.</p>
                 )}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
