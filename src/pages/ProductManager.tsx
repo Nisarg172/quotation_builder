@@ -155,7 +155,7 @@ export default function ProductManager() {
         category_id: form.category_id,
         is_accessory: false,
         image_url: imageUrl,
-        base_quantity:Number(form.base_quantity || 1)
+        base_quantity: Number(form.base_quantity || 1),
       };
 
       if (editingProduct) {
@@ -235,7 +235,7 @@ export default function ProductManager() {
       category_id: p.category_id ?? undefined,
       imageFile: p.image_url,
       accessory: p.accessory,
-       base_quantity: p.base_quantity,
+      base_quantity: p.base_quantity,
     });
     setOpenDrawer(true);
   };
@@ -337,7 +337,7 @@ export default function ProductManager() {
               <img
                 src={product.image_url}
                 alt={product.name}
-                className="h-10 w-10 sm:h-12 sm:w-12 object-cover rounded-lg border border-gray-200"
+                className="h-10 w-10 sm:h-12 sm:w-12 object-cover"
               />
             ) : (
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -373,9 +373,7 @@ export default function ProductManager() {
               </div>
               <div className="flex justify-between gap-4">
                 <span className="font-semibold text-gray-700">Base Qty</span>
-                <span className="text-right">
-                  {product.base_quantity ?? 1}
-                </span>
+                <span className="text-right">{product.base_quantity ?? 1}</span>
               </div>
               <div className="flex justify-between gap-4">
                 <span className="font-semibold text-gray-700">Price</span>
@@ -384,7 +382,9 @@ export default function ProductManager() {
                 </span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="font-semibold text-gray-700">Installation</span>
+                <span className="font-semibold text-gray-700">
+                  Installation
+                </span>
                 <span className="text-right">
                   ₹{product.installation_amount.toLocaleString()}
                 </span>
@@ -422,19 +422,19 @@ export default function ProductManager() {
             variant="outline"
             size="sm"
             onClick={() => onEdit(product)}
-            className="h-9 w-9 sm:w-auto sm:px-3 rounded-full flex items-center justify-center gap-1 shadow-sm"
+            className="h-9 w-9 p-0"
+            title="Edit Category"
           >
             <Pencil className="h-4 w-4" />
-            <span className="hidden sm:inline text-xs font-medium">Edit</span>
           </Button>
           <Button
             variant="destructive"
             size="sm"
             onClick={() => onDelete(product.id)}
-            className="h-9 w-9 sm:w-auto sm:px-3 rounded-full flex items-center justify-center gap-1 shadow-sm"
+            className="h-9 w-9 p-0"
+            title="Delete Category"
           >
             <Trash2 className="h-4 w-4" />
-            <span className="hidden sm:inline text-xs font-medium">Delete</span>
           </Button>
         </div>
       </td>
@@ -593,7 +593,7 @@ export default function ProductManager() {
 
                       {/* Content: Image + main details */}
                       <div className="flex gap-3">
-                        <div className="w-20 h-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden">
+                        <div className="w-20 h-20 bg-gray-50 flex items-center justify-center overflow-hidden">
                           {p.image_url ? (
                             <img
                               src={p.image_url}
@@ -635,7 +635,9 @@ export default function ProductManager() {
                               <span className="font-semibold text-gray-700">
                                 Installation
                               </span>
-                              <span>₹{p.installation_amount.toLocaleString()}</span>
+                              <span>
+                                ₹{p.installation_amount.toLocaleString()}
+                              </span>
                             </div>
                             <div className="flex flex-col items-end text-right">
                               <span className="font-semibold text-gray-700">

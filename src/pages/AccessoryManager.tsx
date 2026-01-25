@@ -30,7 +30,6 @@ import { getCatagory } from "@/Api/CategoryApi";
 import Input from "@/components/ui/Input";
 import { removeMedia, uploadeMedia } from "@/Api/storage";
 
-
 type ProductInput = {
   name: string;
   description?: string;
@@ -66,11 +65,11 @@ export default function AccessoryManager() {
   const [confirmDelete, setConfirmDelete] = useState<{
     open: boolean;
     id: string | null;
-    imageUrl:string|null
+    imageUrl: string | null;
   }>({
     open: false,
     id: null,
-    imageUrl:null
+    imageUrl: null,
   });
 
   const {
@@ -195,7 +194,7 @@ export default function AccessoryManager() {
     setOpenDrawer(true);
   };
 
- const handleDelete = async () => {
+  const handleDelete = async () => {
     if (!confirmDelete.id) return;
     const { error } = await deleteProduct(confirmDelete.id);
 
@@ -264,94 +263,90 @@ export default function AccessoryManager() {
   };
 
   // Sub-component: Product Row
- const ProductRow = ({ product }: { product: ProductWithoutAccessory }) => (
-  <tr className="hover:bg-gray-50 transition">
-    {/* Product */}
-    <td className="px-6 py-4">
-      <div className="flex items-center gap-4">
-        <div className="h-11 w-11 rounded-lg overflow-hidden bg-gray-100 border flex-shrink-0">
-          {product.image_url ? (
-            <img
-              src={product.image_url}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <ImageIcon className="h-full w-full p-2 text-gray-300" />
-          )}
+  const ProductRow = ({ product }: { product: ProductWithoutAccessory }) => (
+    <tr className="hover:bg-gray-50 transition">
+      {/* Product */}
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-4">
+          <div className="h-11 w-11 overflow-hidden bg-gray-100 flex-shrink-0">
+            {product.image_url ? (
+              <img
+                src={product.image_url}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <ImageIcon className="h-full w-full p-2 text-gray-300" />
+            )}
+          </div>
+
+          <div className="max-w-[220px]">
+            <p className="text-sm font-semibold text-gray-900 truncate">
+              {product.name}
+            </p>
+            <p className="text-xs text-gray-500 truncate">
+              {product.description || "No description"}
+            </p>
+          </div>
         </div>
+      </td>
 
-        <div className="max-w-[220px]">
-          <p className="text-sm font-semibold text-gray-900 truncate">
-            {product.name}
-          </p>
-          <p className="text-xs text-gray-500 truncate">
-            {product.description || "No description"}
-          </p>
+      {/* Model */}
+      <td className="px-6 py-4 text-sm text-gray-600">
+        {product.model || "-"}
+      </td>
+
+      {/* Make */}
+      <td className="px-6 py-4 text-sm text-gray-600">{product.make || "-"}</td>
+
+      {/* Price */}
+      <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+        ₹{product.price.toLocaleString()}
+      </td>
+
+      {/* Installation */}
+      <td className="px-6 py-4 text-sm text-gray-600">
+        ₹{product.installation_amount}
+      </td>
+
+      {/* Category */}
+      <td className="px-6 py-4">
+        <span className="inline-flex items-center rounded-md  text-brand-primary px-2 py-1 text-xs font-medium   border-blue-100">
+          {product.category?.name || "None"}
+        </span>
+      </td>
+
+      {/* Actions */}
+      <td className="px-6 py-4 text-right">
+        <div className="inline-flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => startEdit(product)}
+            className="h-9 w-9 p-0"
+            title="Edit Category"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() =>
+              setConfirmDelete({
+                open: true,
+                id: product.id,
+                imageUrl: product.image_url,
+              })
+            }
+            className="h-9 w-9 p-0"
+            title="Delete Category"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
-      </div>
-    </td>
-
-    {/* Model */}
-    <td className="px-6 py-4 text-sm text-gray-600">
-      {product.model || "-"}
-    </td>
-
-    {/* Make */}
-    <td className="px-6 py-4 text-sm text-gray-600">
-      {product.make || "-"}
-    </td>
-
-    {/* Price */}
-    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-      ₹{product.price.toLocaleString()}
-    </td>
-
-    {/* Installation */}
-    <td className="px-6 py-4 text-sm text-gray-600">
-      ₹{product.installation_amount}
-    </td>
-
-    {/* Category */}
-    <td className="px-6 py-4">
-      <span className="inline-flex items-center rounded-md  text-brand-primary px-2 py-1 text-xs font-medium   border-blue-100">
-        {product.category?.name || "None"}
-      </span>
-    </td>
-
-    {/* Actions */}
-    <td className="px-6 py-4 text-right">
-      <div className="inline-flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => startEdit(product)}
-          className="h-9 w-9 sm:w-auto sm:px-3 rounded-full flex items-center gap-1 shadow-sm"
-        >
-          <Pencil size={14} />
-          <span className="hidden sm:inline text-xs">Edit</span>
-        </Button>
-
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() =>
-            setConfirmDelete({
-              open: true,
-              id: product.id,
-              imageUrl: product.image_url,
-            })
-          }
-          className="h-9 w-9 sm:w-auto sm:px-3 rounded-full flex items-center gap-1 shadow-sm"
-        >
-          <Trash2 size={14} />
-          <span className="hidden sm:inline text-xs">Delete</span>
-        </Button>
-      </div>
-    </td>
-  </tr>
-);
-
+      </td>
+    </tr>
+  );
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-4 md:p-8">
@@ -477,7 +472,7 @@ export default function AccessoryManager() {
 
                       {/* Content: Image + main details */}
                       <div className="flex gap-3">
-                        <div className="w-20 h-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden">
+                        <div className="w-20 h-20 bg-gray-50 flex items-center justify-center overflow-hidden">
                           {p.image_url ? (
                             <img
                               src={p.image_url}
@@ -519,7 +514,9 @@ export default function AccessoryManager() {
                               <span className="font-semibold text-gray-700">
                                 Installation
                               </span>
-                              <span>₹{p.installation_amount.toLocaleString()}</span>
+                              <span>
+                                ₹{p.installation_amount.toLocaleString()}
+                              </span>
                             </div>
                             <div className="flex flex-col items-end text-right">
                               <span className="font-semibold text-gray-700">
@@ -577,45 +574,44 @@ export default function AccessoryManager() {
 
               {/* Desktop / tablet table layout */}
               <div className="hidden md:block overflow-x-auto">
-               <table className="w-full border-collapse rounded-xl overflow-hidden bg-white shadow-sm">
-  <thead className="bg-gray-50 border-b border-gray-200">
-    <tr>
-      {["Name", "Model", "Make", "Price"].map((head) => (
-        <th
-          key={head}
-          onClick={() => handleSort(head.toLowerCase() as any)}
-          className="px-6 py-4 text-left text-xs font-semibold text-gray-500  tracking-wide cursor-pointer hover:text-blue-600 transition"
-        >
-          <div className="flex items-center gap-1">
-            {head}
-            {sortField === head.toLowerCase() &&
-              (sortDirection === "asc" ? (
-                <ChevronUp size={14} />
-              ) : (
-                <ChevronDown size={14} />
-              ))}
-          </div>
-        </th>
-      ))}
-      <th className="px-6 py-4 text-xs font-semibold text-gray-500 ">
-        Installation
-      </th>
-      <th className="px-6 py-4 text-xs font-semibold text-gray-500 ">
-        Category
-      </th>
-      <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 ">
-        Actions
-      </th>
-    </tr>
-  </thead>
+                <table className="w-full border-collapse rounded-xl overflow-hidden bg-white shadow-sm">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      {["Name", "Model", "Make", "Price"].map((head) => (
+                        <th
+                          key={head}
+                          onClick={() => handleSort(head.toLowerCase() as any)}
+                          className="px-6 py-4 text-left text-xs font-semibold text-gray-500  tracking-wide cursor-pointer hover:text-blue-600 transition"
+                        >
+                          <div className="flex items-center gap-1">
+                            {head}
+                            {sortField === head.toLowerCase() &&
+                              (sortDirection === "asc" ? (
+                                <ChevronUp size={14} />
+                              ) : (
+                                <ChevronDown size={14} />
+                              ))}
+                          </div>
+                        </th>
+                      ))}
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-500 ">
+                        Installation
+                      </th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-500 ">
+                        Category
+                      </th>
+                      <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 ">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
 
-  <tbody className="divide-y divide-gray-100">
-    {paginatedProducts.map((p) => (
-      <ProductRow key={p.id} product={p} />
-    ))}
-  </tbody>
-</table>
-
+                  <tbody className="divide-y divide-gray-100">
+                    {paginatedProducts.map((p) => (
+                      <ProductRow key={p.id} product={p} />
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </>
           )}
@@ -659,7 +655,10 @@ export default function AccessoryManager() {
         onClose={handleCloseDrawer}
         title={editingProduct ? "Update Accessory" : "New Accessory"}
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-1 space-y-5">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="p-6 sm:p-1 space-y-5"
+        >
           <Input
             label="Product Name"
             placeholder="e.g. Wireless Remote"
@@ -678,7 +677,7 @@ export default function AccessoryManager() {
             />
           </div>
 
-         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Model"
               placeholder="e.g. XP-200"
@@ -693,7 +692,7 @@ export default function AccessoryManager() {
             />
           </div>
 
-           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Input
               label="Price (₹)"
               type="number"
@@ -712,23 +711,20 @@ export default function AccessoryManager() {
             />
           </div>
 
-            
-            <div className="space-y-1">
-              <label className="text-sm font-bold text-gray-700">
-                Category
-              </label>
-              <select
-                {...register("category_id")}
-                className="w-full p-2.5 rounded-xl border border-gray-200 text-sm"
-              >
-                <option value="">Select Category</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="space-y-1">
+            <label className="text-sm font-bold text-gray-700">Category</label>
+            <select
+              {...register("category_id")}
+              className="w-full p-2.5 rounded-xl border border-gray-200 text-sm"
+            >
+              <option value="">Select Category</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className="space-y-2">
             <label className="text-sm font-bold text-gray-700">Image</label>
@@ -768,7 +764,9 @@ export default function AccessoryManager() {
 
       <ConfirmDialog
         open={confirmDelete.open}
-        onCancel={() => setConfirmDelete({ open: false, id: null,imageUrl:null })}
+        onCancel={() =>
+          setConfirmDelete({ open: false, id: null, imageUrl: null })
+        }
         onConfirm={handleDelete}
         title="Delete Accessory?"
         description="This will permanently remove the item from your inventory."
