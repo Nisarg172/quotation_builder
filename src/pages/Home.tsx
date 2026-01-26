@@ -19,6 +19,7 @@ import { createBillQuation } from "@/Api/BillQuatation";
 import { createBillQuationProduct } from "@/Api/BillQuatationProduct";
 import { useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
+import { CoumpanyInfo } from "@/utils/const";
 
 const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
   const navigate = useNavigate();
@@ -39,11 +40,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
     },
   );
 
-  const coumpanyOption = [
-    { label: "Hm Technology", value: 1 },
-    { label: "Torque Innovations India", value: 2 },
-    { label: "Elko Ep India", value: 3 },
-  ];
+  const coumpanyOption = CoumpanyInfo.map(({companyName,id})=>({label: companyName, value: id})) 
 
   const [products, setProducts] = useState<ProductWithCatagory[]>([]);
   const [accessories, setAccessories] = useState<ProductWithCatagory[]>([]);

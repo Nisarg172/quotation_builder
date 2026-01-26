@@ -50,6 +50,22 @@ export const CoumpanyInfo = [
     branch:"ABRAMA",
     IFSC:"BARB0ABRSUR"
   },
+
+  {
+    id: 4,
+    companyName: "Sahasrara Innovations",
+    logo: "/Sahasrara Innovations.png",
+    contactName: "Mihir Patel",
+    contactNo: "+91 9408511879",
+    email: "sahasrarainnovations@gmail.com",
+    serviceEmail:"sahasrarainnovations@gmail.com",
+    serviceMo:"+91 9408511879",
+    address:"311, Spinel, S G Highway Opp. Kargil Petrol Pump, Sola, Ahmedabad - 380060",
+    accountNo:"404005001013",
+    bankName:"ICICI",
+    branch:"Chankyapuri Branch",
+    IFSC:"ICIC0004040"
+  },
 ];
 
 
