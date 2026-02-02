@@ -66,8 +66,22 @@ export const CoumpanyInfo = [
     branch:"Chankyapuri Branch",
     IFSC:"ICIC0004040"
   },
-];
 
-
+  {
+    id: 5,
+    companyName: "Veeraum",
+    logo: "/veeraum_logo.png",
+    contactName: "Sanjay Dankhara",
+    contactNo: "+91  97370 03153",
+    email: "info@veeraum.com",
+    serviceEmail:"service@veeraum.com",
+    serviceMo:"+91 99244 24806",
+    address:"Near Gajanand Tile Chitra , Anthem Circle , Surat, Gujarat 395013",
+    accountNo:"51950200000211",
+    bankName:"Bank Of Baroda",
+    branch:"ABRAMA",
+    IFSC:"BARB0ABRSUR"
+  },
+];  
 
 
