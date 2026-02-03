@@ -55,9 +55,9 @@ const styles = StyleSheet.create({
 
   /* UPDATED COLUMN WIDTHS */
   colSr: { width: "3%" },
-  colDesc: { width: "35%" },
-  colImg: { width: "12%", alignItems: "center" },
-  colMake:{width:"7%"},
+  colDesc: { width: "33%" },
+  colImg: { width: "10%", alignItems: "center" },
+  colMake:{width:"11%"},
   colModel:{width:"10%"},
   colQty: { width: "4%" },
   colSupply: { width: "9%" },
@@ -128,7 +128,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
         <View style={styles.headerRow}>
           <View style={{ ...styles.companyBlock, marginTop: "-20px" }}>
             {infoData.logo && (
-              <Image src={infoData.logo} style={{ width: 46, height: 46 }} />
+              <Image src={infoData.logo} style={{ width: 100 }} />
             )}
             <Text style={styles.companyName}>{infoData.companyName}</Text>
             {infoData?.GST&&<Text style={styles.contactSmall}>GST: {infoData.GST}</Text>}
