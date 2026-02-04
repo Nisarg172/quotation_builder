@@ -1,3 +1,5 @@
+import type { Database } from "./supabase";
+
 // types.ts
 export type QuoteItem = {
   id: string;
@@ -23,7 +25,8 @@ export type QuoteData = {
   gstOnInstallation: boolean;
   gstOnSupply:boolean ;
   address?: string|null;
-  isPurchesOrder: boolean;
+  // isPurchesOrder: boolean;
+  type:Database["public"]["Enums"]["bill_type"]
   coumpanyId:number,
   gstNumber?: string,
 };

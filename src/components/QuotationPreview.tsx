@@ -44,7 +44,7 @@ export default function QuotePreview({ data }: { data: QuoteData }) {
       <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-xl p-4 sm:p-6 text-sm">
         {/* HEADER */}
         <h2 className="text-xl font-bold text-center mb-4">
-          {data.isPurchesOrder ? "PURCHASE ORDER" : "QUOTATION"}
+          {data.type}
         </h2>
 
         {/* Info Section - Stacked on Mobile, Row on Desktop */}
@@ -209,7 +209,7 @@ export default function QuotePreview({ data }: { data: QuoteData }) {
               <span>₹{grandTotal.toFixed(2)}</span>
             </div>
 
-            {!data.isPurchesOrder && (
+            {data.type!=="Purchase Order" && (
               <div className="pt-3 border-t flex justify-center">
                 <button
                   type="button"
@@ -229,7 +229,7 @@ export default function QuotePreview({ data }: { data: QuoteData }) {
         onClose={() => setPreviewImage(null)}
       />
 
-      <TermsModal open={showTerms} onClose={() => setShowTerms(false)} inforData={infoData}/>
+      <TermsModal open={showTerms} type={data.type} onClose={() => setShowTerms(false)} inforData={infoData}/>
     </>
   );
 }

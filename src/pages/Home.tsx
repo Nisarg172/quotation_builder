@@ -20,9 +20,17 @@ import { createBillQuationProduct } from "@/Api/BillQuatationProduct";
 import { useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
 import { CoumpanyInfo } from "@/utils/const";
+import type { Database } from "@/Types/supabase";
+import { FaWhatsapp } from "react-icons/fa";
+import { FiCopy } from "react-icons/fi";
 
 const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
   const navigate = useNavigate();
+  const documentTypeOption = [
+    { label: "Quotation", value: "quotation" },
+    { label: "Purchase Order", value: "Purchase Order" },
+    { label: "Proforma Invoice", value: "Proforma Invoice" },
+  ];
   const [quote, setQuote] = useState<QuoteData>(
     quateData ?? {
       items: [],
@@ -34,17 +42,20 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
       address: "",
       gstOnInstallation: false,
       gstOnSupply: false,
-      isPurchesOrder: false,
+      // isPurchesOrder: false,
+      type: "Quotation",
       coumpanyId: 1,
       gstNumber: "",
     },
   );
 
-  const coumpanyOption = CoumpanyInfo.map(({companyName,id})=>({label: companyName, value: id})) 
+  const coumpanyOption = CoumpanyInfo.map(({ companyName, id }) => ({
+    label: companyName,
+    value: id,
+  }));
 
   const [products, setProducts] = useState<ProductWithCatagory[]>([]);
   const [accessories, setAccessories] = useState<ProductWithCatagory[]>([]);
-  // const [coumpany, setCoumpany] = useState(coumpanyOption[0]);
 
   async function addProduct(productId: string) {
     let foundProduct: ProductWithAccessories | null = null;
@@ -190,7 +201,13 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
     });
   }
 
-  const savepdfAndShare = async (data: QuoteData) => {
+  const savepdfAndShare = async ({
+    data,
+    isCopyLink,
+  }: {
+    data: QuoteData;
+    isCopyLink: boolean;
+  }) => {
     let customerId: string | null = null;
     const { data: customerData, error: customerError } =
       await getCustomerByMobileNo(data.mobileNo);
@@ -219,7 +236,8 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
         gst_on_installation: data.gstOnInstallation,
         gst_on_supply: data.gstOnSupply,
         installation_total: data.installationTotal,
-        is_purches_order: data.isPurchesOrder,
+        is_purches_order: true,
+        type: data.type,
         supply_total: data.supplyTotal,
         coumpany_id: data.coumpanyId,
         gst_number: data?.gstNumber || null,
@@ -246,9 +264,14 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
       }
 
       const link = `${import.meta.env.VITE_BASE_URL}pdf/${billQuationData?.id}`;
-      const message = `Please check this quotation:\n${link}`;
-      const whatsappUrl = `https://wa.me/${data.mobileNo}?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, "_blank");
+      if (isCopyLink) {
+        navigator.clipboard.writeText(link);
+        toast.success("Link copy!");
+      } else {
+        const message = `Please check this quotation:\n${link}`;
+        const whatsappUrl = `https://wa.me/${data.mobileNo}?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, "_blank");
+      }
       navigate(`/pdf/${billQuationData?.id}`);
     }
   };
@@ -308,7 +331,9 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                 setQuote({ ...quote, customerName: e.target.value })
               }
               errorMessage={
-                !quote.customerName.trim() ? "Customer name is required" : undefined
+                !quote.customerName.trim()
+                  ? "Customer name is required"
+                  : undefined
               }
             />
           </div>
@@ -370,44 +395,44 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
 
           {/* Company & PO Toggle */}
           <div className="grid grid-cols-2 gap-4">
+            {/* Document Type */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-700">
-                PO Order
+                Document Type
               </label>
-              <button
-                onClick={() =>
-                  setQuote({ ...quote, isPurchesOrder: !quote.isPurchesOrder })
+
+              <Select
+                options={documentTypeOption}
+                value={documentTypeOption.find((o) => o.value === quote.type)}
+                onChange={(s) =>
+                  s &&
+                  setQuote((prev) => ({
+                    ...prev,
+                    type: s.value as Database["public"]["Enums"]["bill_type"],
+                  }))
                 }
-                className={`w-11 h-6 rounded-full transition-colors relative ${quote.isPurchesOrder ? "bg-brand-primary" : "bg-gray-300"}`}
-              >
-                <div
-                  className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${quote.isPurchesOrder ? "translate-x-5" : ""}`}
-                />
-              </button>
+                className="text-xs sm:text-sm"
+              />
             </div>
+
+            {/* Company */}
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold  text-gray-700">
+              <label className="text-sm font-semibold text-gray-700">
                 Company
               </label>
 
               <Select
                 options={coumpanyOption}
-                defaultValue={
-                  coumpanyOption[
-                    quateData?.coumpanyId ? quateData?.coumpanyId - 1 : 0
-                  ]
-                }
+                value={coumpanyOption.find((o) => o.value === quote.coumpanyId)}
                 onChange={(s) =>
                   s && setQuote((prev) => ({ ...prev, coumpanyId: s.value }))
                 }
-                className="text-xs  sm:text-sm"
+                className="text-xs sm:text-sm"
               />
             </div>
           </div>
         </div>
       </div>
-
-      
 
       {/* Table Container */}
       <div className="bg-transparent md:bg-white md:rounded-lg md:shadow-sm md:border md:border-gray-200 transition-all duration-300">
@@ -746,12 +771,31 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
             <h3 className="text-lg font-bold text-center">Export Options</h3>
             {quote.customerName && quote.mobileNo.length === 10 ? (
               <>
-                <Button
-                  className="w-full py-6 text-lg"
-                  onClick={() => savepdfAndShare(quote)}
-                >
-                  💾 Save & Share via WhatsApp
-                </Button>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Save & Share */}
+                  <Button
+                    className="flex items-center justify-center gap-2 py-6 text-lg font-medium 
+               bg-green-600 hover:bg-green-700 text-white rounded-xl transition"
+                    onClick={() =>
+                      savepdfAndShare({ data: quote, isCopyLink: false })
+                    }
+                  >
+                    <FaWhatsapp size={20} />
+                    Save & Share
+                  </Button>
+
+                  {/* Copy Link */}
+                  <Button
+                    className="flex items-center justify-center gap-2 py-6 text-lg font-medium 
+               bg-gray-800 hover:bg-black text-white rounded-xl transition"
+                    onClick={() =>
+                      savepdfAndShare({ data: quote, isCopyLink: true })
+                    }
+                  >
+                    <FiCopy size={20} />
+                    Copy Link
+                  </Button>
+                </div>
 
                 {/* <PDFDownloadLink
                   document={<QuotePDF data={{ ...quote, coumpanyId: coumpany.value }} />}

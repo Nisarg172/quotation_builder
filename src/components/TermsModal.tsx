@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import TermsContent from "./TermsContent";
+import type { Database } from "@/Types/supabase";
 
 interface Props {
   open: boolean;
@@ -21,9 +22,10 @@ interface Props {
     branch: string;
     IFSC: string;
   };
+  type:Database["public"]["Enums"]["bill_type"]
 }
 
-export default function TermsModal({ open, onClose, inforData }: Props) {
+export default function TermsModal({ open, onClose, inforData,type }: Props) {
   // Prevent background scrolling when terms are being read
   useEffect(() => {
     if (open) {
@@ -66,7 +68,7 @@ export default function TermsModal({ open, onClose, inforData }: Props) {
 
         {/* Scrollable Content Area */}
         <div className="overflow-y-auto p-5 sm:p-8 overscroll-contain">
-          <TermsContent inforData={inforData} />
+          <TermsContent inforData={inforData} type={type} />
           
           {/* Mobile bottom spacer to ensure content isn't hidden by browser bars */}
           <div className="h-10 sm:hidden" />

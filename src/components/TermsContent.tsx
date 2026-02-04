@@ -1,3 +1,5 @@
+import type { Database } from "@/Types/supabase";
+
 interface Props {
   inforData: {
     id: number;
@@ -15,9 +17,11 @@ interface Props {
     branch: string;
     IFSC: string;
   }
+  ,
+  type:Database["public"]["Enums"]["bill_type"]
 }
 
-export default function TermsContent({ inforData }: Props) {
+export default function TermsContent({ inforData,type }: Props) {
   return (
     <div className="text-sm text-gray-800 leading-relaxed pb-8">
       {/* TITLE - Responsive text size */}
@@ -26,7 +30,7 @@ export default function TermsContent({ inforData }: Props) {
           {inforData.companyName}
         </h2>
         <p className="text-xs sm:text-sm font-medium text-gray-500 mt-1">
-          Quotation Terms & Conditions
+          {type} Terms & Conditions
         </p>
       </div>
 
@@ -34,7 +38,7 @@ export default function TermsContent({ inforData }: Props) {
         {/* INTRO */}
         <p className="text-gray-600 italic px-1">
           These Terms and Conditions govern the supply of products and services by
-          {inforData.companyName}. By accepting our quotation, you agree to be bound by these terms.
+          {inforData.companyName}. By accepting our {type}, you agree to be bound by these terms.
         </p>
 
         {/* SECTION 1 */}
@@ -49,7 +53,7 @@ export default function TermsContent({ inforData }: Props) {
               <ul className="space-y-2">
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 font-bold">•</span>
-                  <span><span className="font-bold text-gray-900">68% Advance:</span> Payable upon issuance of the Proforma Invoice (P.I.).</span>
+                  <span><span className="font-bold text-gray-900">80% Advance:</span> Payable upon issuance of the Proforma Invoice (P.I.).</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 font-bold">•</span>

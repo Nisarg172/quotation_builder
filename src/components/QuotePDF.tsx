@@ -121,7 +121,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
             marginBottom: 8,
           }}
         >
-          {data.isPurchesOrder ? "PURCHASE ORDER" : "QUOTATION"}
+          {data.type}
         </Text>
 
         {/* HEADER INFO */}
@@ -149,7 +149,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                 marginBottom: 10,
               }}
             >
-              {data.isPurchesOrder ? "Order No:" : "Quote No:"} {random5Digit}
+              {data.type} {"No: "} {random5Digit}
             </Text>
 
             {(data.gstOnSupply || data.gstOnInstallation) &&
@@ -356,7 +356,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
         </View>
       </Page>
 
-      {!data.isPurchesOrder && <TermsAndConditions infoData={infoData} />}
+      {data.type !== "Purchase Order" && <TermsAndConditions infoData={infoData} type={data.type} />}
     </Document>
   );
 }

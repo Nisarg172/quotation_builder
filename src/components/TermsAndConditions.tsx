@@ -1,3 +1,4 @@
+import type { Database } from "@/Types/supabase";
 import {
   Page,
   View,
@@ -21,10 +22,10 @@ interface Props {
     bankName:string,
     branch:string,
     IFSC:string
-}
+},type:Database["public"]["Enums"]["bill_type"]
 }
 
-export const TermsAndConditions = ({infoData}:Props) => {
+export const TermsAndConditions = ({infoData,type}:Props) => {
 
 const BORDER = "#000";
 
@@ -142,12 +143,12 @@ const BORDER = "#000";
   return (
      <Page size="A4" style={styles.page}>
             <Text style={styles.tcTitle}>
-              {infoData.companyName} - Quotation Terms & Conditions
+              {infoData.companyName} - {type} Terms & Conditions
             </Text>
     
             <Text style={styles.tcText}>
               These Terms and Conditions govern the supply of products and services
-              by {infoData.companyName}. By accepting our quotation, you agree to be bound by
+              by {infoData.companyName}. By accepting our {type}, you agree to be bound by
               these terms.
             </Text>
     
@@ -228,7 +229,7 @@ const BORDER = "#000";
             <Text style={styles.tcSubTitle}>5. JURISDICTION</Text>
             <Text style={styles.tcText}>
               In the event of any dispute arising from or in connection with this
-              quotation or the services/products provided, the matter shall be
+              {type} or the services/products provided, the matter shall be
               referred to the court at <Text>Surat</Text>. The decision of the said court shall
               be final and binding on all parties involved.
             </Text>
