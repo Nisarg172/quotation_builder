@@ -33,7 +33,6 @@ const EditQuatation = () => {
         mobileNo: data.customer.mobile_no,
         gstNumber: data.gst_number || undefined,
         coumpanyId: data.coumpany_id,
-        // isPurchesOrder: data.is_purches_order,
         type:data.type,
         gstOnInstallation: data.gst_on_installation,
         gstOnSupply: data.gst_on_supply,

@@ -242,7 +242,6 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
         gst_on_installation: data.gstOnInstallation,
         gst_on_supply: data.gstOnSupply,
         installation_total: data.installationTotal,
-        is_purches_order: true,
         type: data.type,
         supply_total: data.supplyTotal,
         coumpany_id: data.coumpanyId,
