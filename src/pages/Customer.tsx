@@ -1,22 +1,25 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaFilePdf, FaReceipt, FaFileInvoiceDollar } from "react-icons/fa";
+import { FaFilePdf, FaFileInvoiceDollar } from "react-icons/fa";
 import { toast } from "sonner";
 
-import DataTable from "@/components/Table/DataTable";
+import DataTable, { type DataTableRef } from "@/components/Table/DataTable";
 import { getCustomers } from "@/Api/customer";
 import { CustomerColumns } from "@/components/customer.columns";
 import { MdEdit } from "react-icons/md";
 import { CoumpanyInfo } from "@/utils/const";
+import { FiTrash2 } from "react-icons/fi";
+import { deleteBillQuatation } from "@/Api/BillQuatation";
+import type { Database } from "@/Types/supabase";
 
 // --- Types ---
 type BillQuotation = {
   id: string;
   created_at: string;
   grand_total: number;
-  is_purches_order: boolean;
+  type:Database["public"]["Enums"]["bill_type"],
   coumpany_id: number;
   supply_total: number;
   installation_total: number;
@@ -36,6 +39,7 @@ type CustomerType = {
 export default function Customer() {
   const [openRowId, setOpenRowId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const tableRef = useRef<DataTableRef>(null);
 
   // Memoized fetcher to prevent unnecessary re-renders in DataTable
   const fetchCustomer = useCallback(
@@ -134,15 +138,11 @@ const CustomerBillSubRow = ({ bills }: { bills: BillQuotation[] }) => {
               <div className="flex w-full justify-between items-center md:contents">
                 <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">Type</span>
                 <span>
-                  {bill.is_purches_order ? (
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase">
-                      <FaReceipt size={10} /> PO
+                   
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-brand-soft text-brand-primary text-[10px] font-bold">
+                      <FaFileInvoiceDollar size={10} /> {bill.type}
                     </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-brand-soft text-brand-primary text-[10px] font-bold uppercase">
-                      <FaFileInvoiceDollar size={10} /> Quote
-                    </span>
-                  )}
+                  
                 </span>
               </div>
 
@@ -163,6 +163,14 @@ const CustomerBillSubRow = ({ bills }: { bills: BillQuotation[] }) => {
                   <MdEdit size={18} />
                   <span className="md:hidden font-bold text-xs">EDIT</span>
                 </button>
+
+                 <button
+                  onClick={() => deleteBill(bill.id)}
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 p-2 text-red-600 bg-red-50 md:bg-transparent md:text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                >
+                  <FiTrash2 size={18} />
+                  <span className="md:hidden font-bold text-xs">Delete</span>
+                </button>
               </div>
             </div>
           ))}
@@ -171,6 +179,16 @@ const CustomerBillSubRow = ({ bills }: { bills: BillQuotation[] }) => {
     </div>
   );
 };
+
+const deleteBill = async(id:string)=>{
+  const {error} = await deleteBillQuatation(id)
+  if(error)
+  {
+    toast.error(error.message)
+  }
+  tableRef.current?.refresh()
+
+}
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-4 md:p-8">
@@ -189,7 +207,8 @@ const CustomerBillSubRow = ({ bills }: { bills: BillQuotation[] }) => {
         <DataTable<CustomerType>
           columns={CustomerColumns({ openRowId, toggleRow })}
           fetcher={fetchCustomer}
-          defaultSortBy="name"
+          defaultSortBy="created_at"
+          ref={tableRef}
           renderSubRow={(row) =>
             openRowId === row.id ? (
               <CustomerBillSubRow bills={row.bill_quatation} />

@@ -146,7 +146,7 @@ export type billQuatationData={
     gst_number?:string,
     id: string;
     installation_total: number;
-    is_purches_order: boolean;
+    type:Database["public"]["Enums"]["bill_type"]
     supply_total: number;
     customer: {
         name: string;

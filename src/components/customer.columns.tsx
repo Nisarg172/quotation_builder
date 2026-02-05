@@ -23,17 +23,14 @@ export const CustomerColumns = ({
   {
     label: "Name",
     key: "name",
-    sortable: true,
   },
   {
     label: "Mobile No",
     key: "mobile_no",
-    sortable: true,
   },
   {
     label: "Address",
     key: "address",
-    sortable: true,
   },
   {
     label: "",

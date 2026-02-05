@@ -16,3 +16,9 @@ return await supabase.from(tableName).select(`*,
     ...product(id,name,description,model,make,image_url))
     `).eq("id",id).single();
 }
+
+
+export const deleteBillQuatation = async (id:string )=>
+{
+    return await supabase.from(tableName).delete().eq("id",id);
+}

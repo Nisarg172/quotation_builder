@@ -1,7 +1,7 @@
 "use client";
 
 import { useServerTable } from "@/hooks/useServerTable";
-import { useState, Fragment } from "react";
+import { useState, Fragment, forwardRef, useImperativeHandle } from "react";
 import { FaFilter } from "react-icons/fa";
 import { Search } from "lucide-react";
 import Input from "@/components/ui/Input";
@@ -19,6 +19,10 @@ export type Column<T> = {
   filterOption?: FilterOption[];
 };
 
+export type DataTableRef = {
+  refresh: () => void;
+};
+
 type Props<T> = {
   columns: Column<T>[];
   fetcher: (params: any) => Promise<any>;
@@ -26,12 +30,12 @@ type Props<T> = {
   renderSubRow?: (row: T) => React.ReactNode;
 };
 
-export default function DataTable<T>({
-  columns,
-  fetcher,
-  defaultSortBy,
-  renderSubRow,
-}: Props<T>) {
+/* ================= COMPONENT ================= */
+
+function DataTableInner<T>(
+  { columns, fetcher, defaultSortBy, renderSubRow }: Props<T>,
+  ref: React.Ref<DataTableRef>,
+) {
   const {
     data,
     loading,
@@ -45,7 +49,13 @@ export default function DataTable<T>({
     setPage,
     meta,
     handelFilterOption,
+    refresh, // ✅ ONLY added
   } = useServerTable<T>(fetcher, defaultSortBy);
+
+  // ✅ ONLY added
+  useImperativeHandle(ref, () => ({
+    refresh,
+  }));
 
   const [openFilter, setOpenFilter] = useState<string | null>(null);
 
@@ -88,7 +98,9 @@ export default function DataTable<T>({
                 <th
                   key={i}
                   className={`px-4 py-3 text-left whitespace-nowrap font-semibold ${
-                    c.sortable ? "cursor-pointer hover:bg-gray-100 transition-colors" : ""
+                    c.sortable
+                      ? "cursor-pointer hover:bg-gray-100 transition-colors"
+                      : ""
                   }`}
                   onClick={() => c.sortable && toggleSort(c.key)}
                 >
@@ -107,11 +119,13 @@ export default function DataTable<T>({
                           onClick={(e) => {
                             e.stopPropagation();
                             setOpenFilter(
-                              openFilter === c.key ? null : (c.key as string)
+                              openFilter === c.key ? null : (c.key as string),
                             );
                           }}
                           className={`p-1 rounded-full hover:bg-gray-200 ${
-                            openFilter === c.key ? "text-blue-600" : "text-gray-400"
+                            openFilter === c.key
+                              ? "text-blue-600"
+                              : "text-gray-400"
                           }`}
                         >
                           <FaFilter size={12} />
@@ -159,7 +173,10 @@ export default function DataTable<T>({
           <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan={columns.length} className="py-10 text-center text-sm text-gray-500">
+                <td
+                  colSpan={columns.length}
+                  className="py-10 text-center text-sm text-gray-500"
+                >
                   <div className="flex justify-center items-center gap-2">
                     <div className="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
                     Loading records...
@@ -168,7 +185,10 @@ export default function DataTable<T>({
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="py-10 text-center text-sm text-gray-500 font-medium">
+                <td
+                  colSpan={columns.length}
+                  className="py-10 text-center text-sm text-gray-500 font-medium"
+                >
                   No records found
                 </td>
               </tr>
@@ -177,7 +197,10 @@ export default function DataTable<T>({
                 <Fragment key={i}>
                   <tr className="hover:bg-gray-50 transition-colors">
                     {columns.map((c, j) => (
-                      <td key={j} className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                      <td
+                        key={j}
+                        className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap"
+                      >
                         {c.render
                           ? c.render(row)
                           : String((row as any)[c.key as string] ?? "")}
@@ -201,102 +224,105 @@ export default function DataTable<T>({
         </table>
       </div>
 
-   {/* --- MOBILE CARD VIEW --- */}
-<div className="sm:hidden space-y-4">
-  {loading ? (
-    <div className="p-8 text-center text-sm text-gray-500 bg-white border rounded-lg">
-      Loading...
-    </div>
-  ) : data.length === 0 ? (
-    <div className="p-8 text-center text-sm text-gray-500 bg-white border rounded-lg">
-      No records found
-    </div>
-  ) : (
-    data.map((row, i) => {
-      const addressColumn = columns.find(
-        (c) => c.label.toLowerCase() === "address"
-      );
-
-      const nonAddressColumns = columns.filter(
-        (c) => c.label.toLowerCase() !== "address"
-      );
-
-      const nameColumn = nonAddressColumns[0];
-      const mobileColumn = nonAddressColumns[1];
-      const actionColumn = nonAddressColumns[nonAddressColumns.length - 1];
-
-      return (
-        <div
-          key={i}
-          className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden"
-        >
-          {/* ===== HEADER ===== */}
-          <div className="relative p-4">
-            <div className="grid grid-cols-[1fr_1fr_auto] gap-3 items-start">
-              {/* NAME */}
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase font-bold text-gray-400">
-                  {nameColumn?.label}
-                </p>
-                <p className="text-sm font-semibold text-gray-900 truncate">
-                  {nameColumn?.render
-                    ? nameColumn.render(row)
-                    : String((row as any)[nameColumn?.key as string] ?? "-")}
-                </p>
-              </div>
-
-              {/* MOBILE */}
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase font-bold text-gray-400">
-                  {mobileColumn?.label}
-                </p>
-                <p className="text-sm text-gray-700 truncate">
-                  {mobileColumn?.render
-                    ? mobileColumn.render(row)
-                    : String((row as any)[mobileColumn?.key as string] ?? "-")}
-                </p>
-              </div>
-
-              {/* ACTION ICON */}
-              {actionColumn?.render && (
-                <div className="pt-4">
-                  {actionColumn.render(row)}
-                </div>
-              )}
-            </div>
+      {/* --- MOBILE CARD VIEW --- */}
+      <div className="sm:hidden space-y-4">
+        {loading ? (
+          <div className="p-8 text-center text-sm text-gray-500 bg-white border rounded-lg">
+            Loading...
           </div>
+        ) : data.length === 0 ? (
+          <div className="p-8 text-center text-sm text-gray-500 bg-white border rounded-lg">
+            No records found
+          </div>
+        ) : (
+          data.map((row, i) => {
+            const addressColumn = columns.find(
+              (c) => c.label.toLowerCase() === "address",
+            );
 
-          {/* ===== ADDRESS ===== */}
-          {addressColumn && (
-            <div className="px-4 pb-4 pt-0 border-t border-gray-100">
-              <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
-                {addressColumn.label}
-              </p>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {addressColumn.render
-                  ? addressColumn.render(row)
-                  : String(
-                      (row as any)[addressColumn.key as string] ?? "-"
+            const nonAddressColumns = columns.filter(
+              (c) => c.label.toLowerCase() !== "address",
+            );
+
+            const nameColumn = nonAddressColumns[0];
+            const mobileColumn = nonAddressColumns[1];
+            const actionColumn =
+              nonAddressColumns[nonAddressColumns.length - 1];
+
+            return (
+              <div
+                key={i}
+                className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden"
+              >
+                {/* ===== HEADER ===== */}
+                <div className="relative p-4">
+                  <div className="grid grid-cols-[1fr_1fr_auto] gap-3 items-start">
+                    {/* NAME */}
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase font-bold text-gray-400">
+                        {nameColumn?.label}
+                      </p>
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {nameColumn?.render
+                          ? nameColumn.render(row)
+                          : String(
+                              (row as any)[nameColumn?.key as string] ?? "-",
+                            )}
+                      </p>
+                    </div>
+
+                    {/* MOBILE */}
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase font-bold text-gray-400">
+                        {mobileColumn?.label}
+                      </p>
+                      <p className="text-sm text-gray-700 truncate">
+                        {mobileColumn?.render
+                          ? mobileColumn.render(row)
+                          : String(
+                              (row as any)[mobileColumn?.key as string] ?? "-",
+                            )}
+                      </p>
+                    </div>
+
+                    {/* ACTION ICON */}
+                    {actionColumn?.render && (
+                      <div className="pt-4">{actionColumn.render(row)}</div>
                     )}
-              </p>
-            </div>
-          )}
+                  </div>
+                </div>
 
-          {/* ===== EXPANDED SUB ROW ===== */}
-          {renderSubRow && (
-            <div className="bg-gray-50 border-t border-gray-200 px-3 py-3">
-              {renderSubRow(row)}
-            </div>
-          )}
-        </div>
-      );
-    })
-  )}
-</div>
+                {/* ===== ADDRESS ===== */}
+                {addressColumn && (
+                  <div className="px-4 pb-4 pt-0 border-t border-gray-100">
+                    <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
+                      {addressColumn.label}
+                    </p>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      {addressColumn.render
+                        ? addressColumn.render(row)
+                        : String(
+                            (row as any)[addressColumn.key as string] ?? "-",
+                          )}
+                    </p>
+                  </div>
+                )}
 
+                {/* ===== EXPANDED SUB ROW ===== */}
+                {renderSubRow && (
+                  <div className="bg-gray-50 border-t border-gray-200 px-3 py-3">
+                    {renderSubRow(row)}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
 
+          
+      </div>
 
-      {/* Pagination */}
+       {/* Pagination */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
         <span className="text-sm text-gray-600 order-2 sm:order-1 font-medium">
           Page <span className="text-black">{page}</span> of{" "}
@@ -319,7 +345,15 @@ export default function DataTable<T>({
             Next
           </button>
         </div>
-      </div>
+      </div> 
     </div>
   );
 }
+
+/* ================= EXPORT ================= */
+
+const DataTable = forwardRef(DataTableInner) as <T>(
+  props: Props<T> & { ref?: React.Ref<DataTableRef> },
+) => React.ReactElement;
+
+export default DataTable;

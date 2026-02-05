@@ -29,8 +29,8 @@ export const getCatagory = async ()=>{
             .order("name");
 }
 
-export const getProductWithCatagory = async ()=>{
-     return await supabase
+export const getProductWithCatagory = async (catagoryId?:string)=>{
+       const query = supabase
             .from(tableName)
             .select(`*,product!inner(*,
                accessories:product_accessory!product_accessory_product_id_fkey (
@@ -38,7 +38,12 @@ export const getProductWithCatagory = async ()=>{
                )
                )`)     
             .eq("product.is_accessory", false)
-            .order("name");
+            .order("name")
+            if(catagoryId)
+            {
+               query.eq("id",catagoryId)
+            }
+            return await query
 }
 
 

@@ -9,6 +9,7 @@ import type {
 import { urlToBase64 } from "../utils/function";
 import {
   getAccessoryWithCatagory,
+  getCatagory,
   getProductWithCatagory,
 } from "@/Api/CategoryApi";
 import { toast } from "sonner";
@@ -23,11 +24,15 @@ import { CoumpanyInfo } from "@/utils/const";
 import type { Database } from "@/Types/supabase";
 import { FaWhatsapp } from "react-icons/fa";
 import { FiCopy } from "react-icons/fi";
+import SearchCreatableSelect, {
+  type SelectOption,
+} from "@/components/ui/SearchCreatableSelect";
+import { supabase } from "@/supabase";
 
 const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
   const navigate = useNavigate();
   const documentTypeOption = [
-    { label: "Quotation", value: "quotation" },
+    { label: "Quotation", value: "Quotation" },
     { label: "Purchase Order", value: "Purchase Order" },
     { label: "Proforma Invoice", value: "Proforma Invoice" },
   ];
@@ -56,6 +61,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
 
   const [products, setProducts] = useState<ProductWithCatagory[]>([]);
   const [accessories, setAccessories] = useState<ProductWithCatagory[]>([]);
+  const [category, setCategory] = useState<{label:string,value:string}[]>([]);
 
   async function addProduct(productId: string) {
     let foundProduct: ProductWithAccessories | null = null;
@@ -299,8 +305,8 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
       .map((p) => ({ value: p.id, label: p.name })),
   }));
 
-  const fetchProducts = async () => {
-    const { data, error } = await getProductWithCatagory();
+  const fetchProducts = async (catagoryId?:string) => {
+    const { data, error } = await getProductWithCatagory(catagoryId);
     if (error) toast.error(error.message);
     else setProducts(data || []);
   };
@@ -311,7 +317,35 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
     else setAccessories(data || []);
   };
 
+
+  const fetchCategory = async () => {
+    const { data, error } = await getCatagory();
+    if (error) toast.error(error.message);
+    else setCategory(data.map(({id,name})=>({value:id,label:name})) || []);
+  };
+
+
+
+  const searchCustomers = async (search: string): Promise<SelectOption[]> => {
+    const { data } = await supabase
+      .from("customer")
+      .select("id, name, mobile_no,address")
+      .or(`name.ilike.%${search}%,mobile_no.ilike.%${search}%`)
+      .limit(10);
+
+    if (!data) return [];
+
+    return data.map((c) => ({
+      label: `${c.name} (${c.mobile_no})`,
+      value: c.id,
+      name: c.name,
+      mobile: c.mobile_no,
+      address: c.address,
+    }));
+  };
+
   useEffect(() => {
+    fetchCategory()
     fetchProducts();
     fetchAccessories();
   }, []);
@@ -319,57 +353,79 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
   return (
     <div className="p-2 sm:p-4 bg-brand min-h-screen">
       {/* Form Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6 space-y-5">
+        {/* ================= ROW 1 ================= */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Customer Name */}
-          <div className="flex flex-col gap-1">
-            <Input
-              label="Customer Name"
-              required
-              value={quote.customerName}
-              onChange={(e) =>
-                setQuote({ ...quote, customerName: e.target.value })
-              }
-              errorMessage={
-                !quote.customerName.trim()
-                  ? "Customer name is required"
-                  : undefined
-              }
-            />
-          </div>
+          {/* Customer */}
+          <SearchCreatableSelect
+            required
+            label="Customer Name"
+            errorMessage={
+              !quote.customerName ? "Customer is required" : undefined
+            }
+            value={
+              quote.customerName
+                ? { label: quote.customerName, value: quote.customerName }
+                : null
+            }
+            placeholder="Search name or mobile..."
+            onSearch={searchCustomers}
+            onChange={(option) => {
+              if (!option) return;
+              setQuote((prev) => ({
+                ...prev,
+                customerId: option.value,
+                customerName: option.name ?? option.label,
+                mobileNo: option.mobile ?? "",
+                address: option.address,
+              }));
+            }}
+          />
 
           {/* Mobile */}
-          <div className="flex flex-col gap-1">
-            <Input
-              label="Mobile Number"
-              required
-              type="tel"
-              value={quote.mobileNo}
-              onChange={(e) =>
-                setQuote({
-                  ...quote,
-                  mobileNo: e.target.value.replace(/\D/g, "").slice(0, 10),
-                })
-              }
-              errorMessage={
-                !/^[6-9]\d{9}$/.test(quote.mobileNo.trim())
-                  ? "Enter valid 10-digit mobile number"
-                  : undefined
-              }
-            />
-          </div>
+          <Input
+            label="Mobile Number"
+            required
+            type="tel"
+            value={quote.mobileNo}
+            onChange={(e) =>
+              setQuote({
+                ...quote,
+                mobileNo: e.target.value.replace(/\D/g, "").slice(0, 10),
+              })
+            }
+            errorMessage={
+              !/^[6-9]\d{9}$/.test(quote.mobileNo.trim())
+                ? "Enter valid 10-digit mobile number"
+                : undefined
+            }
+          />
 
           {/* Address */}
+          <Input
+            label="Address"
+            required
+            value={quote.address || ""}
+            onChange={(e) => setQuote({ ...quote, address: e.target.value })}
+          />
+        </div>
+
+        {/* ================= ROW 2 ================= */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {/* Category */}
           <div className="flex flex-col gap-1">
-            <Input
-              label="Address"
-              required
-              value={quote.address || ""}
-              onChange={(e) => setQuote({ ...quote, address: e.target.value })}
+            <label className="text-sm font-semibold text-gray-700">
+              Select Category
+            </label>
+            <Select
+              options={category}
+              onChange={(s) => fetchProducts(s?.value)}
+              className="text-sm"
+              isClearable
             />
           </div>
 
-          {/* Product Select */}
+          {/* Product */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-gray-700">
               Select Product
@@ -377,11 +433,11 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
             <Select
               options={productGroupedOptions}
               onChange={(s) => s && addProduct((s as any).value)}
-              className="text-sm z-1"
+              className="text-sm"
             />
           </div>
 
-          {/* Accessories Select */}
+          {/* Accessories */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-gray-700">
               Select Accessories
@@ -393,43 +449,38 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
             />
           </div>
 
-          {/* Company & PO Toggle */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Document Type */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-700">
-                Document Type
-              </label>
+          {/* Document Type */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">
+              Document Type
+            </label>
+            <Select
+              options={documentTypeOption}
+              value={documentTypeOption.find((o) => o.value === quote.type)}
+              onChange={(s) =>
+                s &&
+                setQuote((prev) => ({
+                  ...prev,
+                  type: s.value as Database["public"]["Enums"]["bill_type"],
+                }))
+              }
+              className="text-sm"
+            />
+          </div>
 
-              <Select
-                options={documentTypeOption}
-                value={documentTypeOption.find((o) => o.value === quote.type)}
-                onChange={(s) =>
-                  s &&
-                  setQuote((prev) => ({
-                    ...prev,
-                    type: s.value as Database["public"]["Enums"]["bill_type"],
-                  }))
-                }
-                className="text-xs sm:text-sm"
-              />
-            </div>
-
-            {/* Company */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-700">
-                Company
-              </label>
-
-              <Select
-                options={coumpanyOption}
-                value={coumpanyOption.find((o) => o.value === quote.coumpanyId)}
-                onChange={(s) =>
-                  s && setQuote((prev) => ({ ...prev, coumpanyId: s.value }))
-                }
-                className="text-xs sm:text-sm"
-              />
-            </div>
+          {/* Company */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">
+              Company
+            </label>
+            <Select
+              options={coumpanyOption}
+              value={coumpanyOption.find((o) => o.value === quote.coumpanyId)}
+              onChange={(s) =>
+                s && setQuote((prev) => ({ ...prev, coumpanyId: s.value }))
+              }
+              className="text-sm"
+            />
           </div>
         </div>
       </div>
