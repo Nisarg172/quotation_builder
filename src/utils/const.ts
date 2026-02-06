@@ -28,7 +28,7 @@ export const CoumpanyInfo = [
     serviceMo: "torqueinnovationsindia@gmail.com",
     address:
       "Shop No. 30, Abhinandan Residency, Sarthana Road, Jakatnaka, Surat, Gujarat 395006",
-    accountNo:"582001010050986",
+    accountNo:"51950200000207",
     bankName:"BANK OF BARODA",
     branch:"ABRAMA",
     IFSC:"BARB0ABRSUR"
@@ -45,7 +45,7 @@ export const CoumpanyInfo = [
     serviceEmail:"indiaelkoep@gmail.com",
     serviceMo:"+91 9316053468",
     address:"408, Anupam Square, Nr. Althan Chowkdi, Vip Road, Althan, Surat - 395017",
-    accountNo:"582001010050986",
+    accountNo:"51950200000207",
     bankName:"BANK OF BARODA",
     branch:"ABRAMA",
     IFSC:"BARB0ABRSUR"
