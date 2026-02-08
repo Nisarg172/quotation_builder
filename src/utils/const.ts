@@ -80,7 +80,8 @@ export const CoumpanyInfo = [
     accountNo:"51950200000211",
     bankName:"Bank Of Baroda",
     branch:"ABRAMA",
-    IFSC:"BARB0ABRSUR"
+    IFSC:"BARB0ABRSUR",
+    GST: "24ALBPD4464H1ZG",
   },
 ];  
 
