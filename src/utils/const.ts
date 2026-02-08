@@ -76,7 +76,7 @@ export const CoumpanyInfo = [
     email: "info@veeraum.com",
     serviceEmail:"service@veeraum.com",
     serviceMo:"+91 99244 24806",
-    address:"408, Anupam Square, Nr. Althan Chowkdi, Vip Road, Althan, Surat - 395017",
+    address:"402, Anupam Square, Nr. Althan Chowkdi, Vip Road, Althan, Surat - 395017",
     accountNo:"51950200000211",
     bankName:"Bank Of Baroda",
     branch:"ABRAMA",
