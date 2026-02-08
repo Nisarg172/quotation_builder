@@ -81,7 +81,7 @@ export const CoumpanyInfo = [
     bankName:"Bank Of Baroda",
     branch:"ABRAMA",
     IFSC:"BARB0ABRSUR",
-    GST: "24ALBPD4464H1ZG",
+    GST: "24ALBPD4464H1ZG"
   },
 ];  
 
