@@ -823,16 +823,19 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
               <>
                 <div className="grid grid-cols-2 gap-4">
                   {/* Save & Share */}
-                  <Button
-                    className="flex items-center justify-center gap-2 py-6 text-lg font-medium 
+                  
+                  {quote.coumpanyId !== 5 && (
+                    <Button
+                      className="flex items-center justify-center gap-2 py-6 text-lg font-medium 
                bg-green-600 hover:bg-green-700 text-white rounded-xl transition"
-                    onClick={() =>
-                      savepdfAndShare({ data: quote, isCopyLink: false })
-                    }
-                  >
-                    <FaWhatsapp size={20} />
-                    Save & Share
-                  </Button>
+                      onClick={() =>
+                        savepdfAndShare({ data: quote, isCopyLink: false })
+                      }
+                    >
+                      <FaWhatsapp size={20} />
+                      Save & Share
+                    </Button>
+                  )}
 
                   {/* Copy Link */}
                   <Button

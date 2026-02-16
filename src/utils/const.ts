@@ -1,10 +1,10 @@
 export const CoumpanyInfo = [
   {
     id: 1,
-    companyName: "Hm Technology",
+    companyName: "HM Technology",
     logo: "/HM_Technology.png",
     contactName: "Hardik Thummar",
-    contactNo: "+91 7990532661",
+    contactNo: "+91 99043 86143",
     email: "sales@hmtechnology.in",
     GST: "24BATPT0263Q1ZW",
     serviceEmail:"servicehmtechnology@gmail.com",
