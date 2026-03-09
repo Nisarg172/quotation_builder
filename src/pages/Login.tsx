@@ -88,8 +88,10 @@ export default function Login() {
                 rightIcon={
                   <button
                     type="button"
-                    className="flex items-center"
-                    onClick={() => setShowPassword(!showPassword)}
+                    className="flex items-center cursor-pointer"
+                    onClick={() => {
+                      console.log("==============>");
+                      setShowPassword(!showPassword)}}
                   >
                     {showPassword ? (
                       <MdVisibilityOff className="h-5 w-5 text-slate-400 hover:text-slate-600" />

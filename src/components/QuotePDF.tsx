@@ -48,17 +48,15 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
     padding: 3,
     justifyContent: "center",
-     wordBreak: "break-all"
-    
-    
+    wordBreak: "break-all",
   },
 
   /* UPDATED COLUMN WIDTHS */
   colSr: { width: "3%" },
   colDesc: { width: "33%" },
   colImg: { width: "10%", alignItems: "center" },
-  colMake:{width:"11%"},
-  colModel:{width:"10%"},
+  colMake: { width: "11%" },
+  colModel: { width: "10%" },
   colQty: { width: "4%" },
   colSupply: { width: "9%" },
   colInstall: { width: "10%" },
@@ -76,10 +74,6 @@ const styles = StyleSheet.create({
   center: { textAlign: "center" },
   right: { textAlign: "right" },
 });
-
-
-
-
 
 export default function QuotePDF({ data }: { data: QuoteData }) {
   const random5Digit = Math.floor(10000 + Math.random() * 90000);
@@ -106,8 +100,32 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
     data.supplyTotal +
     data.installationTotal +
     (data.gstOnSupply ? parseFloat(supplyTotalGST) : 0) +
-    (data.gstOnInstallation ? parseFloat(installationTotalGST) : 0)
+    (data.gstOnInstallation ? parseFloat(installationTotalGST) : 0) +
+    (data?.freight_total || 0)
   ).toFixed(2);
+
+  const rows: any = [
+    [
+      data.gstOnSupply ? `SUPPLY TOTAL + GST (${GST_RATE}%)` : "SUPPLY TOTAL",
+      data.supplyTotal,
+      supplyTotalGST,
+    ],
+    [
+      data.gstOnInstallation
+        ? `INSTALLATION TOTAL + GST (${GST_RATE}%)`
+        : "INSTALLATION TOTAL",
+      data.installationTotal,
+      installationTotalGST,
+    ],
+  ];
+
+  // Add Freight row only if available
+  if (data?.freight_total) {
+    rows.push(["FREIGHT TOTAL", data.freight_total]);
+  }
+
+  
+  rows.push(["GRAND TOTAL", grandTotal ]);
 
   return (
     <Document>
@@ -131,7 +149,9 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
               <Image src={infoData.logo} style={{ width: 100 }} />
             )}
             <Text style={styles.companyName}>{infoData.companyName}</Text>
-            {infoData?.GST&&<Text style={styles.contactSmall}>GST: {infoData.GST}</Text>}
+            {infoData?.GST && (
+              <Text style={styles.contactSmall}>GST: {infoData.GST}</Text>
+            )}
             <Text style={styles.contactSmall}>
               Contact: {infoData.contactName}
             </Text>
@@ -152,8 +172,9 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
               {data.type} {"No: "} {random5Digit}
             </Text>
 
-            {(data.gstOnSupply || data.gstOnInstallation) &&
-              data.gstNumber && <Text>GST: {data.gstNumber}</Text>}
+            {(data.gstOnSupply || data.gstOnInstallation) && data.gstNumber && (
+              <Text>GST: {data.gstNumber}</Text>
+            )}
 
             <Text>Customer: {data.customerName || "-"}</Text>
             <Text>Mobile: {data.mobileNo || "-"}</Text>
@@ -164,8 +185,13 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
         {/* TABLE */}
         <View style={styles.table}>
           {/* SINGLE LINE HEADER */}
-          <View style={[styles.row, { backgroundColor: "#e5e7eb" }]} wrap={false}>
-            <Text style={[styles.cell, styles.colSr, styles.bold, styles.center]}>
+          <View
+            style={[styles.row, { backgroundColor: "#e5e7eb" }]}
+            wrap={false}
+          >
+            <Text
+              style={[styles.cell, styles.colSr, styles.bold, styles.center]}
+            >
               Sr.
             </Text>
             <Text
@@ -179,23 +205,13 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
               Image
             </Text>
             <Text
-              style={[
-                styles.cell,
-                styles.colMake,
-                styles.bold,
-                styles.center,
-              ]}
+              style={[styles.cell, styles.colMake, styles.bold, styles.center]}
             >
-              Make 
+              Make
             </Text>
 
-             <Text
-              style={[
-                styles.cell,
-                styles.colModel,
-                styles.bold,
-                styles.center,
-              ]}
+            <Text
+              style={[styles.cell, styles.colModel, styles.bold, styles.center]}
             >
               Model
             </Text>
@@ -259,37 +275,28 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                       )}
                     </View>
 
-                    <Text
-                      style={[
-                        styles.cell,
-                        styles.colMake,
-                        styles.center,
-                      ]}
-                    >
+                    <Text style={[styles.cell, styles.colMake, styles.center]}>
                       {it.make || "-"}
                     </Text>
-
 
                     <Text
                       style={[
                         styles.cell,
                         styles.colModel,
                         styles.center,
-                        { flexShrink: 1,
-                          flex: 1,
-                  flexWrap: "wrap"
-                         }
-                        
+                        { flexShrink: 1, flex: 1, flexWrap: "wrap" },
                       ]}
                     >
-                     {it.makeModel || "-"}
+                      {it.makeModel || "-"}
                     </Text>
 
                     <Text style={[styles.cell, styles.colQty, styles.center]}>
                       {it.qty}
                     </Text>
 
-                    <Text style={[styles.cell, styles.colSupply, styles.center]}>
+                    <Text
+                      style={[styles.cell, styles.colSupply, styles.center]}
+                    >
                       {it.unitRate}
                     </Text>
 
@@ -300,7 +307,10 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                     </Text>
 
                     <Text style={[styles.cell, styles.colTotal, styles.center]}>
-                      {(it.unitRate*it.qty+it.installation_amount*it.qty).toFixed(2)}
+                      {(
+                        it.unitRate * it.qty +
+                        it.installation_amount * it.qty
+                      ).toFixed(2)}
                     </Text>
                   </View>
                 );
@@ -313,23 +323,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
 
         {/* TOTALS */}
         <View style={{ borderWidth: 1, borderColor: "#000" }}>
-          {[
-            [
-              data.gstOnSupply
-                ? `SUPPLY TOTAL + GST (${GST_RATE}%)`
-                : "SUPPLY TOTAL",
-              data.supplyTotal,
-              supplyTotalGST,
-            ],
-            [
-              data.gstOnInstallation
-                ? `INSTALLATION TOTAL + GST (${GST_RATE}%)`
-                : "INSTALLATION TOTAL",
-              data.installationTotal,
-              installationTotalGST,
-            ],
-            ["GRAND TOTAL", grandTotal],
-          ].map(([label, value, gstvalue]: any) => (
+          {rows.map(([label, value, gstvalue]: any) => (
             <View key={label} style={styles.row} wrap={false}>
               <Text
                 style={[
@@ -356,20 +350,12 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
         </View>
       </Page>
 
-      {data.type !== "Purchase Order" && <TermsAndConditions infoData={infoData} type={data.type} />}
+      {data.type !== "Purchase Order" && (
+        <TermsAndConditions infoData={infoData} type={data.type} />
+      )}
     </Document>
   );
 }
-
-
-
-
-
-
-
-
-
-
 
 // // src/components/QuotePDF.tsx
 // import {
@@ -487,8 +473,6 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
 //     "Shop No. 30, Abhinandan Residency, Sarthana Road, Jakatnaka, Surat, Gujarat 395006",
 // }
 // ]
-
-
 
 // const random5Digit = Math.floor(10000 + Math.random() * 90000);
 

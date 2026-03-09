@@ -204,9 +204,18 @@ export default function QuotePreview({ data }: { data: QuoteData }) {
               </div>
             )}
 
+
+
+             {data.freight_total && (
+              <div className="flex justify-between border-t pt-2 mt-2">
+              <span className="text-gray-600">Freight Total </span>
+              <span className="font-medium text-gray-900">₹{data.freight_total}</span>
+            </div>
+            )}
+
             <div className="flex justify-between font-bold text-lg border-t-2 border-gray-300 pt-3 mt-3 text-blue-900">
               <span>Grand Total</span>
-              <span>₹{grandTotal.toFixed(2)}</span>
+              <span>₹{(grandTotal+(data?.freight_total||0)).toFixed(2)}</span>
             </div>
 
             {data.type!=="Purchase Order" && (
