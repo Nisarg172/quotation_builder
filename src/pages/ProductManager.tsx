@@ -15,7 +15,8 @@ import { Button } from "../components/ui/Button";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Drawer } from "../components/Drawer";
 import { toast } from "sonner";
-
+import { Editor } from "@tinymce/tinymce-react";
+import { decode } from "html-entities";
 import type { AccessoryOption, Category, ProductInput } from "@/Types/type";
 import type { Product } from "@/Types/type";
 import { FileUploader } from "@/components/FileUploader";
@@ -51,7 +52,7 @@ export default function ProductManager() {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [accessoryOptions, SetAccessoryOptions] = useState<AccessoryOption[]>(
-    [],
+    []
   );
 
   const [confirmDelete, setConfirmDelete] = useState<{
@@ -100,7 +101,7 @@ export default function ProductManager() {
     if (error) toast.error(error.message);
     else {
       SetAccessoryOptions(
-        data.map((acc) => ({ label: acc.name, value: acc.id })),
+        data.map((acc) => ({ label: acc.name, value: acc.id }))
       );
     }
   };
@@ -169,8 +170,9 @@ export default function ProductManager() {
             accessory_id: acc.value,
             product_id: editingProduct.id,
           }));
-          const { error: addProductAccessoryError } =
-            await addProductAccessory(productAccessoryIds);
+          const { error: addProductAccessoryError } = await addProductAccessory(
+            productAccessoryIds
+          );
           if (addProductAccessoryError) throw addProductAccessoryError;
         }
         const { error } = await editProduct({
@@ -284,21 +286,18 @@ export default function ProductManager() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredAndSortedProducts.slice(
       startIndex,
-      startIndex + itemsPerPage,
+      startIndex + itemsPerPage
     );
   }, [filteredAndSortedProducts, currentPage, itemsPerPage]);
 
   const groupedProducts = useMemo(() => {
     if (!groupByCategory) return null;
-    return filteredAndSortedProducts.reduce(
-      (acc, product) => {
-        const categoryName = product.category?.name || "Uncategorized";
-        if (!acc[categoryName]) acc[categoryName] = [];
-        acc[categoryName].push(product);
-        return acc;
-      },
-      {} as Record<string, Product[]>,
-    );
+    return filteredAndSortedProducts.reduce((acc, product) => {
+      const categoryName = product.category?.name || "Uncategorized";
+      if (!acc[categoryName]) acc[categoryName] = [];
+      acc[categoryName].push(product);
+      return acc;
+    }, {} as Record<string, Product[]>);
   }, [filteredAndSortedProducts, groupByCategory]);
 
   const handleSort = (field: keyof Product) => {
@@ -353,7 +352,7 @@ export default function ProductManager() {
             </div>
             {product.description && (
               <div className="text-xs text-gray-500 truncate max-w-[120px] sm:max-w-xs">
-                {product.description}
+                {decode(product.description).replace(/<[^>]+>/g, "")}
               </div>
             )}
 
@@ -562,7 +561,7 @@ export default function ProductManager() {
                       </table>
                     </div>
                   </div>
-                ),
+                )
               )}
             </div>
           ) : (
@@ -613,7 +612,10 @@ export default function ProductManager() {
                           </h4>
                           {p.description && (
                             <p className="mt-1 text-xs text-gray-500 line-clamp-2 leading-snug">
-                              {p.description}
+                              {decode(p.description).replace(
+                                /<[^>]+>/g,
+                                ""
+                              )}
                             </p>
                           )}
 
@@ -771,7 +773,7 @@ export default function ProductManager() {
                     <span className="font-medium">
                       {Math.min(
                         currentPage * itemsPerPage,
-                        filteredAndSortedProducts.length,
+                        filteredAndSortedProducts.length
                       )}
                     </span>{" "}
                     of{" "}
@@ -796,7 +798,7 @@ export default function ProductManager() {
                           (p) =>
                             p === 1 ||
                             p === totalPages ||
-                            (p >= currentPage - 1 && p <= currentPage + 1),
+                            (p >= currentPage - 1 && p <= currentPage + 1)
                         )
                         .map((page, idx, arr) => (
                           <div key={page} className="flex items-center">
@@ -859,11 +861,50 @@ export default function ProductManager() {
             <label className="block text-sm font-semibold text-gray-700">
               Description
             </label>
-            <textarea
-              placeholder="Enter details..."
-              rows={3}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none text-sm"
-              {...register("description")}
+
+            <Controller
+              name="description"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <Editor
+                  apiKey="ky9hzsv26wpbcwjgqwyu8jd4z4rb325rxilpva7fjj3ne2jy"
+                  value={field.value}
+                  onEditorChange={(content) => field.onChange(content)}
+                  init={{
+                    height: 350,
+                    menubar: "file edit view insert format tools table help",
+
+                    plugins: [
+                      "advlist",
+                      "autolink",
+                      "lists",
+                      "link",
+                      "image",
+                      "charmap",
+                      "preview",
+                      "anchor",
+                      "searchreplace",
+                      "visualblocks",
+                      "code",
+                      "fullscreen",
+                      "insertdatetime",
+                      "media",
+                      "table",
+                      "help",
+                      "wordcount",
+                      "emoticons",
+                      "codesample",
+                    ],
+
+                    toolbar:
+                      "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table image media link | blockquote codesample | removeformat | code fullscreen preview",
+
+                    content_style:
+                      "body { font-family:Inter,Helvetica,Arial,sans-serif; font-size:14px }",
+                  }}
+                />
+              )}
             />
           </div>
 
@@ -992,8 +1033,8 @@ export default function ProductManager() {
               {isSubmitting
                 ? "Processing..."
                 : editingProduct
-                  ? "Update Product"
-                  : "Save Product"}
+                ? "Update Product"
+                : "Save Product"}
             </Button>
           </div>
         </form>
