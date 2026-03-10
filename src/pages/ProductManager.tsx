@@ -15,6 +15,7 @@ import { Button } from "../components/ui/Button";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Drawer } from "../components/Drawer";
 import { toast } from "sonner";
+import { Editor } from "@tinymce/tinymce-react";
 
 import type { AccessoryOption, Category, ProductInput } from "@/Types/type";
 import type { Product } from "@/Types/type";
@@ -855,17 +856,56 @@ export default function ProductManager() {
             })}
           />
 
-          <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-gray-700">
-              Description
-            </label>
-            <textarea
-              placeholder="Enter details..."
-              rows={3}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none text-sm"
-              {...register("description")}
-            />
-          </div>
+  <div className="space-y-1.5">
+  <label className="block text-sm font-semibold text-gray-700">
+    Description
+  </label>
+
+  <Controller
+    name="description"
+    control={control}
+    defaultValue=""
+    render={({ field }) => (
+      <Editor
+        apiKey="ky9hzsv26wpbcwjgqwyu8jd4z4rb325rxilpva7fjj3ne2jy"
+        value={field.value}
+        onEditorChange={(content) => field.onChange(content)}
+        init={{
+          height: 350,
+          menubar: "file edit view insert format tools table help",
+
+          plugins: [
+            "advlist",
+            "autolink",
+            "lists",
+            "link",
+            "image",
+            "charmap",
+            "preview",
+            "anchor",
+            "searchreplace",
+            "visualblocks",
+            "code",
+            "fullscreen",
+            "insertdatetime",
+            "media",
+            "table",
+            "help",
+            "wordcount",
+            "emoticons",
+            "codesample",
+          ],
+
+          toolbar:
+            "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table image media link | blockquote codesample | removeformat | code fullscreen preview",
+
+          content_style:
+            "body { font-family:Inter,Helvetica,Arial,sans-serif; font-size:14px }",
+        }}
+      />
+    )}
+  />
+</div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input

@@ -7,9 +7,11 @@ import {
   Image,
   StyleSheet,
 } from "@react-pdf/renderer";
+
 import type { QuoteData, QuoteItem } from "../Types/type";
 import { TermsAndConditions } from "./TermsAndConditions";
 import { CoumpanyInfo } from "@/utils/const";
+import Html from "react-pdf-html";
 
 const BORDER = "#000";
 const GST_RATE = 18;
@@ -19,49 +21,93 @@ const styles = StyleSheet.create({
     fontSize: 9,
     padding: 16,
     fontFamily: "Helvetica",
-    lineHeight: 1.35,
+    lineHeight: 1.3,
     color: "#111827",
   },
 
-  headerRow: {
+  headerTopRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 15,
+  },
+
+  detailsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 10,
   },
-  companyBlock: { width: "55%" },
-  companyName: { fontSize: 14, fontWeight: "bold", marginBottom: 4 },
+
+  companyHeaderBlock: {
+    width: 100,
+    textAlign: "left",
+  },
+
+  companyName: {
+    fontSize: 8,
+    fontWeight: "bold",
+    marginTop: 4,
+    textTransform: "uppercase",
+  },
+
+  quotationTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textTransform: "uppercase",
+  },
+
+  companyBlock: { width: "55%", lineHeight: 1.1 },
+
   contactSmall: { fontSize: 10 },
-  rightBlock: { width: "25%", textAlign: "left" },
+
+  rightBlock: {
+    width: "40%",
+    textAlign: "right",
+    gap: 2,
+    lineHeight: 1.1,
+  },
 
   table: {
     width: "100%",
-    borderWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderTopWidth: 1,
+    borderBottomWidth: 0,
     borderColor: BORDER,
   },
+
   row: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderColor: BORDER,
   },
+
   cell: {
     borderRightWidth: 1,
     borderColor: BORDER,
-    padding: 3,
-    justifyContent: "center",
-     wordBreak: "break-all"
-    
-    
+    padding: 4,
   },
 
-  /* UPDATED COLUMN WIDTHS */
   colSr: { width: "3%" },
-  colDesc: { width: "33%" },
-  colImg: { width: "10%", alignItems: "center" },
-  colMake:{width:"11%"},
-  colModel:{width:"10%"},
+
+  colDesc: { width: "38%" },
+
+  colImg: {
+    width: "8%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  colMake: { width: "11%" },
+
+  colModel: { width: "10%" },
+
   colQty: { width: "4%" },
-  colSupply: { width: "9%" },
-  colInstall: { width: "10%" },
+
+  colSupply: { width: "8%" },
+
+  colInstall: { width: "8%" },
+
   colTotal: { width: "10%" },
 
   categoryRow: {
@@ -70,20 +116,22 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
     padding: 4,
   },
-  categoryText: { fontWeight: "bold", fontSize: 10 },
+
+  categoryText: {
+    fontWeight: "bold",
+    fontSize: 10,
+  },
 
   bold: { fontWeight: "bold" },
+
   center: { textAlign: "center" },
-  right: { textAlign: "right" },
 });
-
-
-
-
 
 export default function QuotePDF({ data }: { data: QuoteData }) {
   const random5Digit = Math.floor(10000 + Math.random() * 90000);
+
   let srNo = 0;
+
   const infoData =
     CoumpanyInfo.find(({ id }) => id == data.coumpanyId) || CoumpanyInfo[0];
 
@@ -97,6 +145,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
   );
 
   const supplyTotalGST = (data.supplyTotal * (GST_RATE / 100)).toFixed(2);
+
   const installationTotalGST = (
     data.installationTotal *
     (GST_RATE / 100)
@@ -112,98 +161,135 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* HEADER TITLE */}
-        <Text
-          style={{
-            ...styles.bold,
-            textAlign: "center",
-            fontSize: 12,
-            marginBottom: 8,
-          }}
-        >
-          {data.type}
-        </Text>
+        {/* HEADER */}
 
-        {/* HEADER INFO */}
-        <View style={styles.headerRow}>
-          <View style={{ ...styles.companyBlock, marginTop: "-20px" }}>
+        <View style={styles.headerTopRow}>
+          <View style={styles.companyHeaderBlock}>
             {infoData.logo && (
-              <Image src={infoData.logo} style={{ width: 100 }} />
+              <Image src={infoData.logo} style={{ width: 75, height: 65 }} />
             )}
+
             <Text style={styles.companyName}>{infoData.companyName}</Text>
-            {infoData?.GST&&<Text style={styles.contactSmall}>GST: {infoData.GST}</Text>}
+          </View>
+
+          <Text style={styles.quotationTitle}>{data.type}</Text>
+        </View>
+
+        <View
+          style={{
+            borderBottom: 1,
+            marginBottom: 10,
+            borderColor: "#ccc",
+          }}
+        />
+
+        {/* CUSTOMER + COMPANY DETAILS */}
+
+        <View style={styles.detailsRow}>
+          <View style={styles.companyBlock}>
+            {infoData?.GST && (
+              <Text style={styles.contactSmall}>
+                <Text style={styles.bold}>GST:</Text> {infoData.GST}
+              </Text>
+            )}
+
             <Text style={styles.contactSmall}>
-              Contact: {infoData.contactName}
+              <Text style={styles.bold}>Contact:</Text> {infoData.contactName}
             </Text>
-            <Text style={styles.contactSmall}>Phone: {infoData.contactNo}</Text>
-            <Text style={styles.contactSmall}>Email: {infoData.email}</Text>
-            <Text style={styles.contactSmall}>Address: {infoData.address}</Text>
+
+            <Text style={styles.contactSmall}>
+              <Text style={styles.bold}>Phone:</Text> {infoData.contactNo}
+            </Text>
+
+            <Text style={styles.contactSmall}>
+              <Text style={styles.bold}>Email:</Text> {infoData.email}
+            </Text>
+
+            <Text style={styles.contactSmall}>
+              <Text style={styles.bold}>Address:</Text> {infoData.address}
+            </Text>
           </View>
 
           <View style={styles.rightBlock}>
-            <Text
-              style={{
-                ...styles.bold,
-                textAlign: "right",
-                marginTop: "-20px",
-                marginBottom: 10,
-              }}
-            >
-              {data.type} {"No: "} {random5Digit}
+            <Text style={styles.bold}>
+              {data.type} No: {random5Digit}
             </Text>
 
-            {(data.gstOnSupply || data.gstOnInstallation) &&
-              data.gstNumber && <Text>GST: {data.gstNumber}</Text>}
+            <Text style={styles.bold}>
+              Customer:{" "}
+              <Text style={{ fontWeight: "normal" }}>
+                {data.customerName || "-"}
+              </Text>
+            </Text>
 
-            <Text>Customer: {data.customerName || "-"}</Text>
-            <Text>Mobile: {data.mobileNo || "-"}</Text>
-            <Text>Address: {data?.address || "-"}</Text>
+            <Text style={styles.bold}>
+              Mobile:{" "}
+              <Text style={{ fontWeight: "normal" }}>
+                {data.mobileNo || "-"}
+              </Text>
+            </Text>
+
+            <Text style={styles.bold}>
+              Address:{" "}
+              <Text style={{ fontWeight: "normal" }}>
+                {data?.address || "-"}
+              </Text>
+            </Text>
+
+            {(data.gstOnSupply || data.gstOnInstallation) && data.gstNumber && (
+              <Text style={styles.bold}>
+                GST:{" "}
+                <Text style={{ fontWeight: "normal" }}>{data.gstNumber}</Text>
+              </Text>
+            )}
           </View>
         </View>
 
         {/* TABLE */}
+
         <View style={styles.table}>
-          {/* SINGLE LINE HEADER */}
-          <View style={[styles.row, { backgroundColor: "#e5e7eb" }]} wrap={false}>
-            <Text style={[styles.cell, styles.colSr, styles.bold, styles.center]}>
+          {/* TABLE HEADER */}
+
+          <View
+            style={[styles.row, { backgroundColor: "#e5e7eb" }]}
+            wrap={false}
+          >
+            <Text
+              style={[styles.cell, styles.colSr, styles.bold, styles.center]}
+            >
               Sr.
             </Text>
+
             <Text
               style={[styles.cell, styles.colDesc, styles.bold, styles.center]}
             >
               Item Description
             </Text>
+
             <Text
               style={[styles.cell, styles.colImg, styles.bold, styles.center]}
             >
               Image
             </Text>
+
             <Text
-              style={[
-                styles.cell,
-                styles.colMake,
-                styles.bold,
-                styles.center,
-              ]}
+              style={[styles.cell, styles.colMake, styles.bold, styles.center]}
             >
-              Make 
+              Make
             </Text>
 
-             <Text
-              style={[
-                styles.cell,
-                styles.colModel,
-                styles.bold,
-                styles.center,
-              ]}
+            <Text
+              style={[styles.cell, styles.colModel, styles.bold, styles.center]}
             >
               Model
             </Text>
+
             <Text
               style={[styles.cell, styles.colQty, styles.bold, styles.center]}
             >
               Qty
             </Text>
+
             <Text
               style={[
                 styles.cell,
@@ -212,8 +298,9 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                 styles.center,
               ]}
             >
-              Supply Amount
+              Supply
             </Text>
+
             <Text
               style={[
                 styles.cell,
@@ -222,74 +309,86 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                 styles.center,
               ]}
             >
-              Installation Amount
+              Install
             </Text>
+
             <Text
-              style={[styles.cell, styles.colTotal, styles.bold, styles.center]}
+              style={[
+                styles.cell,
+                styles.colTotal,
+                styles.bold,
+                styles.center,
+                { borderRightWidth: 0 },
+              ]}
             >
-              Total Amount
+              Total
             </Text>
           </View>
 
-          {/* BODY */}
+          {/* TABLE BODY */}
+
           {Object.entries(groupedItems).map(([category, items]) => (
             <View key={category}>
-              <View style={styles.categoryRow} wrap={false}>
+              <View style={styles.categoryRow}>
                 <Text style={styles.categoryText}>{category}</Text>
               </View>
 
               {items.map((it) => {
                 srNo++;
+
                 return (
                   <View key={srNo} style={styles.row} wrap={false}>
                     <Text style={[styles.cell, styles.colSr, styles.center]}>
                       {srNo}
                     </Text>
 
-                    <Text style={[styles.cell, styles.colDesc]}>
-                      {it.description}
-                    </Text>
+                    {/* DESCRIPTION */}
+
+                    <View style={[styles.cell, styles.colDesc]}>
+                      <Html
+                        stylesheet={{
+                          p: { margin: 0, marginBottom: 3, fontSize: 9 },
+                          strong: { fontWeight: "bold" },
+                          b: { fontWeight: "bold" },
+                          ul: { paddingLeft: 10 },
+                          ol: { paddingLeft: 10 },
+                          li: { marginBottom: 2 },
+                        }}
+                      >
+                        {it.description || ""}
+                      </Html>
+                    </View>
+
+                    {/* IMAGE */}
 
                     <View style={[styles.cell, styles.colImg]}>
                       {it.image && (
                         <Image
                           src={it.image}
-                          style={{ width: "100%", height: "auto" }}
+                          style={{
+                            width: 45,
+                            height: 45,
+                            objectFit: "contain",
+                          }}
                         />
                       )}
                     </View>
 
-                    <Text
-                      style={[
-                        styles.cell,
-                        styles.colMake,
-                        styles.center,
-                      ]}
-                    >
+                    <Text style={[styles.cell, styles.colMake, styles.center]}>
                       {it.make || "-"}
                     </Text>
 
-
-                    <Text
-                      style={[
-                        styles.cell,
-                        styles.colModel,
-                        styles.center,
-                        { flexShrink: 1,
-                          flex: 1,
-                  flexWrap: "wrap"
-                         }
-                        
-                      ]}
-                    >
-                     {it.makeModel || "-"}
+                    <Text style={[styles.cell, styles.colModel, styles.center]}>
+                      {it.makeModel || "-"}
                     </Text>
 
                     <Text style={[styles.cell, styles.colQty, styles.center]}>
                       {it.qty}
                     </Text>
 
-                    <Text style={[styles.cell, styles.colSupply, styles.center]}>
+                    <Text
+                      style={[styles.cell, styles.colSupply, styles.center]}
+                    >
                       {it.unitRate}
                     </Text>
 
@@ -299,8 +398,18 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                       {it.installation_amount.toFixed(2)}
                     </Text>
 
-                    <Text style={[styles.cell, styles.colTotal, styles.center]}>
-                      {(it.unitRate*it.qty+it.installation_amount*it.qty).toFixed(2)}
+                    <Text
+                      style={[
+                        styles.cell,
+                        styles.colTotal,
+                        styles.center,
+                        { borderRightWidth: 0 },
+                      ]}
+                    >
+                      {(
+                        it.unitRate * it.qty +
+                        it.installation_amount * it.qty
+                      ).toFixed(2)}
                     </Text>
                   </View>
                 );
@@ -309,9 +418,10 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
           ))}
         </View>
 
+        {/* TOTALS */}
+
         <View style={{ height: 20 }} />
 
-        {/* TOTALS */}
         <View style={{ borderWidth: 1, borderColor: "#000" }}>
           {[
             [
@@ -330,11 +440,15 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
             ],
             ["GRAND TOTAL", grandTotal],
           ].map(([label, value, gstvalue]: any) => (
-            <View key={label} style={styles.row} wrap={false}>
+            <View key={label} style={styles.row}>
               <Text
                 style={[
                   styles.cell,
-                  { width: "90%", textAlign: "right", fontWeight: "bold" },
+                  {
+                    width: "80%",
+                    textAlign: "right",
+                    fontWeight: "bold",
+                  },
                 ]}
               >
                 {label}:
@@ -356,20 +470,12 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
         </View>
       </Page>
 
-      {data.type !== "Purchase Order" && <TermsAndConditions infoData={infoData} type={data.type} />}
+      {data.type !== "Purchase Order" && (
+        <TermsAndConditions infoData={infoData} type={data.type} />
+      )}
     </Document>
   );
 }
-
-
-
-
-
-
-
-
-
-
 
 // // src/components/QuotePDF.tsx
 // import {
@@ -487,8 +593,6 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
 //     "Shop No. 30, Abhinandan Residency, Sarthana Road, Jakatnaka, Surat, Gujarat 395006",
 // }
 // ]
-
-
 
 // const random5Digit = Math.floor(10000 + Math.random() * 90000);
 
