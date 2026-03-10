@@ -28,7 +28,6 @@ import SearchCreatableSelect, {
   type SelectOption,
 } from "@/components/ui/SearchCreatableSelect";
 import { supabase } from "@/supabase";
-import { decode } from "html-entities";
 
 const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
   const navigate = useNavigate();
@@ -52,7 +51,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
       type: "Quotation",
       coumpanyId: 1,
       gstNumber: "",
-    }
+    },
   );
 
   const coumpanyOption = CoumpanyInfo.map(({ companyName, id }) => ({
@@ -62,9 +61,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
 
   const [products, setProducts] = useState<ProductWithCatagory[]>([]);
   const [accessories, setAccessories] = useState<ProductWithCatagory[]>([]);
-  const [category, setCategory] = useState<{ label: string; value: string }[]>(
-    []
-  );
+  const [category, setCategory] = useState<{label:string,value:string}[]>([]);
 
   async function addProduct(productId: string) {
     let foundProduct: ProductWithAccessories | null = null;
@@ -110,7 +107,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
           installation_amount: accessory.installation_amount || 0,
           catagoryName: foundProduct!.catagoryName,
         };
-      }) || []
+      }) || [],
     );
 
     const items = [...quote.items, newItem, ...accessoryAsProduct];
@@ -167,7 +164,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
 
   function updateItem(idx: number, changes: Partial<QuoteItem>) {
     const items = quote.items.map((it, i) =>
-      i !== idx ? it : { ...it, ...changes }
+      i !== idx ? it : { ...it, ...changes },
     );
     updateQuote(items);
   }
@@ -180,7 +177,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
             ...it,
             installation_amount: value,
             totalInstallation: it.qty * value,
-          }
+          },
     );
     updateQuote(items);
   }
@@ -194,12 +191,12 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
 
   function updateQuote(items: QuoteItem[]) {
     const supplyTotal = Number(
-      items.reduce((sum, it) => sum + it.unitRate * it.qty, 0).toFixed(2)
+      items.reduce((sum, it) => sum + it.unitRate * it.qty, 0).toFixed(2),
     );
     const installationTotal = Number(
       items
         .reduce((sum, it) => sum + it.installation_amount * it.qty, 0)
-        .toFixed(2)
+        .toFixed(2),
     );
     setQuote({
       ...quote,
@@ -278,9 +275,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
         toast.success("Link copy!");
       } else {
         const message = `Please check this quotation:\n${link}`;
-        const whatsappUrl = `https://wa.me/${
-          data.mobileNo
-        }?text=${encodeURIComponent(message)}`;
+        const whatsappUrl = `https://wa.me/${data.mobileNo}?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, "_blank");
       }
       navigate(`/pdf/${billQuationData?.id}`);
@@ -293,7 +288,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
       acc[item.catagoryName].push(item);
       return acc;
     },
-    {}
+    {},
   );
 
   const productGroupedOptions = products.map((cat) => ({
@@ -310,7 +305,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
       .map((p) => ({ value: p.id, label: p.name })),
   }));
 
-  const fetchProducts = async (catagoryId?: string) => {
+  const fetchProducts = async (catagoryId?:string) => {
     const { data, error } = await getProductWithCatagory(catagoryId);
     if (error) toast.error(error.message);
     else setProducts(data || []);
@@ -322,14 +317,14 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
     else setAccessories(data || []);
   };
 
+
   const fetchCategory = async () => {
     const { data, error } = await getCatagory();
     if (error) toast.error(error.message);
-    else
-      setCategory(
-        data.map(({ id, name }) => ({ value: id, label: name })) || []
-      );
+    else setCategory(data.map(({id,name})=>({value:id,label:name})) || []);
   };
+
+
 
   const searchCustomers = async (search: string): Promise<SelectOption[]> => {
     const { data } = await supabase
@@ -350,7 +345,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
   };
 
   useEffect(() => {
-    fetchCategory();
+    fetchCategory()
     fetchProducts();
     fetchAccessories();
   }, []);
@@ -532,7 +527,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                             {it.name}
                           </div>
                           <div className="text-xs text-gray-500 truncate">
-                            {decode(it.description).replace(/<[^>]+>/g, "")}
+                            {it.description}
                           </div>
                         </td>
                         <td className="p-3 border-b">
@@ -575,7 +570,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                             onChange={(e) =>
                               updateInstallation(
                                 it.sn - 1,
-                                Number(e.target.value)
+                                Number(e.target.value),
                               )
                             }
                             className="w-24"
@@ -656,7 +651,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                             {it.name}
                           </h4>
                           <p className="text-sm text-gray-500 mt-2 line-clamp-2 leading-snug">
-                            {decode(it.description).replace(/<[^>]+>/g, "")}
+                            {it.description}
                           </p>
                         </div>
                       </div>
@@ -703,7 +698,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                                     f.k === "installation_amount"
                                       ? updateInstallation(
                                           it.sn - 1,
-                                          Number(e.target.value)
+                                          Number(e.target.value),
                                         )
                                       : updateItem(it.sn - 1, {
                                           [f.k]: Number(e.target.value),
@@ -846,7 +841,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
               <>
                 <div className="grid grid-cols-2 gap-4">
                   {/* Save & Share */}
-
+                  
                   {quote.coumpanyId !== 5 && (
                     <Button
                       className="flex items-center justify-center gap-2 py-6 text-lg font-medium 
