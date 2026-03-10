@@ -16,6 +16,11 @@ import Html from "react-pdf-html";
 const BORDER = "#000";
 const GST_RATE = 18;
 
+const isHTML = (str: string) => {
+  if (!str) return false;
+  return /<\/?[a-z][\s\S]*>/i.test(str);
+};
+
 const styles = StyleSheet.create({
   page: {
     fontSize: 9,
@@ -40,7 +45,6 @@ const styles = StyleSheet.create({
 
   companyHeaderBlock: {
     width: 100,
-    textAlign: "left",
   },
 
   companyName: {
@@ -72,7 +76,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderRightWidth: 1,
     borderTopWidth: 1,
-    borderBottomWidth: 0,
     borderColor: BORDER,
   },
 
@@ -89,7 +92,6 @@ const styles = StyleSheet.create({
   },
 
   colSr: { width: "3%" },
-
   colDesc: { width: "38%" },
 
   colImg: {
@@ -99,15 +101,10 @@ const styles = StyleSheet.create({
   },
 
   colMake: { width: "11%" },
-
   colModel: { width: "10%" },
-
   colQty: { width: "4%" },
-
   colSupply: { width: "8%" },
-
   colInstall: { width: "8%" },
-
   colTotal: { width: "10%" },
 
   categoryRow: {
@@ -123,13 +120,11 @@ const styles = StyleSheet.create({
   },
 
   bold: { fontWeight: "bold" },
-
   center: { textAlign: "center" },
 });
 
 export default function QuotePDF({ data }: { data: QuoteData }) {
   const random5Digit = Math.floor(10000 + Math.random() * 90000);
-
   let srNo = 0;
 
   const infoData =
@@ -145,7 +140,6 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
   );
 
   const supplyTotalGST = (data.supplyTotal * (GST_RATE / 100)).toFixed(2);
-
   const installationTotalGST = (
     data.installationTotal *
     (GST_RATE / 100)
@@ -168,22 +162,15 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
             {infoData.logo && (
               <Image src={infoData.logo} style={{ width: 75, height: 65 }} />
             )}
-
             <Text style={styles.companyName}>{infoData.companyName}</Text>
           </View>
 
           <Text style={styles.quotationTitle}>{data.type}</Text>
         </View>
 
-        <View
-          style={{
-            borderBottom: 1,
-            marginBottom: 10,
-            borderColor: "#ccc",
-          }}
-        />
+        <View style={{ borderBottom: 1, marginBottom: 10 }} />
 
-        {/* CUSTOMER + COMPANY DETAILS */}
+        {/* DETAILS */}
 
         <View style={styles.detailsRow}>
           <View style={styles.companyBlock}>
@@ -232,101 +219,15 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
             <Text style={styles.bold}>
               Address:{" "}
               <Text style={{ fontWeight: "normal" }}>
-                {data?.address || "-"}
+                {data.address || "-"}
               </Text>
             </Text>
-
-            {(data.gstOnSupply || data.gstOnInstallation) && data.gstNumber && (
-              <Text style={styles.bold}>
-                GST:{" "}
-                <Text style={{ fontWeight: "normal" }}>{data.gstNumber}</Text>
-              </Text>
-            )}
           </View>
         </View>
 
         {/* TABLE */}
 
         <View style={styles.table}>
-          {/* TABLE HEADER */}
-
-          <View
-            style={[styles.row, { backgroundColor: "#e5e7eb" }]}
-            wrap={false}
-          >
-            <Text
-              style={[styles.cell, styles.colSr, styles.bold, styles.center]}
-            >
-              Sr.
-            </Text>
-
-            <Text
-              style={[styles.cell, styles.colDesc, styles.bold, styles.center]}
-            >
-              Item Description
-            </Text>
-
-            <Text
-              style={[styles.cell, styles.colImg, styles.bold, styles.center]}
-            >
-              Image
-            </Text>
-
-            <Text
-              style={[styles.cell, styles.colMake, styles.bold, styles.center]}
-            >
-              Make
-            </Text>
-
-            <Text
-              style={[styles.cell, styles.colModel, styles.bold, styles.center]}
-            >
-              Model
-            </Text>
-
-            <Text
-              style={[styles.cell, styles.colQty, styles.bold, styles.center]}
-            >
-              Qty
-            </Text>
-
-            <Text
-              style={[
-                styles.cell,
-                styles.colSupply,
-                styles.bold,
-                styles.center,
-              ]}
-            >
-              Supply
-            </Text>
-
-            <Text
-              style={[
-                styles.cell,
-                styles.colInstall,
-                styles.bold,
-                styles.center,
-              ]}
-            >
-              Install
-            </Text>
-
-            <Text
-              style={[
-                styles.cell,
-                styles.colTotal,
-                styles.bold,
-                styles.center,
-                { borderRightWidth: 0 },
-              ]}
-            >
-              Total
-            </Text>
-          </View>
-
-          {/* TABLE BODY */}
-
           {Object.entries(groupedItems).map(([category, items]) => (
             <View key={category}>
               <View style={styles.categoryRow}>
@@ -337,26 +238,28 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                 srNo++;
 
                 return (
-                  <View key={srNo} style={styles.row} wrap={false}>
+                  <View key={srNo} style={styles.row} wrap>
                     <Text style={[styles.cell, styles.colSr, styles.center]}>
                       {srNo}
                     </Text>
 
-                    {/* DESCRIPTION */}
-
                     <View style={[styles.cell, styles.colDesc]}>
-                      <Html
-                        stylesheet={{
-                          p: { margin: 0, marginBottom: 3, fontSize: 9 },
-                          strong: { fontWeight: "bold" },
-                          b: { fontWeight: "bold" },
-                          ul: { paddingLeft: 10 },
-                          ol: { paddingLeft: 10 },
-                          li: { marginBottom: 2 },
-                        }}
-                      >
-                        {it.description || ""}
-                      </Html>
+                      {isHTML(it.description) ? (
+                        <Html
+                          stylesheet={{
+                            p: { margin: 0, marginBottom: 3, fontSize: 9 },
+                            strong: { fontWeight: "bold" },
+                            b: { fontWeight: "bold" },
+                            ul: { paddingLeft: 10 },
+                            ol: { paddingLeft: 10 },
+                            li: { marginBottom: 2 },
+                          }}
+                        >
+                          {it.description}
+                        </Html>
+                      ) : (
+                        <Text>{it.description || "-"}</Text>
+                      )}
                     </View>
 
                     {/* IMAGE */}
@@ -365,11 +268,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                       {it.image && (
                         <Image
                           src={it.image}
-                          style={{
-                            width: 45,
-                            height: 45,
-                            objectFit: "contain",
-                          }}
+                          style={{ width: 40, height: 40 }}
                         />
                       )}
                     </View>
@@ -417,57 +316,6 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
             </View>
           ))}
         </View>
-
-        {/* TOTALS */}
-
-        <View style={{ height: 20 }} />
-
-        <View style={{ borderWidth: 1, borderColor: "#000" }}>
-          {[
-            [
-              data.gstOnSupply
-                ? `SUPPLY TOTAL + GST (${GST_RATE}%)`
-                : "SUPPLY TOTAL",
-              data.supplyTotal,
-              supplyTotalGST,
-            ],
-            [
-              data.gstOnInstallation
-                ? `INSTALLATION TOTAL + GST (${GST_RATE}%)`
-                : "INSTALLATION TOTAL",
-              data.installationTotal,
-              installationTotalGST,
-            ],
-            ["GRAND TOTAL", grandTotal],
-          ].map(([label, value, gstvalue]: any) => (
-            <View key={label} style={styles.row}>
-              <Text
-                style={[
-                  styles.cell,
-                  {
-                    width: "80%",
-                    textAlign: "right",
-                    fontWeight: "bold",
-                  },
-                ]}
-              >
-                {label}:
-              </Text>
-
-              <Text
-                style={{
-                  width: "20%",
-                  textAlign: "right",
-                  fontWeight: "bold",
-                  padding: 4,
-                }}
-              >
-                {Number(value).toFixed(2)}
-                {label.includes("GST") && `\n+ GST (${gstvalue})`}
-              </Text>
-            </View>
-          ))}
-        </View>
       </Page>
 
       {data.type !== "Purchase Order" && (
@@ -476,7 +324,6 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
     </Document>
   );
 }
-
 // // src/components/QuotePDF.tsx
 // import {
 //   Document,
