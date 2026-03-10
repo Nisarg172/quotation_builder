@@ -3,7 +3,7 @@ import type { UseFormRegisterReturn } from "react-hook-form";
 
 interface TextInputProps {
   label?: string;
-  value?: string;
+  value?: string|Number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   required?: boolean;
@@ -30,7 +30,7 @@ const Input: React.FC<TextInputProps> = ({
   rightIcon,
   className = "",
 }) => {
-  const hasError = required && !value?.trim();
+  const hasError = required && !value?.toString().trim();
 
   return (
     <div className={`space-y-1.5 ${className}`}>
@@ -44,7 +44,7 @@ const Input: React.FC<TextInputProps> = ({
       <div className="relative">
         {/* Left Icon - Positioned consistently */}
         {leftIcon && (
-          <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+          <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
             {leftIcon}
           </span>
         )}
@@ -52,7 +52,7 @@ const Input: React.FC<TextInputProps> = ({
         <input
           type={type}
           placeholder={placeholder}
-          value={value}
+          value={value?.toString()}
           maxLength={maxLength}
           {...register}
           onChange={(e) => {
@@ -81,7 +81,7 @@ const Input: React.FC<TextInputProps> = ({
 
         {/* Right Icon */}
         {rightIcon && (
-          <span className="absolute inset-y-0 right-3 flex items-center text-gray-400 pointer-events-none">
+          <span className="absolute inset-y-0 right-3 flex items-center text-gray-400">
             {rightIcon}
           </span>
         )}

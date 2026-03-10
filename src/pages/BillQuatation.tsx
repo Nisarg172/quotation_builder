@@ -42,6 +42,7 @@ const BillQuotation = () => {
         installationTotal: data.installation_total,
         supplyTotal: data.supply_total,
         grandTotal: data.grand_total,
+        freight_total:data.freight_total||undefined,
         items: data.bill_quatation_product.map((ele: any, i: number) => ({
           sn: i + 1,
           id: ele.id,

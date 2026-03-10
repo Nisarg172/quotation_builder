@@ -29,6 +29,7 @@ export type QuoteData = {
   type:Database["public"]["Enums"]["bill_type"]
   coumpanyId:number,
   gstNumber?: string,
+  freight_total?:number;
 };
 
 export type Category = {

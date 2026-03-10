@@ -250,6 +250,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
         coumpany_id: data.coumpanyId,
         gst_number: data?.gstNumber || null,
         address: data?.address,
+        freight_total:data?.freight_total||null
       };
       const { data: billQuationData, error: billQuationError } =
         await createBillQuation(billQuatioPyloade);
@@ -807,6 +808,22 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                 />
               </div>
             )}
+
+            <div className="pt-2">
+                <Input
+                  label="Freight Total"
+                  type="number"
+                  value={quote.freight_total}
+                  onChange={(e) =>
+                    setQuote({
+                      ...quote,
+                      freight_total: Number(e.target?.value||null),
+                    })
+                  }
+                  className="uppercase"
+                />
+              </div>
+
             <div className="pt-4 border-t flex justify-between items-center">
               <span className="text-lg font-bold">Grand Total</span>
               <span className="text-2xl font-black text-brand-primary">
@@ -815,7 +832,8 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                   quote.supplyTotal +
                   quote.installationTotal +
                   (quote.gstOnSupply ? quote.supplyTotal * 0.18 : 0) +
-                  (quote.gstOnInstallation ? quote.installationTotal * 0.18 : 0)
+                  (quote.gstOnInstallation ? quote.installationTotal * 0.18 : 0) +
+                  (quote?.freight_total||0)
                 ).toFixed(2)}
               </span>
             </div>
@@ -854,28 +872,6 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                     Copy Link
                   </Button>
                 </div>
-
-                {/* <PDFDownloadLink
-                  document={<QuotePDF data={{ ...quote, coumpanyId: coumpany.value }} />}
-                  fileName={`${quote.customerName}_Quotation.pdf`}
-                >
-                  {({ loading }) => (
-                    <button className="w-full py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors">
-                      {loading ? "Generating..." : "📄 Download Customer Copy"}
-                    </button>
-                  )}
-                </PDFDownloadLink>
-
-                <PDFDownloadLink
-                  document={<StaffQuotePDF data={{ ...quote }} />}
-                  fileName={`${quote.customerName}_Staff_Copy.pdf`}
-                >
-                  {({ loading }) => (
-                    <button className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                      {loading ? "Generating..." : "🔒 Download Staff Copy"}
-                    </button>
-                  )}
-                </PDFDownloadLink> */}
               </>
             ) : (
               <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg text-amber-800 text-sm text-center">

@@ -785,6 +785,29 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
     (data.gstOnInstallation ? parseFloat(installationTotalGST) : 0)
   ).toFixed(0);
 
+  const rows: any = [
+    [
+      data.gstOnSupply ? `SUPPLY TOTAL + GST (${GST_RATE}%)` : "SUPPLY TOTAL",
+      data.supplyTotal,
+      supplyTotalGST,
+    ],
+    [
+      data.gstOnInstallation
+        ? `INSTALLATION TOTAL + GST (${GST_RATE}%)`
+        : "INSTALLATION TOTAL",
+      data.installationTotal,
+      installationTotalGST,
+    ],
+  ];
+
+  // Add Freight row only if available
+  if (data?.freight_total) {
+    rows.push(["FREIGHT TOTAL", data.freight_total]);
+  }
+
+  
+  rows.push(["GRAND TOTAL", grandTotal ]);
+
   return (
     <Document>
       {/* ✅ hyphenationCallback on Page as well */}
