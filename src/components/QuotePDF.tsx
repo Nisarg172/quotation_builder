@@ -11,6 +11,20 @@ import type { QuoteData, QuoteItem } from "../Types/type";
 import { TermsAndConditions } from "./TermsAndConditions";
 import { CoumpanyInfo } from "@/utils/const";
 import { Font } from "@react-pdf/renderer";
+
+
+Font.register({
+  family: "Calibri",
+  fonts: [
+    {
+      src: "/fonts/calibri.ttf",
+    },
+    {
+      src: "/fonts/calibri-bold.ttf",
+      fontWeight: "bold",
+    },
+  ],
+});
 Font.registerHyphenationCallback(word => [word]);
 const BORDER = "#000";
 const GST_RATE = 18;
@@ -54,13 +68,13 @@ const styles = StyleSheet.create({
 
   /* UPDATED COLUMN WIDTHS */
   colSr: { width: "3%" },
-  colDesc: { width: "33%" },
+  colDesc: { width: "37%" },
   colImg: { width: "10%", alignItems: "center" },
-  colMake: { width: "11%" },
+  colMake: { width: "10%" },
   colModel: { width: "10%" },
   colQty: { width: "4%" },
-  colSupply: { width: "9%" },
-  colInstall: { width: "10%" },
+  colSupply: { width: "8%" },
+  colInstall: { width: "8%" },
   colTotal: { width: "10%" },
 
   categoryRow: {
@@ -77,7 +91,6 @@ const styles = StyleSheet.create({
 });
 
 export default function QuotePDF({ data }: { data: QuoteData }) {
-  const random5Digit = Math.floor(10000 + Math.random() * 90000);
   let srNo = 0;
   const infoData =
     CoumpanyInfo.find(({ id }) => id == data.coumpanyId) || CoumpanyInfo[0];
@@ -91,19 +104,19 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
     {},
   );
 
-  const supplyTotalGST = (data.supplyTotal * (GST_RATE / 100)).toFixed(2);
-  const installationTotalGST = (
+  const supplyTotalGST = (data.supplyTotal * Math.round(GST_RATE / 100));
+  const installationTotalGST = Math.round(
     data.installationTotal *
     (GST_RATE / 100)
-  ).toFixed(2);
+  )
 
-  const grandTotal = (
+  const grandTotal = Math.round(
     data.supplyTotal +
     data.installationTotal +
-    (data.gstOnSupply ? parseFloat(supplyTotalGST) : 0) +
-    (data.gstOnInstallation ? parseFloat(installationTotalGST) : 0) +
+    (data.gstOnSupply ? supplyTotalGST : 0) +
+    (data.gstOnInstallation ? installationTotalGST : 0) +
     (data?.freight_total || 0)
-  ).toFixed(2);
+  );
 
   const rows: any = [
     [
@@ -170,7 +183,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                 marginBottom: 10,
               }}
             >
-              {data.type} {"No: "} {random5Digit}
+              {data.type} {"No: "} {data.id.split("-").at(0)}
             </Text>
 
             {(data.gstOnSupply || data.gstOnInstallation) && data.gstNumber && (
@@ -242,7 +255,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
               Installation Amount
             </Text>
             <Text
-              style={[styles.cell, styles.colTotal, styles.bold, styles.center]}
+              style={[styles.cell, styles.colTotal, styles.bold, styles.center,{borderRightWidth:0}]}
             >
               Total Amount
             </Text>
@@ -255,10 +268,10 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                 <Text style={styles.categoryText}>{category}</Text>
               </View>
 
-              {items.map((it) => {
+              {items.map((it,i) => {
                 srNo++;
                 return (
-                  <View key={srNo} style={styles.row} wrap={false}>
+                  <View key={srNo} style={{...styles.row,borderBottomWidth:items.length==i+1?0:1}} wrap={false}>
                     <Text style={[styles.cell, styles.colSr, styles.center]}>
                       {srNo}
                     </Text>
@@ -304,14 +317,14 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                     <Text
                       style={[styles.cell, styles.colInstall, styles.center]}
                     >
-                      {it.installation_amount.toFixed(2)}
+                      {Math.round(it.installation_amount)}
                     </Text>
 
-                    <Text style={[styles.cell, styles.colTotal, styles.center]}>
-                      {(
+                    <Text style={[styles.cell, styles.colTotal, styles.center,{borderRightWidth:0}]}>
+                      {Math.round(
                         it.unitRate * it.qty +
                         it.installation_amount * it.qty
-                      ).toFixed(2)}
+                      )}
                     </Text>
                   </View>
                 );
@@ -323,9 +336,9 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
         <View style={{ height: 20 }} />
 
         {/* TOTALS */}
-        <View style={{ borderWidth: 1, borderColor: "#000" }}>
-          {rows.map(([label, value, gstvalue]: any) => (
-            <View key={label} style={styles.row} wrap={false}>
+        <View style={{ borderWidth: 1, borderColor: BORDER }}>
+          {rows.map(([label, value, gstvalue]: any,i:number) => (
+            <View key={label} style={{...styles.row,borderBottomWidth:rows.length==i+1?0:1 }} wrap={false}>
               <Text
                 style={[
                   styles.cell,
@@ -343,7 +356,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
                   padding: 4,
                 }}
               >
-                {Number(value).toFixed(2)}
+                {Math.round(Number(value))}
                 {label.includes("GST") && `\n+ GST (${gstvalue})`}
               </Text>
             </View>

@@ -12,8 +12,8 @@ export const createBillQuation =async (data:billQuatation["Insert"])=>
 export const getBillQuatationsbyId = async(id:string)=>{
 return await supabase.from(tableName).select(`*,
     customer(name,mobile_no,address),
-    bill_quatation_product(quantity,unit_rate,installation_amount,category_name,
-    ...product(id,name,description,model,make,image_url))
+    bill_quatation_product(quantity,unit_rate,installation_amount,category_name,descriptionChange:description,
+    ...product(id,model,description,name,make,image_url))
     `).eq("id",id).single();
 }
 

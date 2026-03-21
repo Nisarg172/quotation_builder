@@ -28,6 +28,7 @@ const EditQuatation = () => {
 
       // Mapping logic separated for clarity
       const formattedData: QuoteData = {
+        id:data.id,
         customerName: data.customer.name,
         address: data.customer.address,
         mobileNo: data.customer.mobile_no,

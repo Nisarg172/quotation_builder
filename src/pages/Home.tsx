@@ -61,7 +61,9 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
 
   const [products, setProducts] = useState<ProductWithCatagory[]>([]);
   const [accessories, setAccessories] = useState<ProductWithCatagory[]>([]);
-  const [category, setCategory] = useState<{label:string,value:string}[]>([]);
+  const [category, setCategory] = useState<{ label: string; value: string }[]>(
+    [],
+  );
 
   async function addProduct(productId: string) {
     let foundProduct: ProductWithAccessories | null = null;
@@ -247,7 +249,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
         coumpany_id: data.coumpanyId,
         gst_number: data?.gstNumber || null,
         address: data?.address,
-        freight_total:data?.freight_total||null
+        freight_total: data?.freight_total || null,
       };
       const { data: billQuationData, error: billQuationError } =
         await createBillQuation(billQuatioPyloade);
@@ -261,6 +263,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
           unit_rate: ele.unitRate,
           installation_amount: ele.installation_amount,
           category_name: ele.catagoryName,
+          description: ele.description,
         }));
 
         const { error: createBillQuationProductError } =
@@ -305,7 +308,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
       .map((p) => ({ value: p.id, label: p.name })),
   }));
 
-  const fetchProducts = async (catagoryId?:string) => {
+  const fetchProducts = async (catagoryId?: string) => {
     const { data, error } = await getProductWithCatagory(catagoryId);
     if (error) toast.error(error.message);
     else setProducts(data || []);
@@ -317,14 +320,14 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
     else setAccessories(data || []);
   };
 
-
   const fetchCategory = async () => {
     const { data, error } = await getCatagory();
     if (error) toast.error(error.message);
-    else setCategory(data.map(({id,name})=>({value:id,label:name})) || []);
+    else
+      setCategory(
+        data.map(({ id, name }) => ({ value: id, label: name })) || [],
+      );
   };
-
-
 
   const searchCustomers = async (search: string): Promise<SelectOption[]> => {
     const { data } = await supabase
@@ -345,7 +348,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
   };
 
   useEffect(() => {
-    fetchCategory()
+    fetchCategory();
     fetchProducts();
     fetchAccessories();
   }, []);
@@ -522,13 +525,24 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                         className="hover:bg-gray-50 transition-colors"
                       >
                         <td className="p-3 border-b text-gray-500">{it.sn}</td>
-                        <td className="p-3 border-b text-left max-w-xs">
-                          <div className="font-medium text-gray-900">
+                        <td className="p-3 border-b text-left max-w-xs space-y-1">
+                          <p
+                            
+                            className="w-full font-medium"
+                          >
                             {it.name}
-                          </div>
-                          <div className="text-xs text-gray-500 truncate">
-                            {it.description}
-                          </div>
+                          </p>
+
+                          <textarea
+                            rows={3}
+                            value={it.description || ""}
+                            onChange={(e) =>
+                              updateItem(it.sn - 1, {
+                                description: e.target.value,
+                              })
+                            }
+                            className="w-full text-xs border-0"
+                          />
                         </td>
                         <td className="p-3 border-b">
                           {it.image && (
@@ -647,12 +661,17 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <h4 className="text-gray-900 font-black text-lg leading-tight group-hover:text-brand-primary transition-colors duration-300">
-                            {it.name}
-                          </h4>
-                          <p className="text-sm text-gray-500 mt-2 line-clamp-2 leading-snug">
-                            {it.description}
-                          </p>
+                          <p className="font-black text-lg">{it.name}</p>
+
+                          <textarea
+                            value={it.description || ""}
+                            onChange={(e) =>
+                              updateItem(it.sn - 1, {
+                                description: e.target.value,
+                              })
+                            }
+                            className="w-full text-sm border rounded p-2 mt-2"
+                          />
                         </div>
                       </div>
 
@@ -805,19 +824,19 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
             )}
 
             <div className="pt-2">
-                <Input
-                  label="Freight Total"
-                  type="number"
-                  value={quote.freight_total}
-                  onChange={(e) =>
-                    setQuote({
-                      ...quote,
-                      freight_total: Number(e.target?.value||null),
-                    })
-                  }
-                  className="uppercase"
-                />
-              </div>
+              <Input
+                label="Freight Total"
+                type="number"
+                value={quote.freight_total}
+                onChange={(e) =>
+                  setQuote({
+                    ...quote,
+                    freight_total: Number(e.target?.value || null),
+                  })
+                }
+                className="uppercase"
+              />
+            </div>
 
             <div className="pt-4 border-t flex justify-between items-center">
               <span className="text-lg font-bold">Grand Total</span>
@@ -827,8 +846,10 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
                   quote.supplyTotal +
                   quote.installationTotal +
                   (quote.gstOnSupply ? quote.supplyTotal * 0.18 : 0) +
-                  (quote.gstOnInstallation ? quote.installationTotal * 0.18 : 0) +
-                  (quote?.freight_total||0)
+                  (quote.gstOnInstallation
+                    ? quote.installationTotal * 0.18
+                    : 0) +
+                  (quote?.freight_total || 0)
                 ).toFixed(2)}
               </span>
             </div>
@@ -841,7 +862,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
               <>
                 <div className="grid grid-cols-2 gap-4">
                   {/* Save & Share */}
-                  
+
                   {quote.coumpanyId !== 5 && (
                     <Button
                       className="flex items-center justify-center gap-2 py-6 text-lg font-medium 

@@ -16,6 +16,7 @@ export type QuoteItem = {
 };
 
 export type QuoteData = {
+  id:string,
   items: QuoteItem[];
   customerName: string;
   mobileNo: string;

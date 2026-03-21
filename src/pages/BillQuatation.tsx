@@ -31,6 +31,7 @@ const BillQuotation = () => {
 
       // Mapping logic separated for clarity
       const formattedData: QuoteData = {
+        id:data.id,
         customerName: data.customer.name,
         address: data?.address,
         mobileNo: data.customer.mobile_no,
@@ -43,11 +44,11 @@ const BillQuotation = () => {
         supplyTotal: data.supply_total,
         grandTotal: data.grand_total,
         freight_total:data.freight_total||undefined,
-        items: data.bill_quatation_product.map((ele: any, i: number) => ({
+        items: data.bill_quatation_product.map((ele, i: number) => ({
           sn: i + 1,
           id: ele.id,
           catagoryName: ele.category_name,
-          description: ele.description || "-",
+          description: ele?.descriptionChange|| ele?.description || "-",
           installation_amount: ele.installation_amount,
           make: ele.make || "-",
           makeModel: ele.model || "-",

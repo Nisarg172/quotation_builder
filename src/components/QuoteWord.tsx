@@ -36,7 +36,6 @@ const getImageBuffer = async (url: string) => {
 
 export default async function generateQuoteWord(data: QuoteData) {
   let srNo = 0;
-  const random5Digit = Math.floor(10000 + Math.random() * 90000);
 
   const infoData =
     CoumpanyInfo.find(({ id }) => id == data.coumpanyId) || CoumpanyInfo[0];
@@ -345,7 +344,7 @@ export default async function generateQuoteWord(data: QuoteData) {
             alignment: AlignmentType.RIGHT,
             children: [
               new TextRun({
-                text: `Quotation No: ${random5Digit}`,
+                text: `Quotation No: ${data.id.split("-").at(0)}`,
                 bold: true,
                 size: 24,
               }),

@@ -11,7 +11,7 @@ import QuoteWord from "./QuoteWord";
 
 const GST_RATE = 18;
 
-export default function QuotePreview({ data }: { data: QuoteData }) {
+export default function   QuotationPreview({ data }: { data: QuoteData }) {
   const { user } = useAuth();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [showTerms, setShowTerms] = useState(false);
