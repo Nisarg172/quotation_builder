@@ -38,6 +38,7 @@ const Home: FC<{ quateData?: QuoteData }> = ({ quateData }) => {
   ];
   const [quote, setQuote] = useState<QuoteData>(
     quateData ?? {
+      id:"",
       items: [],
       customerName: "",
       mobileNo: "",
