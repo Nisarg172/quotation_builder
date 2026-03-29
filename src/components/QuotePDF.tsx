@@ -1,4 +1,3 @@
-// src/components/QuotePDF.tsx
 import {
   Document,
   Page,
@@ -63,7 +62,7 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
     padding: 3,
     justifyContent: "center",
-    wordBreak: "normal"
+    wordBreak: "break-all"
   },
 
   /* UPDATED COLUMN WIDTHS */
@@ -104,7 +103,7 @@ export default function QuotePDF({ data }: { data: QuoteData }) {
     {},
   );
 
-  const supplyTotalGST = (data.supplyTotal * Math.round(GST_RATE / 100));
+  const supplyTotalGST = Math.round(data.supplyTotal * GST_RATE / 100);
   const installationTotalGST = Math.round(
     data.installationTotal *
     (GST_RATE / 100)

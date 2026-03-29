@@ -18,6 +18,7 @@ const BillQuotation = () => {
     try {
       setLoading(true);
       const { data, error } = await getBillQuatationsbyId(targetId);
+      console.log('data:=========> ', data);
 
       if (error) {
         toast.error(error.message);
